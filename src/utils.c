@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include <string.h>
+
 //utils
 
 float floatmod(float a, float b){
@@ -25,16 +27,23 @@ void insert_data(DynamicArray* arr, void* data, size_t dataSize)
     memcpy( ((char*)arr->buffer) + arr->usage*dataSize, data, dataSize);
 }
 
+void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize){
+    memcpy( ((char*)arr->buffer + index*dataSize), data, dataSize );
+}
+
+void* get_data(DynamicArray* arr, size_t index, size_t dataSize){
+    return (void*)(((char*)arr->buffer) + index*dataSize);
+}
+
 void remove_data(DynamicArray* arr, size_t index, size_t dataSize)
 {
     if (index < 0 || index >= arr->usage)
         return;
 
     if (index < arr->usage-1)
-        memcpy( ((char*)arr->buffer) + index*dataSize, ((char*)arr->buffer) + (index+1)*dataSize );
+        memcpy( ((char*)arr->buffer) + index*dataSize, ((char*)arr->buffer) + (index+1)*dataSize, (arr->usage-(index+1))*dataSize );
 
     --arr->usage;
-
 }
 
 void free_dynamic_array(DynamicArray* arr){
