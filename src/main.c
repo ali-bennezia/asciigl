@@ -81,6 +81,55 @@ int main(int argc, char* argv[]){
     c.x = 0.2; c.y = 0.2; c.z = 0.2;
     trgl4.a = a; trgl4.b = b; trgl4.c = c;
 
+    Triangle trgl5;
+    a.x = 0.2; a.y = -0.2; a.z = -0.2;
+    b.x = 0.2; b.y = -0.2; b.z = 0.2;
+    c.x = 0.2; c.y = 0.2; c.z = 0.2;
+    trgl5.a = a; trgl5.b = b; trgl5.c = c;
+
+    Triangle trgl6;
+    a.x = 0.2; a.y = -0.2; a.z = -0.2;
+    b.x = 0.2; b.y = 0.2; b.z = 0.2;
+    c.x = 0.2; c.y = 0.2; c.z = -0.2;
+    trgl6.a = a; trgl6.b = b; trgl6.c = c;
+
+    Triangle trgl7;
+    a.x = -0.2; a.y = -0.2; a.z = -0.2;
+    b.x = -0.2; b.y = -0.2; b.z = 0.2;
+    c.x = -0.2; c.y = 0.2; c.z = 0.2;
+    trgl7.a = a; trgl7.b = b; trgl7.c = c;
+
+    Triangle trgl8;
+    a.x = -0.2; a.y = -0.2; a.z = -0.2;
+    b.x = -0.2; b.y = 0.2; b.z = 0.2;
+    c.x = -0.2; c.y = 0.2; c.z = -0.2;
+    trgl8.a = a; trgl8.b = b; trgl8.c = c;
+
+    Triangle trgl9;
+    a.x = -0.2; a.y = 0.2; a.z = -0.2;
+    b.x = 0.2; b.y = 0.2; b.z = -0.2;
+    c.x = 0.2; c.y = 0.2; c.z = 0.2;
+    trgl9.a = a; trgl9.b = b; trgl9.c = c;
+
+    Triangle trgl10;
+    a.x = -0.2; a.y = 0.2; a.z = -0.2;
+    b.x = 0.2; b.y = 0.2; b.z = 0.2;
+    c.x = -0.2; c.y = 0.2; c.z = 0.2;
+    trgl10.a = a; trgl10.b = b; trgl10.c = c;
+
+    Triangle trgl11;
+    a.x = -0.2; a.y = -0.2; a.z = -0.2;
+    b.x = 0.2; b.y = -0.2; b.z = -0.2;
+    c.x = 0.2; c.y = -0.2; c.z = 0.2;
+    trgl11.a = a; trgl11.b = b; trgl11.c = c;
+
+    Triangle trgl12;
+    a.x = -0.2; a.y = -0.2; a.z = -0.2;
+    b.x = 0.2; b.y = -0.2; b.z = 0.2;
+    c.x = -0.2; c.y = -0.2; c.z = 0.2;
+    trgl12.a = a; trgl12.b = b; trgl12.c = c;
+
+
 
     Model mdl = gen_model();
     mdl.position.z = 2.0;
@@ -88,7 +137,15 @@ int main(int argc, char* argv[]){
     insert_primitive(&mdl, trgl2);
     insert_primitive(&mdl, trgl3);
     insert_primitive(&mdl, trgl4);
-
+    insert_primitive(&mdl, trgl5);
+    insert_primitive(&mdl, trgl6);
+    insert_primitive(&mdl, trgl7);
+    insert_primitive(&mdl, trgl8);
+    insert_primitive(&mdl, trgl9);
+    insert_primitive(&mdl, trgl10);
+    insert_primitive(&mdl, trgl11);
+    insert_primitive(&mdl, trgl12);
+    
     mptr = &mdl;
 
     init();

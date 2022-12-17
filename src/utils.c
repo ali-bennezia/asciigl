@@ -21,7 +21,7 @@ void insert_data(DynamicArray* arr, void* data, size_t dataSize)
 {
     if (arr->usage == arr->size){
         arr->size *= 2;
-        arr->buffer = realloc(arr->buffer, arr->size);
+        arr->buffer = realloc(arr->buffer, arr->size * dataSize);
     }
 
     memcpy( ((char*)arr->buffer) + arr->usage*dataSize, data, dataSize);
