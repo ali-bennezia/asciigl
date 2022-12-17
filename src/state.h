@@ -1,0 +1,43 @@
+#ifndef STATE_HEADERGUARD
+#define STATE_HEADERGUARD
+
+#include "utils.h"
+
+enum DEPTH_TESTING_STATE{
+    DEPTH_TESTING_STATE_ENABLED,
+    DEPTH_TESTING_STATE_DISABLED
+};
+
+Vec3 get_player_lookat();
+Vec3 get_player_lookup();
+
+char* get_frame_buffer();
+float* get_depth_buffer();
+
+void set_frame_buffer_fragment(int x, int y, char frag);
+void set_depth_buffer_depth(int x, int y, float depth);
+float get_depth_buffer_depth(int x, int y);
+void draw_fragment(int x, int y, float depth, char frag);
+
+void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
+enum DEPTH_TESTING_STATE get_depth_testing_state();
+
+float get_frustum_FOV();
+float get_frustum_near_plane();
+float get_frustum_far_plane();
+
+float set_frustum_FOV(float val);
+float set_frustum_near_plane(float val);
+float set_frustum_far_plane(float val);
+
+Vec3 get_player_position();
+void set_player_position(float x, float y, float z);
+void translate_player(float x, float y, float z);
+
+Vec3 get_player_rotation();
+void set_player_rotation(float x, float y, float z);
+void rotate_player(float x, float y, float z);
+
+void set_light_direction(float x, float y, float z);
+
+#endif
