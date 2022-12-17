@@ -25,6 +25,7 @@ void insert_data(DynamicArray* arr, void* data, size_t dataSize)
     }
 
     memcpy( ((char*)arr->buffer) + arr->usage*dataSize, data, dataSize);
+    ++arr->usage;
 }
 
 void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize){
@@ -280,27 +281,9 @@ IntVec2 vec2_float_to_int(IntVec2 vec)
     return out;
 }
 
-Primitives gen_primitives(){
-    Primitives primitives;
-    primitives.buffer = malloc( 10 * sizeof(Triangle) );
-    primitives.usage = 0;
-    primitives.size = 10;
 
-    return primitives;
-}
-
-void insert_primitive(Primitives* primitives, Triangle primitive){
-
-    if (primitives->usage == primitives->size)
-    {
-        primitives->size *= 2;
-        primitives->buffer = realloc(primitives->buffer, primitives->size * sizeof(Triangle));
-    }
-    primitives->buffer[primitives->usage++] = primitive;
-}
-
-void free_primitives(Primitives* primitives){
-    free( primitives->buffer );
+void insert_primitive(Model* mdl, Triangle primitive){
+    insert_data( &mdl->mesh.primitives, &primitive, sizeof(Triangle) );
 }
 
 Model gen_model(){
@@ -313,11 +296,11 @@ Model gen_model(){
     mdl.position = pos;
     mdl.rotation = rot;
 
-    mdl.mesh.primitives = gen_primitives();
+    mdl.mesh.primitives = gen_dynamic_array( sizeof(Triangle) );
 
     return mdl;
 }
 
 void free_model(Model mdl){
-    free_primitives(&mdl.mesh.primitives);
+    free_dynamic_array(&mdl.mesh.primitives);
 }

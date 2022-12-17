@@ -84,10 +84,10 @@ int main(int argc, char* argv[]){
 
     Model mdl = gen_model();
     mdl.position.z = 2.0;
-    insert_primitive(&(mdl.mesh.primitives), trgl);
-    insert_primitive(&(mdl.mesh.primitives), trgl2);
-    insert_primitive(&(mdl.mesh.primitives), trgl3);
-    insert_primitive(&(mdl.mesh.primitives), trgl4);
+    insert_primitive(&mdl, trgl);
+    insert_primitive(&mdl, trgl2);
+    insert_primitive(&mdl, trgl3);
+    insert_primitive(&mdl, trgl4);
 
     mptr = &mdl;
 

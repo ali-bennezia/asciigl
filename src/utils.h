@@ -45,14 +45,8 @@ typedef struct TriangularCoordinates{
     float a_weight, b_weight, c_weight;
 } TriangularCoordinates;
 
-typedef struct Primitives{
-    Triangle* buffer;
-    size_t usage;
-    size_t size;
-} Primitives;
-
 typedef struct Mesh{
-    Primitives primitives;
+    DynamicArray primitives;
 } Mesh;
 
 typedef struct Model{
@@ -104,9 +98,7 @@ TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, V
 Vec2 vec2_int_to_float(IntVec2 vec);
 IntVec2 vec2_flot_to_int(IntVec2 vec);
 
-Primitives gen_primitives();
-void insert_primitive(Primitives* primitives, Triangle primitive);
-void free_primitives(Primitives* primitives);
+void insert_primitive(Model* mdl, Triangle primitive);
 Model gen_model();
 void free_model(Model mdl);
 
