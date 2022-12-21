@@ -22,6 +22,8 @@ void draw_fragment(int x, int y, float depth, char frag);
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
 enum DEPTH_TESTING_STATE get_depth_testing_state();
 
+void clear_depth_buffer();
+
 float get_frustum_FOV();
 float get_frustum_near_plane();
 float get_frustum_far_plane();

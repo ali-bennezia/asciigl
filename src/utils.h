@@ -80,9 +80,15 @@ float to_rads(float degrees);
 float to_degs(float rads);
 
 float vec2_magnitude(Vec2 vec);
+float vec2_dot_product(Vec2 a, Vec2 b);
 Vec2 vec2_normalize(Vec2 vec);
+Vec2 vec2_mirror(Vec2 vec);
 Vec2 vec2_add(Vec2 a, Vec2 b);
 Vec2 vec2_multiplication(Vec2 vec, float scalar);
+float vec2_division(Vec2 dividand, Vec2 divider);
+Vec2 vec2x2_average(Vec2 a, Vec2 b);
+Vec2 vec2x3_average(Vec2 a, Vec2 b, Vec2 c);
+Vec2 vec2_difference(Vec2 a, Vec2 b);
 
 float vec3_magnitude(Vec3 vec);
 float vec3_dot_product(Vec3 a, Vec3 b);

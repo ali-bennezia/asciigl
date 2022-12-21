@@ -65,18 +65,29 @@ float vec2_magnitude(Vec2 vec){
     return sqrt( vec.x * vec.x + vec.y * vec.y );
 }
 
+float vec2_dot_product(Vec2 a, Vec2 b){
+    return a.x * b.x + a.y * b.y;
+}
+
 Vec2 vec2_normalize(Vec2 vec){
+    Vec2 out;
     float magnitude = vec2_magnitude(vec);
     if (magnitude == 0)
     {
-        vec.x = 0;
-        vec.y = 0;
-        return vec;
+        out.x = 0;
+        out.y = 0;
     }else{
-        vec.x /= magnitude;
-        vec.y /= magnitude;
-        return vec;
+        out.x = vec.x /= magnitude;
+        out.y = vec.y /= magnitude;
     }
+    return out;
+}
+
+Vec2 vec2_mirror(Vec2 vec){
+    Vec2 out;
+    out.x = vec.x * -1.0;
+    out.y = vec.y * -1.0;
+    return out;
 }
 
 Vec2 vec2_add(Vec2 a, Vec2 b){
@@ -93,6 +104,36 @@ Vec2 vec2_multiplication(Vec2 vec, float scalar){
     return out;
 }
 
+float vec2_division(Vec2 dividand, Vec2 divider){
+    Vec2 normalized_dividand = vec2_normalize(dividand), normalized_divider = vec2_normalize(divider);
+    float parallelity = vec2_dot_product(normalized_dividand, normalized_divider);
+    float divider_magnitude = vec2_magnitude(divider);
+    if (parallelity == 0 || divider_magnitude == 0)
+        return 0;
+
+    return vec2_magnitude(dividand) / (divider_magnitude * parallelity);
+}
+
+Vec2 vec2x2_average(Vec2 a, Vec2 b){
+    Vec2 out;
+    out.x = (a.x + b.x) / 2.0;
+    out.y = (a.y + b.y) / 2.0;
+    return out;
+}
+
+Vec2 vec2x3_average(Vec2 a, Vec2 b, Vec2 c){
+    Vec2 out;
+    out.x = (a.x + b.x + c.x) / 3.0;
+    out.y = (a.y + b.y + c.y) / 3.0;
+    return out;
+}
+
+Vec2 vec2_difference(Vec2 a, Vec2 b){
+    Vec2 out;
+    out.x = a.x - b.x;
+    out.y = a.y - b.y;
+    return out;
+}
 
 float vec3_magnitude(Vec3 vec){
     return sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
@@ -133,7 +174,7 @@ float vec3_division(Vec3 dividand, Vec3 divider){
     if (parallelity == 0 || divider_magnitude == 0)
         return 0;
 
-    return vec3_magnitude(dividand) / divider_magnitude * parallelity;
+    return vec3_magnitude(dividand) / (divider_magnitude * parallelity);
 }
 
 Vec3 vec3_multiplication(Vec3 vec, float scalar)
@@ -240,28 +281,26 @@ TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, V
     out.b = b;
     out.c = c;
 
-    float ab = vec2_magnitude( vec2_add( a, vec2_multiplication(b, -1.0) ) );
-    float bc = vec2_magnitude( vec2_add( b, vec2_multiplication(c, -1.0) ) );
-    float ac = vec2_magnitude( vec2_add( a, vec2_multiplication(c, -1.0) ) );
-
-    float bp = vec2_magnitude( vec2_add( b, vec2_multiplication(p, -1.0) ) );
-    float cp = vec2_magnitude( vec2_add( c, vec2_multiplication(p, -1.0) ) );
-
-    float beta = acos( (ac*ac - ab*ab - bc*bc)/(-2*ab*bc) );
-    float gamma_prime = acos( (bp*bp - cp*cp - bc*bc)/(-2*cp*bc) );
-    float alpha_prime = M_PI - beta - gamma_prime;
+    Vec2 ab = vec2_difference(b, a);
+    Vec2 bc = vec2_difference(c, b);
+    Vec2 ac = vec2_difference(c, a);
     
-    float double_crad = bc/sin(alpha_prime);
-    float ci = double_crad * sin(beta);
+    Vec2 a_prime = vec2_add(b, vec2_multiplication(bc, 0.5f));
+    Vec2 b_prime = vec2_add(a, vec2_multiplication(ac, 0.5f));
+    Vec2 c_prime = vec2_add(a, vec2_multiplication(ab, 0.5f));
 
-    float ab_c_weight = cp/ci;
-    out.c_weight = 1.0 - ab_c_weight;
+    Vec2 a_primea = vec2_difference(a, a_prime);
+    Vec2 b_primeb = vec2_difference(b, b_prime);
+    Vec2 c_primec = vec2_difference(c, c_prime);
 
-    float bi = double_crad * sin(gamma_prime);
-    float a_c_weight = bi/ab;
-    out.a_weight = a_c_weight * ab_c_weight;
-    out.b_weight = (1.0 - a_c_weight) * ab_c_weight;
-
+    Vec2 a_primep = vec2_difference(p, a_prime);
+    Vec2 b_primep = vec2_difference(p, b_prime);
+    Vec2 c_primep = vec2_difference(p, c_prime);
+    
+    out.a_weight = fmax(0, vec2_division(a_primep, a_primea) );
+    out.b_weight = fmax(0, vec2_division(b_primep, b_primeb) );
+    out.c_weight = fmax(0, vec2_division(c_primep, c_primec) );
+    
     return out;
 }
 

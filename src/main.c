@@ -10,6 +10,9 @@
 Model* mptr;
 
 void render_frame(){
+    if (get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED)
+        clear_depth_buffer();
+
     for (int i = 0; i < FRAME_HEIGHT; ++i){
         for (int w = 0; w < FRAME_WIDTH; ++w)
             get_frame_buffer()[i * (FRAME_WIDTH+1) + w] = ' ';
@@ -22,7 +25,6 @@ void render_frame(){
     (&(mptr->rotation))->z += 4.0;
 
     draw_model(*mptr);
-
 
     printf("%s", get_frame_buffer());
 }
@@ -53,6 +55,27 @@ void init(){
 }
 
 int main(int argc, char* argv[]){
+
+    Vec2 aa,bb,cc, pp;
+
+    aa.x = -0.2;
+    aa.y = 0.0;
+
+    bb.x = 0.2;
+    bb.y = 0.0;
+
+    cc.x = 0.0;
+    cc.y = 0.2;
+
+    pp.x = 0.0;
+    pp.y = 0.0;
+
+    TriangularCoordinates coords = calculate_triangular_coordinates( aa, bb, cc, pp );
+
+    printf("weights a%f b%f c%f", coords.a_weight, coords.b_weight, coords.c_weight);
+
+    char* str = malloc(10);
+    scanf(str);
 
     //debug
 
