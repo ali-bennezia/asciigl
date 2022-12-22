@@ -111,7 +111,7 @@ float vec2_division(Vec2 dividand, Vec2 divider){
     if (parallelity == 0 || divider_magnitude == 0)
         return 0;
 
-    return vec2_magnitude(dividand) / (divider_magnitude * parallelity);
+    return vec2_magnitude(dividand) * parallelity / divider_magnitude;
 }
 
 Vec2 vec2x2_average(Vec2 a, Vec2 b){
@@ -174,7 +174,7 @@ float vec3_division(Vec3 dividand, Vec3 divider){
     if (parallelity == 0 || divider_magnitude == 0)
         return 0;
 
-    return vec3_magnitude(dividand) / (divider_magnitude * parallelity);
+    return vec3_magnitude(dividand) * parallelity / divider_magnitude;
 }
 
 Vec3 vec3_multiplication(Vec3 vec, float scalar)

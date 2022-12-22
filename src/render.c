@@ -223,7 +223,7 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c){
                 TriangularCoordinates coords = calculate_triangular_coordinates(a_screenspace_float, b_screenspace_float, c_screenspace_float, draw_point_screenspace_float);
                 float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
 
-                draw_fragment(draw_point_screenspace_float.x, draw_point_screenspace_float.y, depth, '@');
+                draw_fragment(current_draw_screenspace.x + x, clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, depth, '@');
                 //set_frame_buffer_fragment(draw_point_screenspace_float.x, draw_point_screenspace_float.y, '@');
             }
 

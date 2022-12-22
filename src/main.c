@@ -41,6 +41,8 @@ void init(){
 
     //init
 
+    clear_depth_buffer();
+
     set_frustum_near_plane( 0.1 );
     set_frustum_far_plane( 1000 );
     set_frustum_FOV( 60.0 );
@@ -56,28 +58,16 @@ void init(){
 
 int main(int argc, char* argv[]){
 
-    Vec2 aa,bb,cc, pp;
-
-    aa.x = -0.2;
-    aa.y = 0.0;
-
-    bb.x = 0.2;
-    bb.y = 0.0;
-
-    cc.x = 0.0;
-    cc.y = 0.2;
-
-    pp.x = 0.0;
-    pp.y = 0.0;
-
-    TriangularCoordinates coords = calculate_triangular_coordinates( aa, bb, cc, pp );
-
-    printf("weights a%f b%f c%f", coords.a_weight, coords.b_weight, coords.c_weight);
-
-    char* str = malloc(10);
-    scanf(str);
-
     //debug
+
+    Vec3 testa, testb;
+    testa.z = 0; testb.z = 0;
+    testa.x = 0; testa.y = 1.0;
+    testb.x = 0; testb.y = 0.5;
+    float res = vec3_division(testa, testb);
+    printf("%f\n", res);
+
+    system("PAUSE");
 
     Triangle trgl;
     Vec3 a, b, c;

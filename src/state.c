@@ -57,9 +57,9 @@ float get_depth_buffer_depth(int x, int y){
 
 void draw_fragment(int x, int y, float depth, char frag){
     float current_depth = get_depth_buffer_depth(x, y);
-    if (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth >= depth){
+    if (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == -1.0 || current_depth > depth){
         set_frame_buffer_fragment(x, y, frag);
-        //set_depth_buffer_depth(x, y, depth);
+        set_depth_buffer_depth(x, y, depth);
     }
 }
 
