@@ -58,22 +58,27 @@ typedef struct Model{
 
 typedef struct AmbientLight{
     char* identifier;
-    size_t intensity;
+    float intensity;
 } AmbientLight;
 
 typedef struct DirectionalLight{
     char* identifier;
-    size_t intensity;
+    float intensity;
     Vec3 normal;
 } DirectionalLight;
 
 typedef struct PointLight{
     char* identifier;
+    float intensity;
+    float range;
     Vec3 position;
-    size_t intensity;
 } PointLight;
 
-
+enum LIGHT_TYPE{
+    LIGHT_TYPE_AMBIENT,
+    LIGHT_TYPE_DIRECTIONAL,
+    LIGHT_TYPE_POINT
+};
 
 float floatmod(float a, float b);
 float to_rads(float degrees);

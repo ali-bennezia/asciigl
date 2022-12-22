@@ -40,6 +40,14 @@ Vec3 get_player_rotation();
 void set_player_rotation(float x, float y, float z);
 void rotate_player(float x, float y, float z);
 
-void set_light_direction(float x, float y, float z);
+void add_ambient_light(char* identifier, float intensity);
+void add_directional_light(char* identifier, float intensity, Vec3 normal);
+void add_point_light(char* identifier, float intensity, float range, Vec3 position);
+
+AmbientLight* get_ambient_light(char* identifier);
+DirectionalLight* get_directional_light(char* identifier);
+PointLight* get_point_light(char* identifier);
+
+void remove_light(char* identifier, enum LIGHT_TYPE lightType);
 
 #endif

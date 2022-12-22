@@ -153,6 +153,116 @@ void rotate_player(float x, float y, float z){
     player_rotation.z = floatmod(player_rotation.z + z, 360);
 }
 
+DynamicArray ambientLights, directionalLights, pointLights;
+
+void add_ambient_light(char* identifier, float intensity){
+    //copy & store identifier string
+    size_t len = strlen(identifier);
+    char* stored_identifier = malloc( sizeof(char) * (len + 1) );
+    strcpy(stored_identifier, identifier);
+
+    //create & store light data
+    AmbientLight ambientLight;
+    ambientLight.identifier = stored_identifier;
+    ambientLight.intensity = intensity;
+    insert_data(&ambientLights, &ambientLight, sizeof(AmbientLight));
+}
+
+void add_directional_light(char* identifier, float intensity, Vec3 normal){
+    //copy & store identifier string
+    size_t len = strlen(identifier);
+    char* stored_identifier = malloc( sizeof(char) * (len + 1) );
+    strcpy(stored_identifier, identifier);
+
+    //create & store light data
+    DirectionalLight directionalLight;
+    directionalLight.identifier = stored_identifier;
+    directionalLight.intensity = intensity;
+    directionalLight.normal = vec3_normalize(normal);
+    insert_data(&directionalLights, &directionalLight, sizeof(DirectionalLight));
+}
+
+void add_point_light(char* identifier, float intensity, float range, Vec3 position){
+    //copy & store identifier string
+    size_t len = strlen(identifier);
+    char* stored_identifier = malloc( sizeof(char) * (len + 1) );
+    strcpy(stored_identifier, identifier);
+
+    //create & store light data
+    PointLight pointLight;
+    pointLight.identifier = stored_identifier;
+    pointLight.intensity = intensity;
+    pointLight.range = range;
+    pointLight.position = position;
+    insert_data(&pointLights, &pointLight, sizeof(PointLight));
+}
+
+
+AmbientLight* get_ambient_light(char* identifier){
+    for (size_t i = 0; i < ambientLights.usage; ++i){
+        AmbientLight* iterator = (AmbientLight*)(ambientLights.buffer) + i;
+        if (strcmp(iterator->identifier, identifier))
+            return iterator;
+    }
+    return NULL;
+}
+
+DirectionalLight* get_directional_light(char* identifier){
+    for (size_t i = 0; i < directionalLights.usage; ++i){
+        DirectionalLight* iterator = (DirectionalLight*)(directionalLights.buffer) + i;
+        if (strcmp(iterator->identifier, identifier))
+            return iterator;
+    }
+    return NULL;
+}
+
+PointLight* get_point_light(char* identifier){
+    for (size_t i = 0; i < pointLights.usage; ++i){
+        PointLight* iterator = (PointLight*)(pointLights.buffer) + i;
+        if (strcmp(iterator->identifier, identifier))
+            return iterator;
+    }
+    return NULL;
+}
+
+
+
+void remove_light(char* identifier, enum LIGHT_TYPE lightType){
+    void* buffer = NULL;
+    size_t dataSizeInBytes = 0;
+
+    switch(lightType){
+        case LIGHT_TYPE_AMBIENT:
+        buffer = ambientLights.buffer;
+        dataSizeInBytes = sizeof(AmbientLight);
+        break;
+        case LIGHT_TYPE_DIRECTIONAL:
+        buffer = directionalLights.buffer;
+        dataSizeInBytes = sizeof(DirectionalLight);
+        break;
+        default:
+        buffer = pointLights.buffer;
+        dataSizeInBytes = sizeof(PointLight);
+        break;
+    }
+
+    for (size_t i = 0; i < ambientLights.usage; ++i){
+        char* iterator = ((char*)ambientLights.buffer) + i * dataSizeInBytes;
+        char* storedIdentifier = 
+            lightType == LIGHT_TYPE_AMBIENT ?  ((AmbientLight*)iterator)->identifier : 
+            lightType == LIGHT_TYPE_DIRECTIONAL ? ((DirectionalLight*)iterator)->identifier : 
+            ((PointLight*)iterator)->identifier;
+
+        if (strcmp( identifier, storedIdentifier ))
+        {
+            free(storedIdentifier);
+            remove_data(&ambientLights, i, sizeof(AmbientLight));
+            return;
+        }
+    }
+}
+
+
 Vec3 light_direction;
 
 void set_light_direction(float x, float y, float z){

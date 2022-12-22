@@ -47,7 +47,11 @@ void init(){
     set_frustum_far_plane( 1000 );
     set_frustum_FOV( 60.0 );
 
-    set_light_direction(-2, 0, 1);
+    //set_light_direction(-2, 0, 1);
+    Vec3 normal;
+    normal.x = -2; normal.y = 0; normal.z = 1;
+    normal = vec3_normalize(normal);
+    add_directional_light("Some light", 1.0, normal);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
