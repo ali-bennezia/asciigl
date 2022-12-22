@@ -153,7 +153,19 @@ void rotate_player(float x, float y, float z){
     player_rotation.z = floatmod(player_rotation.z + z, 360);
 }
 
-DynamicArray ambientLights, directionalLights, pointLights;
+DynamicArray ambientLights, 
+    directionalLights, 
+    pointLights;
+
+char lightArraysInit=0;
+void init_light_arrays(){
+    if (lightArraysInit == 1) return;
+    lightArraysInit = 1;
+
+    ambientLights = gen_dynamic_array( sizeof(AmbientLight) );
+    directionalLights = gen_dynamic_array( sizeof(DirectionalLight) );
+    pointLights = gen_dynamic_array( sizeof(PointLight) );
+}
 
 void add_ambient_light(char* identifier, float intensity){
     //copy & store identifier string

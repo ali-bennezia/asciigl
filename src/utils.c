@@ -322,7 +322,13 @@ IntVec2 vec2_float_to_int(IntVec2 vec)
 
 
 void insert_primitive(Model* mdl, Triangle primitive){
-    insert_data( &mdl->mesh.primitives, &primitive, sizeof(Triangle) );
+    insert_data( &mdl->mesh, &primitive, sizeof(Triangle) );
+}
+
+void insert_normals(Model* mdl, Vec3 normals[3]){
+    insert_data( &mdl->normals, &normals[0], sizeof(Triangle) );
+    insert_data( &mdl->normals, &normals[1], sizeof(Triangle) );
+    insert_data( &mdl->normals, &normals[2], sizeof(Triangle) );
 }
 
 Model gen_model(){
@@ -335,11 +341,13 @@ Model gen_model(){
     mdl.position = pos;
     mdl.rotation = rot;
 
-    mdl.mesh.primitives = gen_dynamic_array( sizeof(Triangle) );
+    mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
+    mdl.normals = gen_dynamic_array( sizeof(Vec3)*3 );
 
     return mdl;
 }
 
 void free_model(Model mdl){
-    free_dynamic_array(&mdl.mesh.primitives);
+    free_dynamic_array(&mdl.mesh);
+    free_dynamic_array(&mdl.normals);
 }

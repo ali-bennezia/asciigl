@@ -243,8 +243,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c){
 
 void draw_model(Model model){
 
-    for (size_t i = 0; i < model.mesh.primitives.usage; ++i){
-        Triangle primitive = *(Triangle*)get_data( &model.mesh.primitives, i, sizeof(Triangle) );
+    for (size_t i = 0; i < model.mesh.usage; ++i){
+        Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin(primitive.a, model.rotation);
         Vec3 b_modelspace_rotated = rotate_point_around_origin(primitive.b, model.rotation);

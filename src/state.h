@@ -50,4 +50,6 @@ PointLight* get_point_light(char* identifier);
 
 void remove_light(char* identifier, enum LIGHT_TYPE lightType);
 
+void init_light_arrays();
+
 #endif

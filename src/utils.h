@@ -45,12 +45,8 @@ typedef struct TriangularCoordinates{
     float a_weight, b_weight, c_weight;
 } TriangularCoordinates;
 
-typedef struct Mesh{
-    DynamicArray primitives;
-} Mesh;
-
 typedef struct Model{
-    Mesh mesh;
+    DynamicArray mesh, normals;
 
     //Transform in worldspace
     Vec3 position, rotation;
@@ -107,9 +103,11 @@ Vec3 vec3_add(Vec3 a, Vec3 b);
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);
 Vec2 vec2_int_to_float(IntVec2 vec);
-IntVec2 vec2_flot_to_int(IntVec2 vec);
+IntVec2 vec2_float_to_int(IntVec2 vec);
 
 void insert_primitive(Model* mdl, Triangle primitive);
+void insert_normals(Model* mdl, Vec3 normals[3]);
+
 Model gen_model();
 void free_model(Model mdl);
 
