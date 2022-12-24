@@ -54,19 +54,19 @@ typedef struct Model{
 
 typedef struct AmbientLight{
     char* identifier;
-    float intensity;
+    unsigned short intensity;
 } AmbientLight;
 
 typedef struct DirectionalLight{
     char* identifier;
-    float intensity;
+    unsigned short intensity;
     Vec3 normal;
 } DirectionalLight;
 
 typedef struct PointLight{
     char* identifier;
-    float intensity;
-    float range;
+    unsigned short intensity;
+    unsigned short range;
     Vec3 position;
 } PointLight;
 

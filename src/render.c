@@ -126,7 +126,7 @@ IntVec2 clipspace_to_screenspace(Vec2 in){
 }
 
 //three viewspace positions describing a triangle primitive
-void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c){
+void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
 
     Vec2 a_clipspace = viewspace_coords_to_clipspace_coords(a);
     Vec2 b_clipspace = viewspace_coords_to_clipspace_coords(b);
@@ -217,13 +217,24 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c){
 
             for (int x = min(0, horizontal_rasterize); x <= max(0, horizontal_rasterize); ++x){
 
-                Vec2 draw_point_screenspace_float;
-                draw_point_screenspace_float.x = (float)(current_draw_screenspace.x + x);
-                draw_point_screenspace_float.y = (float)(clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y);
-                TriangularCoordinates coords = calculate_triangular_coordinates(a_screenspace_float, b_screenspace_float, c_screenspace_float, draw_point_screenspace_float);
+                Vec2 draw_point_clipspace_float;
+                draw_point_clipspace_float.x = current_draw_clipspace.x + ((float)(x) / ((float)(FRAME_WIDTH-1)/2.0));
+                draw_point_clipspace_float.y = current_draw_clipspace.y;
+                TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, draw_point_clipspace_float);
+                
+                //fragment data
                 float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
+                Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
+                    vec3_add(   vec3_multiplication(b, coords.b_weight), 
+                                vec3_multiplication(c, coords.c_weight)));
+                Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
+                    vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
+                                vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight))) : normal;
 
-                draw_fragment(current_draw_screenspace.x + x, clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, depth, '@');
+                printf("%f\n", coords.a_weight + coords.b_weight + coords.c_weight);
+                //                printf("x%fy%f%z%f\n", normal.x, normal.y, normal.z);
+
+                draw_fragment(current_draw_screenspace.x + x, clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, depth, viewspace_position, normals != NULL ? &normal : NULL);
                 //set_frame_buffer_fragment(draw_point_screenspace_float.x, draw_point_screenspace_float.y, '@');
             }
 
@@ -243,13 +254,24 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c){
 
 void draw_model(Model model){
 
+    char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
+
     for (size_t i = 0; i < model.mesh.usage; ++i){
         Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
+
+        //normals
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
+        Vec3 normals_out[3];
+        if (normals_ptr != NULL){
+            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 1), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 2), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_ptr = &normals_out[0];
+        }
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin(primitive.a, model.rotation);
         Vec3 b_modelspace_rotated = rotate_point_around_origin(primitive.b, model.rotation);
         Vec3 c_modelspace_rotated = rotate_point_around_origin(primitive.c, model.rotation);
-
 
         Vec3 a_worldspace = vec3_add(model.position, a_modelspace_rotated);
         Vec3 b_worldspace = vec3_add(model.position, b_modelspace_rotated);
@@ -260,8 +282,7 @@ void draw_model(Model model){
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
 
         
-        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace);
-
+        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr);
     }
 
 }

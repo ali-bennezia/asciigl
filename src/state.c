@@ -1,4 +1,3 @@
-
 #include "state.h"
 #include "config.h"
 #include "utils.h"
@@ -14,6 +13,19 @@ Vec3 player_rotation;
 Vec3 player_lookat, player_lookup;
 
 float frustumNearPlane, frustumFarPlane, frustumFOV;
+
+//dynamic lights
+DynamicArray ambientLights, 
+    directionalLights, 
+    pointLights;
+
+//funcs
+
+const char fragments[] = ".`-:;*=enDMLXE$@";
+char light_level_to_fragment(unsigned short lightLevel){
+    size_t correspondingIndex = (size_t)( (float)lightLevel/255.0*(strlen(&fragments[0]) - 1) ); 
+    return fragments[ correspondingIndex ];
+}
 
 enum DEPTH_TESTING_STATE depthState = DEPTH_TESTING_STATE_ENABLED;
 
@@ -55,11 +67,32 @@ float get_depth_buffer_depth(int x, int y){
     return depth == 0 ? depth : 1.0/depth;
 }
 
-void draw_fragment(int x, int y, float depth, char frag){
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal){
     float current_depth = get_depth_buffer_depth(x, y);
-    if (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == -1.0 || current_depth > depth){
-        set_frame_buffer_fragment(x, y, frag);
+    
+    if (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth){
+
+        //light levels must be expressed between 0 and 255
+        unsigned short lightLevel = 0;
+
+        for (size_t i = 0; i < ambientLights.usage; ++i){
+            AmbientLight* ambientLight = (AmbientLight*)ambientLights.buffer + i;
+            lightLevel += ambientLight->intensity;
+        }
+
+        if (normal != NULL)
+            for (size_t i = 0; i < directionalLights.usage; ++i){
+                DirectionalLight* directionalLight = (DirectionalLight*)directionalLights.buffer + i;
+                float l = fabs(fmax(0,  vec3_dot_product( directionalLight->normal, *normal ) ));
+                lightLevel += l * directionalLight->intensity;
+            }
+
+        lightLevel = max( min( lightLevel, 255 ), 0);
+
+        set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
+
+
     }
 }
 
@@ -72,8 +105,8 @@ enum DEPTH_TESTING_STATE get_depth_testing_state(){
 }
 
 void clear_depth_buffer(){
-    for (int i = 0; i < FRAME_WIDTH * FRAME_HEIGHT; ++i)
-        depth_buffer[i] = -1.0;
+    for (size_t i = 0; i < FRAME_WIDTH * FRAME_HEIGHT; ++i)
+        depth_buffer[i] = 0;
 }
 
 float get_frustum_FOV(){
@@ -153,10 +186,6 @@ void rotate_player(float x, float y, float z){
     player_rotation.z = floatmod(player_rotation.z + z, 360);
 }
 
-DynamicArray ambientLights, 
-    directionalLights, 
-    pointLights;
-
 char lightArraysInit=0;
 void init_light_arrays(){
     if (lightArraysInit == 1) return;
@@ -167,7 +196,7 @@ void init_light_arrays(){
     pointLights = gen_dynamic_array( sizeof(PointLight) );
 }
 
-void add_ambient_light(char* identifier, float intensity){
+void add_ambient_light(char* identifier, unsigned short intensity){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -180,7 +209,7 @@ void add_ambient_light(char* identifier, float intensity){
     insert_data(&ambientLights, &ambientLight, sizeof(AmbientLight));
 }
 
-void add_directional_light(char* identifier, float intensity, Vec3 normal){
+void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -194,7 +223,7 @@ void add_directional_light(char* identifier, float intensity, Vec3 normal){
     insert_data(&directionalLights, &directionalLight, sizeof(DirectionalLight));
 }
 
-void add_point_light(char* identifier, float intensity, float range, Vec3 position){
+void add_point_light(char* identifier, unsigned short intensity, unsigned short range, Vec3 position){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -283,4 +312,3 @@ void set_light_direction(float x, float y, float z){
     light_direction.z = z;
     light_direction = vec3_normalize(light_direction);
 }
-

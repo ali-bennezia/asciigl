@@ -3,6 +3,8 @@
 
 #include "utils.h"
 
+char light_level_to_fragment(unsigned short lightLevel);
+
 enum DEPTH_TESTING_STATE{
     DEPTH_TESTING_STATE_ENABLED,
     DEPTH_TESTING_STATE_DISABLED
@@ -17,7 +19,7 @@ float* get_depth_buffer();
 void set_frame_buffer_fragment(int x, int y, char frag);
 void set_depth_buffer_depth(int x, int y, float depth);
 float get_depth_buffer_depth(int x, int y);
-void draw_fragment(int x, int y, float depth, char frag);
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal);
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
 enum DEPTH_TESTING_STATE get_depth_testing_state();
@@ -40,9 +42,9 @@ Vec3 get_player_rotation();
 void set_player_rotation(float x, float y, float z);
 void rotate_player(float x, float y, float z);
 
-void add_ambient_light(char* identifier, float intensity);
-void add_directional_light(char* identifier, float intensity, Vec3 normal);
-void add_point_light(char* identifier, float intensity, float range, Vec3 position);
+void add_ambient_light(char* identifier, unsigned short intensity);
+void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal);
+void add_point_light(char* identifier, unsigned short intensity, unsigned short range, Vec3 position);
 
 AmbientLight* get_ambient_light(char* identifier);
 DirectionalLight* get_directional_light(char* identifier);

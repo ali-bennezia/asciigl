@@ -21,8 +21,8 @@ void render_frame(){
     get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
-    (&(mptr->rotation))->x += 4.0;
-    (&(mptr->rotation))->z += 4.0;
+    //(&(mptr->rotation))->x += 4.0;
+    //(&(mptr->rotation))->z += 4.0;
 
     draw_model(*mptr);
 
@@ -47,9 +47,12 @@ void init(){
     set_frustum_far_plane( 1000 );
     set_frustum_FOV( 60.0 );
 
+
+    add_ambient_light("Light", 150);
+
     Vec3 normal;
     normal.x = -2; normal.y = 0; normal.z = 1;
-    add_directional_light("Some light", 1.0, vec3_normalize(normal));
+    //add_directional_light("Some light", 105, vec3_normalize(normal));
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -61,14 +64,7 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
-
-    Vec3 testa, testb;
-    testa.z = 0; testb.z = 0;
-    testa.x = 0; testa.y = 1.0;
-    testb.x = 0; testb.y = 0.5;
-    float res = vec3_division(testa, testb);
-    printf("%f\n", res);
-
+    
     system("PAUSE");
 
     Vec3 normal;
@@ -172,30 +168,36 @@ int main(int argc, char* argv[]){
     insert_primitive(&mdl, trgl2);
 
     insert_normals(&mdl, normals1);
+    insert_normals(&mdl, normals1);
 
     insert_primitive(&mdl, trgl3);
     insert_primitive(&mdl, trgl4);
 
+    insert_normals(&mdl, normals2);
     insert_normals(&mdl, normals2);
 
     insert_primitive(&mdl, trgl5);
     insert_primitive(&mdl, trgl6);
 
     insert_normals(&mdl, normals3);
+    insert_normals(&mdl, normals3);
 
     insert_primitive(&mdl, trgl7);
     insert_primitive(&mdl, trgl8);
 
+    insert_normals(&mdl, normals4);
     insert_normals(&mdl, normals4);
 
     insert_primitive(&mdl, trgl9);
     insert_primitive(&mdl, trgl10);
 
     insert_normals(&mdl, normals5);
+    insert_normals(&mdl, normals5);
 
     insert_primitive(&mdl, trgl11);
     insert_primitive(&mdl, trgl12);
 
+    insert_normals(&mdl, normals6);
     insert_normals(&mdl, normals6);
     
     mptr = &mdl;

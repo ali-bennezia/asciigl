@@ -281,25 +281,31 @@ TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, V
     out.b = b;
     out.c = c;
 
-    Vec2 ab = vec2_difference(b, a);
-    Vec2 bc = vec2_difference(c, b);
-    Vec2 ac = vec2_difference(c, a);
-    
-    Vec2 a_prime = vec2_add(b, vec2_multiplication(bc, 0.5f));
-    Vec2 b_prime = vec2_add(a, vec2_multiplication(ac, 0.5f));
-    Vec2 c_prime = vec2_add(a, vec2_multiplication(ab, 0.5f));
+    float ab = vec2_magnitude( vec2_difference(b, a) );
+    float bc = vec2_magnitude( vec2_difference(c, b) );
+    float ac = vec2_magnitude( vec2_difference(c, a) );
 
-    Vec2 a_primea = vec2_difference(a, a_prime);
-    Vec2 b_primeb = vec2_difference(b, b_prime);
-    Vec2 c_primec = vec2_difference(c, c_prime);
+    float pb = vec2_magnitude( vec2_difference(p, b) );
+    float pc = vec2_magnitude( vec2_difference(p, c) );
 
-    Vec2 a_primep = vec2_difference(p, a_prime);
-    Vec2 b_primep = vec2_difference(p, b_prime);
-    Vec2 c_primep = vec2_difference(p, c_prime);
-    
-    out.a_weight = fmax(0, vec2_division(a_primep, a_primea) );
-    out.b_weight = fmax(0, vec2_division(b_primep, b_primeb) );
-    out.c_weight = fmax(0, vec2_division(c_primep, c_primec) );
+    float beta = bc == 0 || ab == 0 ? 0 : acos( (ac*ac-bc*bc-ab*ab)/(-2.0*bc*ab) );
+    float gamma_prime = pc == 0 || bc == 0 ? 0 : acos( (pb*pb-pc*pc-bc*bc)/(-2.0*pc*bc) );
+    float alpha_prime = M_PI - beta - gamma_prime;
+
+    float alpha_prime_sin = sin(alpha_prime);
+
+    float double_crad_ibc = alpha_prime_sin == 0 ? 0 : bc/alpha_prime_sin;
+    float ib = double_crad_ibc*sin(gamma_prime);
+    float ic = double_crad_ibc*sin(beta);
+
+    float ab_weight = ic == 0 ? 0 : pc/ic;
+
+    out.a_weight =  ab == 0 ? 0 : ib/ab;
+    out.b_weight = 1.0 - out.a_weight;
+    out.c_weight = 1.0 - ab_weight;
+
+    out.a_weight *= ab_weight;
+    out.b_weight *= ab_weight;
     
     return out;
 }
