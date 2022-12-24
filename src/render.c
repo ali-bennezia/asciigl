@@ -218,7 +218,7 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
             for (int x = min(0, horizontal_rasterize); x <= max(0, horizontal_rasterize); ++x){
 
                 Vec2 draw_point_clipspace_float;
-                draw_point_clipspace_float.x = current_draw_clipspace.x + ((float)(x) / ((float)(FRAME_WIDTH-1)/2.0));
+                draw_point_clipspace_float.x = current_draw_clipspace.x + (float)x * 2.0/(float)FRAME_WIDTH;
                 draw_point_clipspace_float.y = current_draw_clipspace.y;
                 TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, draw_point_clipspace_float);
                 
@@ -231,11 +231,13 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
                     vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
                                 vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight))) : normal;
 
-                printf("%f\n", coords.a_weight + coords.b_weight + coords.c_weight);
+               /* printf("%f %f %f t %f %f %f tt %f %f %f\n", (*(Vec3*)normals).x, (*(Vec3*)normals).y, (*(Vec3*)normals).z, 
+                (*((Vec3*)normals+1)).x, (*((Vec3*)normals+1)).y, (*((Vec3*)normals+1)).z,
+                (*((Vec3*)normals+2)).x, (*((Vec3*)normals+2)).y, (*((Vec3*)normals+2)).z ); */
+
                 //                printf("x%fy%f%z%f\n", normal.x, normal.y, normal.z);
 
                 draw_fragment(current_draw_screenspace.x + x, clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, depth, viewspace_position, normals != NULL ? &normal : NULL);
-                //set_frame_buffer_fragment(draw_point_screenspace_float.x, draw_point_screenspace_float.y, '@');
             }
 
         }
@@ -260,13 +262,17 @@ void draw_model(Model model){
         Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
 
         //normals
-        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i, sizeof(Vec3)*3) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
             normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 1), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 2), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_ptr = &normals_out[0];
+
+            /*printf("%f %f %f t %f %f %f tt %f %f %f \n", normals_out[0].x, normals_out[0].y, normals_out[0].z, 
+            normals_out[1].x, normals_out[1].y, normals_out[1].z,
+            normals_out[2].x, normals_out[2].y, normals_out[2].z);*/
         }
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin(primitive.a, model.rotation);

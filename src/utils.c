@@ -332,9 +332,9 @@ void insert_primitive(Model* mdl, Triangle primitive){
 }
 
 void insert_normals(Model* mdl, Vec3 normals[3]){
-    insert_data( &mdl->normals, &normals[0], sizeof(Triangle) );
-    insert_data( &mdl->normals, &normals[1], sizeof(Triangle) );
-    insert_data( &mdl->normals, &normals[2], sizeof(Triangle) );
+    insert_data( &mdl->normals, &normals[0], sizeof(Vec3) );
+    insert_data( &mdl->normals, &normals[1], sizeof(Vec3) );
+    insert_data( &mdl->normals, &normals[2], sizeof(Vec3) );
 }
 
 Model gen_model(){

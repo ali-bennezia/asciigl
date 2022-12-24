@@ -21,8 +21,8 @@ void render_frame(){
     get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
-    //(&(mptr->rotation))->x += 4.0;
-    //(&(mptr->rotation))->z += 4.0;
+    (&(mptr->rotation))->x += 4.0;
+    (&(mptr->rotation))->z += 4.0;
 
     draw_model(*mptr);
 
@@ -48,11 +48,11 @@ void init(){
     set_frustum_FOV( 60.0 );
 
 
-    add_ambient_light("Light", 150);
+    add_ambient_light("Light", 50);
 
     Vec3 normal;
     normal.x = -2; normal.y = 0; normal.z = 1;
-    //add_directional_light("Some light", 105, vec3_normalize(normal));
+    add_directional_light("Some light", 105, vec3_normalize(normal));
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -64,7 +64,7 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
-    
+
     system("PAUSE");
 
     Vec3 normal;
