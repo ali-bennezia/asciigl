@@ -24,6 +24,9 @@ void render_frame(){
     (&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
 
+    //translate_player(0.05, 0, 0.05);
+    //rotate_player(0, 10, 0);
+
     draw_model(*mptr);
 
     printf("%s", get_frame_buffer());
@@ -48,11 +51,11 @@ void init(){
     set_frustum_FOV( 60.0 );
 
 
-    add_ambient_light("Light", 50);
+    //add_ambient_light("Light", 50);
 
     Vec3 normal;
     normal.x = -2; normal.y = 0; normal.z = 1;
-    add_directional_light("Some light", 105, vec3_normalize(normal));
+    add_directional_light("Some light", 255, vec3_normalize(normal));
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -167,38 +170,38 @@ int main(int argc, char* argv[]){
     insert_primitive(&mdl, trgl);
     insert_primitive(&mdl, trgl2);
 
-    insert_normals(&mdl, normals1);
-    insert_normals(&mdl, normals1);
+    insert_primitive_normals(&mdl, normals1);
+    insert_primitive_normals(&mdl, normals1);
 
     insert_primitive(&mdl, trgl3);
     insert_primitive(&mdl, trgl4);
 
-    insert_normals(&mdl, normals2);
-    insert_normals(&mdl, normals2);
+    insert_primitive_normals(&mdl, normals2);
+    insert_primitive_normals(&mdl, normals2);
 
     insert_primitive(&mdl, trgl5);
     insert_primitive(&mdl, trgl6);
 
-    insert_normals(&mdl, normals3);
-    insert_normals(&mdl, normals3);
+    insert_primitive_normals(&mdl, normals3);
+    insert_primitive_normals(&mdl, normals3);
 
     insert_primitive(&mdl, trgl7);
     insert_primitive(&mdl, trgl8);
 
-    insert_normals(&mdl, normals4);
-    insert_normals(&mdl, normals4);
+    insert_primitive_normals(&mdl, normals4);
+    insert_primitive_normals(&mdl, normals4);
 
     insert_primitive(&mdl, trgl9);
     insert_primitive(&mdl, trgl10);
 
-    insert_normals(&mdl, normals5);
-    insert_normals(&mdl, normals5);
+    insert_primitive_normals(&mdl, normals5);
+    insert_primitive_normals(&mdl, normals5);
 
     insert_primitive(&mdl, trgl11);
     insert_primitive(&mdl, trgl12);
 
-    insert_normals(&mdl, normals6);
-    insert_normals(&mdl, normals6);
+    insert_primitive_normals(&mdl, normals6);
+    insert_primitive_normals(&mdl, normals6);
     
     mptr = &mdl;
 

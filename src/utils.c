@@ -331,10 +331,57 @@ void insert_primitive(Model* mdl, Triangle primitive){
     insert_data( &mdl->mesh, &primitive, sizeof(Triangle) );
 }
 
-void insert_normals(Model* mdl, Vec3 normals[3]){
+//primitivesCount is the number of Triangles ie the amount of elements in the array 'primitives' divided by 9
+void insert_primitives(Model* mdl, float* primitives, size_t primitivesCount)
+{
+    for (size_t i = 0; i < primitivesCount; ++i){
+        Triangle primitive;
+        primitive.a.x = primitives[i*9];
+        primitive.a.y = primitives[i*9 + 1];
+        primitive.a.z = primitives[i*9 + 2];
+        
+        primitive.b.x = primitives[i*9 + 3];
+        primitive.b.y = primitives[i*9 + 4];
+        primitive.b.z = primitives[i*9 + 5];
+
+        primitive.c.x = primitives[i*9 + 6];
+        primitive.c.y = primitives[i*9 + 7];
+        primitive.c.z = primitives[i*9 + 8];
+
+        insert_primitive(mdl, primitive);
+    }
+
+}
+
+void insert_primitive_normals(Model* mdl, Vec3 normals[3]){
     insert_data( &mdl->normals, &normals[0], sizeof(Vec3) );
     insert_data( &mdl->normals, &normals[1], sizeof(Vec3) );
     insert_data( &mdl->normals, &normals[2], sizeof(Vec3) );
+}
+
+void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCount)
+{
+    for (size_t i = 0; i < primitivesCount; ++i){
+        Vec3 out_normals[3];
+
+        Vec3 normal1, normal2, normal3;
+
+        normal1.x = normals[i*9];
+        normal1.y = normals[i*9 + 1];
+        normal1.z = normals[i*9 + 2];
+
+        normal2.x = normals[i*9 + 3];
+        normal2.y = normals[i*9 + 4];
+        normal2.z = normals[i*9 + 5];
+
+        normal3.x = normals[i*9 + 6];
+        normal3.y = normals[i*9 + 7];
+        normal3.z = normals[i*9 + 8];
+
+        out_normals[0] = normal1; out_normals[1] = normal2; out_normals[3] = normal3;
+
+        insert_primitive_normals(mdl, out_normals);
+    }
 }
 
 Model gen_model(){

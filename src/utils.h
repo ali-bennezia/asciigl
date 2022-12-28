@@ -106,7 +106,9 @@ Vec2 vec2_int_to_float(IntVec2 vec);
 IntVec2 vec2_float_to_int(IntVec2 vec);
 
 void insert_primitive(Model* mdl, Triangle primitive);
-void insert_normals(Model* mdl, Vec3 normals[3]);
+void insert_primitives(Model* mdl, float* primitives, size_t primitivesCount);
+void insert_primitive_normals(Model* mdl, Vec3 normals[3]);
+void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCount);
 
 Model gen_model();
 void free_model(Model mdl);

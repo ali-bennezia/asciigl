@@ -269,10 +269,6 @@ void draw_model(Model model){
             normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 1), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 2), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_ptr = &normals_out[0];
-
-            /*printf("%f %f %f t %f %f %f tt %f %f %f \n", normals_out[0].x, normals_out[0].y, normals_out[0].z, 
-            normals_out[1].x, normals_out[1].y, normals_out[1].z,
-            normals_out[2].x, normals_out[2].y, normals_out[2].z);*/
         }
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin(primitive.a, model.rotation);

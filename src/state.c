@@ -1,6 +1,7 @@
 #include "state.h"
 #include "config.h"
 #include "utils.h"
+#include "render.h"
 
 //state
 
@@ -70,7 +71,11 @@ float get_depth_buffer_depth(int x, int y){
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal){
     float current_depth = get_depth_buffer_depth(x, y);
     
-    if (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth){
+    char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
+    char depthTest = (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth) ? 1 : 0;
+    char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL) == 1 ? 1 : 0;
+
+    if (screenCoordsTest == 1 && depthTest == 1 && frustumTest == 1){
 
         //light levels must be expressed between 0 and 255
         unsigned short lightLevel = 0;
