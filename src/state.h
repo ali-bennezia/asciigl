@@ -19,7 +19,6 @@ float* get_depth_buffer();
 void set_frame_buffer_fragment(int x, int y, char frag);
 void set_depth_buffer_depth(int x, int y, float depth);
 float get_depth_buffer_depth(int x, int y);
-void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal);
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
 enum DEPTH_TESTING_STATE get_depth_testing_state();
@@ -49,6 +48,10 @@ void add_point_light(char* identifier, unsigned short intensity, unsigned short 
 AmbientLight* get_ambient_light(char* identifier);
 DirectionalLight* get_directional_light(char* identifier);
 PointLight* get_point_light(char* identifier);
+
+DynamicArray* get_ambient_lights();
+DynamicArray* get_directional_lights();
+DynamicArray* get_point_lights();
 
 void remove_light(char* identifier, enum LIGHT_TYPE lightType);
 

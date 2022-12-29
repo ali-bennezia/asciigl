@@ -10,5 +10,6 @@ IntVec2 clipspace_coords_to_screenspace_coords(Vec2 in);
 IntVec2 clipspace_to_screenspace(Vec2 in);
 void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals);
 void draw_model(Model model);
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal);
 
 #endif

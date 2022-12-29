@@ -288,3 +288,44 @@ void draw_model(Model model){
     }
 
 }
+
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal){
+    float current_depth = get_depth_buffer_depth(x, y);
+    
+    char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
+    char depthTest = ( get_depth_testing_state() == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth) ? 1 : 0;
+    char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL) == 1 ? 1 : 0;
+
+    if (screenCoordsTest == 1 && depthTest == 1 && frustumTest == 1){
+
+         DynamicArray* ambientLights = get_ambient_lights(), *directionalLights = get_directional_lights(), *pointLights = get_point_lights();
+
+        //light levels must be expressed between 0 and 255
+        unsigned short lightLevel = 0;
+
+        for (size_t i = 0; i < ambientLights->usage; ++i){
+            AmbientLight* ambientLight = (AmbientLight*)ambientLights->buffer + i;
+            lightLevel += ambientLight->intensity;
+        }
+
+        if (normal != NULL)
+            for (size_t i = 0; i < directionalLights->usage; ++i){
+                DirectionalLight* directionalLight = (DirectionalLight*)directionalLights->buffer + i;
+                float l = fabs(fmax(0,  vec3_dot_product(  worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
+                lightLevel += l * directionalLight->intensity;
+            }
+
+        for (size_t i = 0; i < pointLights->usage; ++i){
+            PointLight* pointLight = (PointLight*)pointLights->buffer + i;
+            float distance = vec3_magnitude( vec3_difference( worldspace_coords_to_viewspace_coords( pointLight->position ), viewspacePosition ) );
+            lightLevel +=  pointLight->intensity/(1.0 + distance );
+        }
+
+        lightLevel = max( min( lightLevel, 255 ), 0);
+
+        set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
+        set_depth_buffer_depth(x, y, depth);
+
+
+    }
+}

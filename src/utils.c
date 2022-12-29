@@ -202,6 +202,14 @@ Vec3 vec3_add(Vec3 a, Vec3 b){
     return out;
 }
 
+Vec3 vec3_difference(Vec3 a, Vec3 b){
+    Vec3 out;
+    out.x = a.x - b.x;
+    out.y = a.y - b.y;
+    out.z = a.z - b.z;
+    return out;
+}
+
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 
     float x_rads = to_rads(rotation.x), y_rads = to_rads(rotation.y), z_rads = to_rads(rotation.z);

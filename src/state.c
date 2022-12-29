@@ -22,6 +22,10 @@ DynamicArray ambientLights,
 
 //funcs
 
+DynamicArray* get_ambient_lights() { return &ambientLights; }
+DynamicArray* get_directional_lights() { return &directionalLights; }
+DynamicArray* get_point_lights() { return &pointLights; }
+
 const char fragments[] = ".`-:;*=enDMLXE$@";
 char light_level_to_fragment(unsigned short lightLevel){
     size_t correspondingIndex = (size_t)( (float)lightLevel/255.0*(strlen(&fragments[0]) - 1) ); 
@@ -68,38 +72,7 @@ float get_depth_buffer_depth(int x, int y){
     return depth == 0 ? depth : 1.0/depth;
 }
 
-void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal){
-    float current_depth = get_depth_buffer_depth(x, y);
-    
-    char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
-    char depthTest = (depthState == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth) ? 1 : 0;
-    char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL) == 1 ? 1 : 0;
 
-    if (screenCoordsTest == 1 && depthTest == 1 && frustumTest == 1){
-
-        //light levels must be expressed between 0 and 255
-        unsigned short lightLevel = 0;
-
-        for (size_t i = 0; i < ambientLights.usage; ++i){
-            AmbientLight* ambientLight = (AmbientLight*)ambientLights.buffer + i;
-            lightLevel += ambientLight->intensity;
-        }
-
-        if (normal != NULL)
-            for (size_t i = 0; i < directionalLights.usage; ++i){
-                DirectionalLight* directionalLight = (DirectionalLight*)directionalLights.buffer + i;
-                float l = fabs(fmax(0,  vec3_dot_product( directionalLight->normal, *normal ) ));
-                lightLevel += l * directionalLight->intensity;
-            }
-
-        lightLevel = max( min( lightLevel, 255 ), 0);
-
-        set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
-        set_depth_buffer_depth(x, y, depth);
-
-
-    }
-}
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state) {
     depthState = state;
