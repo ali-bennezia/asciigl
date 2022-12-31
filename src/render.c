@@ -53,14 +53,11 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
         }
     }
 
-    if ( x < get_frustum_near_plane() || x > get_frustum_far_plane() )
-        return 0;
+    char outsideNearOrFarPlane = ( x < get_frustum_near_plane() || x > get_frustum_far_plane() ) ? 1 : 0;
+    char outsideFrustumBoundaries = ( fabs(frustum_plane_x_difference) > fabs(frustum_plane_x_half_boundary) || 
+    fabs(frustum_plane_y_difference) > fabs(frustum_plane_y_half_boundary)) ? 1 : 0;
 
-    if ( fabs(frustum_plane_x_difference) > fabs(frustum_plane_x_half_boundary) || 
-    fabs(frustum_plane_y_difference) > fabs(frustum_plane_y_half_boundary))
-        return 0;
-
-    return 1;
+    return (outsideNearOrFarPlane == 1 || outsideFrustumBoundaries == 1) ? 0 : 1;
 }
 
 Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
@@ -300,7 +297,7 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 
          DynamicArray* ambientLights = get_ambient_lights(), *directionalLights = get_directional_lights(), *pointLights = get_point_lights();
 
-        //light levels must be expressed between 0 and 255
+        //light levels must be expressed between 0 and 255. very low light levels (inferior to 1) will not be rendered.
         unsigned short lightLevel = 0;
 
         for (size_t i = 0; i < ambientLights->usage; ++i){
@@ -317,15 +314,18 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 
         for (size_t i = 0; i < pointLights->usage; ++i){
             PointLight* pointLight = (PointLight*)pointLights->buffer + i;
+            if (pointLight->intensity < 1) continue;
             float distance = vec3_magnitude( vec3_difference( worldspace_coords_to_viewspace_coords( pointLight->position ), viewspacePosition ) );
-            lightLevel +=  pointLight->intensity/(1.0 + distance );
+            if (distance > pointLight->range) continue;
+            float raw_range = sqrt( pointLight->intensity - 1 );
+            float adjusted_distance = distance*(raw_range/pointLight->range);
+            lightLevel += (float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance );
         }
 
         lightLevel = max( min( lightLevel, 255 ), 0);
 
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
-
 
     }
 }

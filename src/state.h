@@ -43,7 +43,7 @@ void rotate_player(float x, float y, float z);
 
 void add_ambient_light(char* identifier, unsigned short intensity);
 void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal);
-void add_point_light(char* identifier, unsigned short intensity, unsigned short range, Vec3 position);
+void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position);
 
 AmbientLight* get_ambient_light(char* identifier);
 DirectionalLight* get_directional_light(char* identifier);

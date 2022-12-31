@@ -201,7 +201,7 @@ void add_directional_light(char* identifier, unsigned short intensity, Vec3 norm
     insert_data(&directionalLights, &directionalLight, sizeof(DirectionalLight));
 }
 
-void add_point_light(char* identifier, unsigned short intensity, unsigned short range, Vec3 position){
+void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -247,26 +247,34 @@ PointLight* get_point_light(char* identifier){
 
 
 void remove_light(char* identifier, enum LIGHT_TYPE lightType){
+    DynamicArray* darr = NULL;
     void* buffer = NULL;
     size_t dataSizeInBytes = 0;
+    size_t iteration_max = 0;
 
     switch(lightType){
         case LIGHT_TYPE_AMBIENT:
         buffer = ambientLights.buffer;
         dataSizeInBytes = sizeof(AmbientLight);
+        iteration_max = ambientLights.usage;
+        darr = &ambientLights;
         break;
         case LIGHT_TYPE_DIRECTIONAL:
         buffer = directionalLights.buffer;
         dataSizeInBytes = sizeof(DirectionalLight);
+        iteration_max = directionalLights.usage;
+        darr = &directionalLights;
         break;
         default:
         buffer = pointLights.buffer;
         dataSizeInBytes = sizeof(PointLight);
+        iteration_max = pointLights.usage;
+        darr = &pointLights;
         break;
     }
 
-    for (size_t i = 0; i < ambientLights.usage; ++i){
-        char* iterator = ((char*)ambientLights.buffer) + i * dataSizeInBytes;
+    for (size_t i = 0; i < iteration_max; ++i){
+        char* iterator = ((char*)buffer) + i * dataSizeInBytes;
         char* storedIdentifier = 
             lightType == LIGHT_TYPE_AMBIENT ?  ((AmbientLight*)iterator)->identifier : 
             lightType == LIGHT_TYPE_DIRECTIONAL ? ((DirectionalLight*)iterator)->identifier : 
@@ -275,7 +283,7 @@ void remove_light(char* identifier, enum LIGHT_TYPE lightType){
         if (strcmp( identifier, storedIdentifier ))
         {
             free(storedIdentifier);
-            remove_data(&ambientLights, i, sizeof(AmbientLight));
+            remove_data(darr, i, dataSizeInBytes);
             return;
         }
     }

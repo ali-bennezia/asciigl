@@ -66,7 +66,7 @@ typedef struct DirectionalLight{
 typedef struct PointLight{
     char* identifier;
     unsigned short intensity;
-    unsigned short range;
+    float range;
     Vec3 position;
 } PointLight;
 

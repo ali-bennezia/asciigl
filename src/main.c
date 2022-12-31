@@ -56,6 +56,9 @@ void init(){
     Vec3 normal;
     normal.x = -2; normal.y = 0; normal.z = 1;
     add_directional_light("Some light", 255, vec3_normalize(normal));
+    Vec3 pos;
+    pos.x = 1; pos.y = 0; pos.z = 2;
+    add_point_light("Some point light", 255, 10, pos);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
