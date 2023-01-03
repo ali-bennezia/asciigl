@@ -210,6 +210,13 @@ Vec3 vec3_difference(Vec3 a, Vec3 b){
     return out;
 }
 
+Vec3 vec3_scale(Vec3 vec, Vec3 scale){
+    vec.x *= scale.x;
+    vec.y *= scale.y;
+    vec.z *= scale.z;
+    return vec;
+}
+
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 
     float x_rads = to_rads(rotation.x), y_rads = to_rads(rotation.y), z_rads = to_rads(rotation.z);
@@ -395,12 +402,14 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model(){
     Model mdl;
     
-    Vec3 pos, rot;
+    Vec3 pos, rot, scale;
     pos.x = 0; pos.y = 0; pos.z = 0;
     rot.x = 0; rot.y = 0; rot.z = 0;
+    scale.x = 1; scale.y = 1; scale.z = 1;
 
     mdl.position = pos;
     mdl.rotation = rot;
+    mdl.scale = scale;
 
     mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
     mdl.normals = gen_dynamic_array( sizeof(Vec3)*3 );

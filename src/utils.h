@@ -49,7 +49,7 @@ typedef struct Model{
     DynamicArray mesh, normals;
 
     //Transform in worldspace
-    Vec3 position, rotation;
+    Vec3 position, rotation, scale;
 } Model;
 
 typedef struct AmbientLight{
@@ -100,6 +100,7 @@ Vec3 vec3_multiplication(Vec3 vec, float scalar);
 Vec3 vec3_mirror(Vec3 vec);
 Vec3 vec3_add(Vec3 a, Vec3 b);
 Vec3 vec3_difference(Vec3 a, Vec3 b);
+Vec3 vec3_scale(Vec3 vec, Vec3 scale);
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);

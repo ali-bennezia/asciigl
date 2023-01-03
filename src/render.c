@@ -251,10 +251,54 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
     
 }
 
+Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scale_y){
+
+    Vec2 out;
+
+    float normal_magnitude = sqrt( normal_x * normal_x + normal_y * normal_y );
+    if (scale_x == 1 && scale_y == 1 || normal_magnitude == 0){
+        out.x = normal_x; out.y = normal_y;
+        return out;
+    }
+
+    float sin_theta = normal_y/normal_magnitude;
+    float cos_theta = normal_x/normal_magnitude;
+
+    float post_scale_radius = sqrt( scale_x * scale_x * cos_theta * cos_theta + scale_y * scale_y * sin_theta * sin_theta );
+
+    out.x = (scale_y * cos_theta * normal_magnitude)/post_scale_radius;
+    out.y = (scale_x * sin_theta * normal_magnitude)/post_scale_radius;
+
+    return out;
+}
+
+Vec3 scale_normal(Vec3 normal, Vec3 scale){
+
+    Vec2 axis_normal, axis_scale;
+
+    //X axis
+    Vec2 x_axis_normal = scale_normal_axis( normal.z, normal.y, scale.z, scale.y );
+    normal.z = x_axis_normal.x; normal.y = x_axis_normal.y;
+
+    //Y axis
+    Vec2 y_axis_normal = scale_normal_axis( normal.x, normal.z, scale.x, scale.z );
+    normal.x = y_axis_normal.x; normal.z = y_axis_normal.y;
+
+    //Z axis
+    Vec2 z_axis_normal = scale_normal_axis( normal.x, normal.y, scale.x, scale.y );
+    normal.x = z_axis_normal.x; normal.y = z_axis_normal.y;
+
+
+
+    return normal;
+}
+
 void draw_model(Model model){
 
+    //condition to take normals into account during rendering
     char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
 
+    //per-primitive
     for (size_t i = 0; i < model.mesh.usage; ++i){
         Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
 
@@ -262,15 +306,15 @@ void draw_model(Model model){
         Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i, sizeof(Vec3)*3) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
-            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr), vec3_mirror( get_player_rotation() )), model.rotation );
-            normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 1), vec3_mirror( get_player_rotation() )), model.rotation );
-            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( *(normals_ptr + 2), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_ptr = &normals_out[0];
         }
 
-        Vec3 a_modelspace_rotated = rotate_point_around_origin(primitive.a, model.rotation);
-        Vec3 b_modelspace_rotated = rotate_point_around_origin(primitive.b, model.rotation);
-        Vec3 c_modelspace_rotated = rotate_point_around_origin(primitive.c, model.rotation);
+        Vec3 a_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
+        Vec3 b_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
+        Vec3 c_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.c, model.scale ), model.rotation);
 
         Vec3 a_worldspace = vec3_add(model.position, a_modelspace_rotated);
         Vec3 b_worldspace = vec3_add(model.position, b_modelspace_rotated);
@@ -308,7 +352,7 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         if (normal != NULL)
             for (size_t i = 0; i < directionalLights->usage; ++i){
                 DirectionalLight* directionalLight = (DirectionalLight*)directionalLights->buffer + i;
-                float l = fabs(fmax(0,  vec3_dot_product(  worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
+                float l = fabs(fmax(0.0,  vec3_dot_product( worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
                 lightLevel += l * directionalLight->intensity;
             }
 

@@ -54,11 +54,11 @@ void init(){
     //add_ambient_light("Light", 50);
 
     Vec3 normal;
-    normal.x = -2; normal.y = 0; normal.z = 1;
+    normal.x = -2.0; normal.y = 0.0; normal.z = 0;
     add_directional_light("Some light", 255, vec3_normalize(normal));
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    add_point_light("Some point light", 255, 10, pos);
+    //add_point_light("Some point light", 255, 10, pos);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -169,7 +169,11 @@ int main(int argc, char* argv[]){
 
 
     Model mdl = gen_model();
+
     mdl.position.z = 2.0;
+    mdl.position.x = 1.0;
+    mdl.scale.x = 2.0;
+
     insert_primitive(&mdl, trgl);
     insert_primitive(&mdl, trgl2);
 
