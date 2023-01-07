@@ -533,9 +533,7 @@ void* load_image_bmp_strategy(const char* path){
 									*(pixelDataTarget + 1) >> 16 & 255, *(pixelDataTarget + 1) >> 8 & 255, *(pixelDataTarget + 1) & 255);
 
 						}
-					}
-
-					
+					}					
 					break;
 				default:
 					break;
