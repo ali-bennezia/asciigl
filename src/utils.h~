@@ -42,7 +42,7 @@ void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize);
 void remove_data(DynamicArray* arr, size_t index, size_t dataSize);
 void free_dynamic_array(DynamicArray* arr);
 
-enum BMP_INFO_HEADER_TYPE {
+enum BMP_HEADER_TYPE {
 	BMP_HEADER_DEFAULT,
 	BMP_HEADER_V4,
 	BMP_HEADER_V5

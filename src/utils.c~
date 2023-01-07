@@ -516,6 +516,8 @@ void* load_image_bmp_strategy(const char* path){
 					printf("Loading pixel data (%d bytes):\n", rawDataLength);
 					printf("Padding: %d bytes | Used bytes per row: %d\n", rowPaddingInBytes, bytesPerRow);
 					
+					
+					size_t rowCount = 0;
 					//per-row
 					for (unsigned long row = 0; row < defaultInfoHeader->height; ++row){
 						for (unsigned long rowByte = 0; rowByte < bytesPerRow; ++rowByte){
