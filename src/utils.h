@@ -143,6 +143,10 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model();
 void free_model(Model mdl);
 
+void bmp_raw_data_unpack_byte_1bit_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget );
+void bmp_raw_data_unpack_byte_4bits_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget );
+void bmp_raw_data_unpack_byte_8bits_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget );
+
 void* load_image_bmp_strategy(const char* path);
 
 #endif

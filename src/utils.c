@@ -423,6 +423,46 @@ void free_model(Model mdl){
     free_dynamic_array(&mdl.normals);
 }
 
+void bmp_raw_data_unpack_byte_1bit_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget ){
+
+	uint8_t firstIndex = *byte >> 7 & 1;
+	uint8_t secondIndex = *byte >> 6 & 1;
+	uint8_t thirdIndex = *byte >> 5 & 1;
+	uint8_t fourthIndex = *byte >> 4 & 1;
+	uint8_t fifthIndex = *byte >> 3 & 1;
+	uint8_t sixthIndex = *byte >> 2 & 1;
+	uint8_t seventhIndex = *byte >> 1 & 1;
+	uint8_t eightIndex = *byte & 1 ;
+
+	*pixelDataTarget = *( palette + firstIndex );
+	*(pixelDataTarget + 1) = *( palette + secondIndex );
+	*(pixelDataTarget + 2) = *( palette + thirdIndex );
+	*(pixelDataTarget + 3) = *( palette + fourthIndex );
+	*(pixelDataTarget + 4) = *( palette + fifthIndex );
+	*(pixelDataTarget + 5) = *( palette + sixthIndex );
+	*(pixelDataTarget + 6) = *( palette + seventhIndex );
+	*(pixelDataTarget + 7) = *( palette + eightIndex );
+
+
+}
+
+void bmp_raw_data_unpack_byte_4bits_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget ){
+	
+	uint8_t firstIndex = *byte >> 4 & 15;
+	uint8_t secondIndex = *byte & 15; 
+						
+	*pixelDataTarget = *( (uint32_t*)palette + firstIndex );
+	*(pixelDataTarget + 1) = *( (uint32_t*)palette + secondIndex );
+
+}
+
+void bmp_raw_data_unpack_byte_8bits_strategy( uint8_t* byte, uint32_t* palette, uint32_t* pixelDataTarget ){
+
+	uint8_t index = *byte;
+	*pixelDataTarget = *( palette + index );
+
+}
+
 void* load_image_bmp_strategy(const char* path){
 	
 	FILE* file = fopen(path, "r");
@@ -498,46 +538,51 @@ void* load_image_bmp_strategy(const char* path){
 
 	//printf("Loading pixel data (%d bytes) :\n", rawDataLength);
 
-	size_t rowPaddingInBytes;
-
+	size_t bytesPerRow, rowPaddingInBytes, rawDataLength;
+	
 	switch (defaultInfoHeader->compression){
 		//0 = RGB
 		default:
+			bytesPerRow = ceil( (double)defaultInfoHeader->width*defaultInfoHeader->bitsperpixel/8.0 );
+			rowPaddingInBytes = ceil( (double)bytesPerRow/4.0 )*4 - bytesPerRow;
+			
+			rawDataLength = defaultInfoHeader->height * (bytesPerRow + rowPaddingInBytes);
+			rawData = malloc( rawDataLength );
+			fread(rawData, rawDataLength, 1, file);
+
+			void (*byte_strategy)(uint8_t*, uint32_t*, uint32_t*) = NULL;
 
 			switch (defaultInfoHeader->bitsperpixel){
+
+				case 1: ;
+					byte_strategy = &bmp_raw_data_unpack_byte_1bit_strategy;
+				       break;
 				case 4: ;
-					size_t bytesPerRow = ceil((double)4.0*(double)defaultInfoHeader->width/8.0);
-					rowPaddingInBytes = ceil( (double)bytesPerRow/4.0 )*4 - bytesPerRow;
-
-					size_t rawDataLength = defaultInfoHeader->height * (bytesPerRow + rowPaddingInBytes);
-					rawData = malloc( rawDataLength );
-					fread(rawData, rawDataLength, 1, file);
-					
-					printf("Loading pixel data (%d bytes):\n", rawDataLength);
-					printf("Padding: %d bytes | Used bytes per row: %d\n", rowPaddingInBytes, bytesPerRow);
-					
-					//per-row
-					for (unsigned long row = 0; row < defaultInfoHeader->height; ++row){
-						for (unsigned long rowByte = 0; rowByte < bytesPerRow; ++rowByte){
-							
-							uint8_t* currentByte = (uint8_t*)rawData + row * ( bytesPerRow + rowPaddingInBytes ) + rowByte;
-							uint8_t firstIndex = *currentByte >> 4 & 15;
-							uint8_t secondIndex = *currentByte & 15; 
-
-							uint32_t* pixelDataTarget = (uint32_t*)pixelData + ( defaultInfoHeader->height - row - 1 ) * defaultInfoHeader->width + rowByte * 2;
-							
-							*pixelDataTarget = *( (uint32_t*)palette + firstIndex );
-							*(pixelDataTarget + 1) = *( (uint32_t*)palette + secondIndex );
-
-							printf("%d %d %d\n%d %d %d\n", *pixelDataTarget >> 16 & 255, *pixelDataTarget >> 8 & 255, *pixelDataTarget & 255,
-									*(pixelDataTarget + 1) >> 16 & 255, *(pixelDataTarget + 1) >> 8 & 255, *(pixelDataTarget + 1) & 255);
-
-						}
-					}					
+					byte_strategy = &bmp_raw_data_unpack_byte_4bits_strategy;
+					break;
+				case 8: ;
+					byte_strategy = &bmp_raw_data_unpack_byte_8bits_strategy;
 					break;
 				default:
 					break;
+
 			}
+				printf("Loading pixel data (%d bytes):\n", rawDataLength);
+				printf("Padding: %d bytes | Used bytes per row: %d\n", rowPaddingInBytes, bytesPerRow);
+					
+				//per-row
+				for (unsigned long row = 0; row < defaultInfoHeader->height; ++row){
+					for (unsigned long rowByte = 0; rowByte < bytesPerRow; ++rowByte){
+						
+						uint8_t* currentByte = (uint8_t*)rawData + row * ( bytesPerRow + rowPaddingInBytes ) + rowByte;
+						uint32_t* pixelDataTarget = (uint32_t*)pixelData + ( defaultInfoHeader->height - row - 1 ) * defaultInfoHeader->width + rowByte * (unsigned long)(8.0/defaultInfoHeader->bitsperpixel);
+						
+						byte_strategy( currentByte, (uint32_t*)palette, pixelDataTarget );
+					
+					}
+				}					
+					
+				
 
 			break;
 	}
