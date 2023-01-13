@@ -423,7 +423,7 @@ void free_model(Model mdl){
     free_dynamic_array(&mdl.normals);
 }
 
-void bmp_raw_data_unpack_byte_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType ){
+void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 
 	uint8_t firstIndex = *byte >> 7 & 1;
 	uint8_t secondIndex = *byte >> 6 & 1;
@@ -445,9 +445,11 @@ void bmp_raw_data_unpack_byte_1bit_strategy( uint8_t* byte, void* palette, uint3
 	*(pixelDataTarget + 6) = *( (uint32_t*)palette + seventhIndex ) & mask;
 	*(pixelDataTarget + 7) = *( (uint32_t*)palette + eightIndex ) & mask;
 
+	*pixelCounter += 8;
+
 }
 
-void bmp_raw_data_unpack_byte_4bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType ){
+void bmp_raw_data_unpack_4bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 	
 	uint8_t firstIndex = *byte >> 4 & 15;
 	uint8_t secondIndex = *byte & 15; 
@@ -457,9 +459,11 @@ void bmp_raw_data_unpack_byte_4bits_strategy( uint8_t* byte, void* palette, uint
 	*pixelDataTarget = *( (uint32_t*)palette  + firstIndex ) & mask;
 	*(pixelDataTarget + 1) = *( (uint32_t*)palette  + secondIndex ) & mask;
 
+	*pixelCounter += 2;
+
 }
 
-void bmp_raw_data_unpack_byte_8bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType ){
+void bmp_raw_data_unpack_8bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 
 	uint8_t index = *byte;
 
@@ -467,8 +471,35 @@ void bmp_raw_data_unpack_byte_8bits_strategy( uint8_t* byte, void* palette, uint
 
 	*pixelDataTarget = *( (uint32_t*)palette + index ) & mask;
 
-	printf("Palette index: %d, color: %d %d %d\n", index, *pixelDataTarget >> 16 & 255, *pixelDataTarget >> 8 & 255, *pixelDataTarget & 255);
+	++(*pixelCounter);
+
 }
+
+void bmp_raw_data_unpack_24bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
+
+	size_t blue = *byte, green = *( byte + 1 ), red = *( byte + 2 );
+	*((uint8_t*)pixelDataTarget) = red;
+	*((uint8_t*)pixelDataTarget + 1) = green;
+	*((uint8_t*)pixelDataTarget + 2) = blue;
+	*((uint8_t*)pixelDataTarget + 3) = 255;
+
+	++(*pixelCounter);
+
+}
+
+void bmp_raw_data_unpack_32bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
+
+	size_t blue = *byte, green = *( byte + 1 ), red = *( byte + 2 ), alpha = *( byte + 3);
+	*((uint8_t*)pixelDataTarget) = red;
+	*((uint8_t*)pixelDataTarget + 1) = green;
+	*((uint8_t*)pixelDataTarget + 2) = blue;
+	*((uint8_t*)pixelDataTarget + 3) = alpha;
+
+	++(*pixelCounter);
+
+}
+
+
 
 void* load_image_bmp_strategy(const char* path){
 	
@@ -534,13 +565,13 @@ void* load_image_bmp_strategy(const char* path){
 	}
 
 	//process pixel data
-	const unsigned int pixels = defaultInfoHeader->width*defaultInfoHeader->height;
+	const size_t pixels = defaultInfoHeader->width*defaultInfoHeader->height;
        	void* rawData = NULL;
 	void* pixelData = malloc( 4*pixels );
 
 	fseek(file, headerData.dataoffset, SEEK_SET);
 
-	size_t bytesPerRow, rowPaddingInBytes, rawDataLength;
+	size_t bytesPerRow, rowPaddingInBytes, rawDataLength, bytesPerStep;
 	
 	switch (defaultInfoHeader->compression){
 		//0 = RGB
@@ -552,18 +583,29 @@ void* load_image_bmp_strategy(const char* path){
 			rawData = malloc( rawDataLength );
 			fread(rawData, rawDataLength, 1, file);
 
-			void (*byte_strategy)(uint8_t*, void*, uint32_t*, enum BMP_INFO_HEADER_TYPE) = NULL;
+			void (*byte_strategy)(uint8_t*, void*, uint32_t*, enum BMP_INFO_HEADER_TYPE, size_t*) = NULL;
 
 			switch (defaultInfoHeader->bitsperpixel){
 
 				case 1: ;
-					byte_strategy = &bmp_raw_data_unpack_byte_1bit_strategy;
-				       break;
+					byte_strategy = &bmp_raw_data_unpack_1bit_strategy;
+					bytesPerStep = 1;
+				        break;
 				case 4: ;
-					byte_strategy = &bmp_raw_data_unpack_byte_4bits_strategy;
+					byte_strategy = &bmp_raw_data_unpack_4bits_strategy;
+					bytesPerStep = 1;
 					break;
 				case 8: ;
-					byte_strategy = &bmp_raw_data_unpack_byte_8bits_strategy;
+					byte_strategy = &bmp_raw_data_unpack_8bits_strategy;
+					bytesPerStep = 1;
+					break;
+				case 24: ;
+					byte_strategy = &bmp_raw_data_unpack_24bits_strategy;
+					bytesPerStep = 3;
+					break;
+				case 32: ;
+					byte_strategy = &bmp_raw_data_unpack_32bits_strategy;
+					bytesPerStep = 4;
 					break;
 				default:
 					break;
@@ -572,15 +614,16 @@ void* load_image_bmp_strategy(const char* path){
 
 			printf("Loading pixel data (%d bytes):\n", rawDataLength);
 			printf("Padding: %d bytes | Used bytes per row: %d | Image size: %d\n", rowPaddingInBytes, bytesPerRow, rawDataLength);
-					
+				
+			size_t currentPixel = 0;
 			//per-row
-			for (size_t row = 0; row < defaultInfoHeader->height; ++row){
-				for (size_t rowByte = 0; rowByte < bytesPerRow; ++rowByte){
-					uint8_t* currentByte = (uint8_t*)rawData + row * ( bytesPerRow + rowPaddingInBytes ) + rowByte;
-					size_t invertedRow = defaultInfoHeader->height - 1 - row;
-		
-					uint32_t* pixelDataTarget = (uint32_t*)pixelData + invertedRow * defaultInfoHeader->width + rowByte * ( 8 / defaultInfoHeader->bitsperpixel ); 
-					byte_strategy( currentByte, palette, pixelDataTarget, infoHeaderType );
+			for (int row = defaultInfoHeader->height - 1; row >= 0; --row){
+				for (size_t rowIteration = 0; rowIteration < bytesPerRow / bytesPerStep; ++rowIteration){
+
+					uint8_t* currentByte = (uint8_t*)rawData + row * ( bytesPerRow + rowPaddingInBytes ) + rowIteration * bytesPerStep;
+					uint32_t* pixelDataTarget = (uint32_t*)pixelData + currentPixel;
+
+					byte_strategy( currentByte, palette, pixelDataTarget, infoHeaderType, &currentPixel );
 				}
 			}					
 					
