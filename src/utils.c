@@ -423,6 +423,20 @@ void free_model(Model mdl){
     free_dynamic_array(&mdl.normals);
 }
 
+size_t get_dword_mask_offset( uint32_t* dword )
+{
+	size_t val = *dword, offset = 0, iteration = val;
+
+	if (val == 0) return 0;
+
+	while (iteration % 2 == 0){
+		iteration /= 2;
+		++offset;
+	}
+
+	return offset;
+}
+
 void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 
 	uint8_t firstIndex = *byte >> 7 & 1;
@@ -489,7 +503,17 @@ void bmp_raw_data_unpack_24bits_strategy( uint8_t* byte, void* palette, uint32_t
 
 void bmp_raw_data_unpack_32bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 
-	size_t blue = *byte, green = *( byte + 1 ), red = *( byte + 2 ), alpha = *( byte + 3);
+	uint32_t blue_mask = *( (uint32_t*)palette );
+	uint32_t green_mask = *( (uint32_t*)palette + 1 );
+	uint32_t red_mask = *( (uint32_t*)palette + 2 );
+	uint32_t alpha_mask = ~( red_mask | green_mask | blue_mask );
+
+	uint32_t* dword = (uint32_t*)(byte);
+	size_t red = (*dword & red_mask) >> get_dword_mask_offset( &red_mask );
+	size_t green = (*dword & green_mask) >> get_dword_mask_offset( &green_mask );
+	size_t blue = (*dword & blue_mask) >> get_dword_mask_offset( &blue_mask );
+	size_t alpha = (*dword & alpha_mask) >> get_dword_mask_offset( &alpha_mask );
+
 	*((uint8_t*)pixelDataTarget) = red;
 	*((uint8_t*)pixelDataTarget + 1) = green;
 	*((uint8_t*)pixelDataTarget + 2) = blue;
@@ -530,7 +554,6 @@ void* load_image_bmp_strategy(const char* path){
 		//40
 		default:
 			infoHeaderType = BMP_HEADER_DEFAULT;
-			//infoData = malloc( sizeof(BMPInfoHeader) );
 
 			BMPInfoHeader* bmpInfoHeader = (BMPInfoHeader*)infoData;
 			bmpInfoHeader->infoheadersize = infoHeaderSize;
@@ -559,7 +582,7 @@ void* load_image_bmp_strategy(const char* path){
 	printf("BMP Info | Header size: %d | Width: %d, Height: %d | Compression: %d | Planes: %d | Colors used: %d | Bits per pixel: %d\n", defaultInfoHeader->infoheadersize, defaultInfoHeader->width, defaultInfoHeader->height,
 			defaultInfoHeader->compression, defaultInfoHeader->planes, defaultInfoHeader->colorsused, defaultInfoHeader->bitsperpixel);
 
-	if (palette != NULL){
+	if (defaultInfoHeader->bitsperpixel <= 8){
 		fseek(file, 14+infoHeaderSize, SEEK_SET);
 		size_t colorsread = fread(palette, infoHeaderType == BMP_HEADER_V5 ? 3 : 4, defaultInfoHeader->colorsused, file );
 	}
@@ -569,11 +592,14 @@ void* load_image_bmp_strategy(const char* path){
        	void* rawData = NULL;
 	void* pixelData = malloc( 4*pixels );
 
-	fseek(file, headerData.dataoffset, SEEK_SET);
-
 	size_t bytesPerRow, rowPaddingInBytes, rawDataLength, bytesPerStep;
 	
 	switch (defaultInfoHeader->compression){
+		case 3:
+			palette = malloc( 12 );
+		
+			fseek(file, 14+infoHeaderSize, SEEK_SET);
+			size_t colorsread = fread(palette, 4, 3, file);
 		//0 = RGB
 		default:
 			bytesPerRow = ceil( (double)defaultInfoHeader->width*defaultInfoHeader->bitsperpixel/8.0 );
@@ -581,6 +607,8 @@ void* load_image_bmp_strategy(const char* path){
 			
 			rawDataLength = defaultInfoHeader->height * (bytesPerRow + rowPaddingInBytes);
 			rawData = malloc( rawDataLength );
+
+			fseek(file, headerData.dataoffset, SEEK_SET);
 			fread(rawData, rawDataLength, 1, file);
 
 			void (*byte_strategy)(uint8_t*, void*, uint32_t*, enum BMP_INFO_HEADER_TYPE, size_t*) = NULL;
@@ -631,6 +659,8 @@ void* load_image_bmp_strategy(const char* path){
 
 			break;
 	}
+
+
 
 	printf("Displaying pixel data:\n");
 	for (size_t y = 0; y < defaultInfoHeader->height; ++y){
