@@ -145,6 +145,8 @@ void free_model(Model mdl);
 
 size_t get_dword_mask_offset( uint32_t* dword );
 
+void* bmp_decode_rle_8bit_strategy( void* data, void* palette, size_t pixels, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType );
+
 void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter );
 void bmp_raw_data_unpack_4bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter );
 void bmp_raw_data_unpack_8bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter );

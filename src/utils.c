@@ -437,6 +437,31 @@ size_t get_dword_mask_offset( uint32_t* dword )
 	return offset;
 }
 
+void* bmp_decode_rle_8bit_strategy( void* data, void* palette, size_t pixels, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
+{	
+	void* decodedData = malloc( pixels * 4 );
+	size_t pixelCount = 0;
+
+	for (size_t index = 0; index < dataSizeInBytes / 2; ++index){
+
+		uint16_t current = *((uint16_t*)data + index);
+		uint8_t amount = current >> 8 & 255, paletteIndex = current & 255;
+		
+		uint32_t mask = (headerType == BMP_HEADER_V5) ? 0x00FFFFFF : 0xFFFFFFFF;
+		
+		uint32_t currentPixelData = *((uint32_t*)palette + paletteIndex) & mask;	
+		
+		for (size_t p = 0; p < amount; ++p){
+			*((uint32_t*)decodedData + pixelCount) = currentPixelData;
+			++pixelCount;
+		}	
+		
+		
+	}
+	
+	return decodedData;
+}
+
 void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
 
 	uint8_t firstIndex = *byte >> 7 & 1;
@@ -595,6 +620,9 @@ void* load_image_bmp_strategy(const char* path){
 	size_t bytesPerRow, rowPaddingInBytes, rawDataLength, bytesPerStep;
 	
 	switch (defaultInfoHeader->compression){
+		case 1:
+			//void* decodedData = bmp_decode_rle_8bit_strategy( rawData, palette, pixels, defaultInfoHeader->imagesize, infoHeaderType );
+			goto default;
 		case 3:
 			palette = malloc( 12 );
 		
@@ -660,9 +688,21 @@ void* load_image_bmp_strategy(const char* path){
 			break;
 	}
 
+	printf("First, length-1nth and last pixels:\n");
+	size_t first = 0, secondLast = pixels - 2, last = pixels - 1;
+	uint32_t firstPixel = *( (uint32_t*)pixelData + first );
+	uint32_t secondLastPixel = *( (uint32_t*)pixelData + secondLast );
+	uint32_t lastPixel = *( (uint32_t*)pixelData + last );
 
+	size_t blueFirst = firstPixel >> 16 & 255, greenFirst = firstPixel >> 8 & 255, redFirst = firstPixel & 255;
+	size_t blueSecondLast = secondLastPixel >> 16 & 255, greenSecondLast = secondLastPixel >> 8 & 255, redSecondLast = secondLastPixel & 255;
+	size_t blueLast = lastPixel >> 16 & 255, greenLast = lastPixel >> 8 & 255, redLast = lastPixel & 255;
 
-	printf("Displaying pixel data:\n");
+	printf("%d %d %d\n", redFirst, greenFirst, blueFirst );	
+	printf("%d %d %d\n", redSecondLast, greenSecondLast, blueSecondLast);
+	printf("%d %d %d\n", redLast, greenLast, blueLast);
+
+	/*printf("Displaying pixel data:\n");
 	for (size_t y = 0; y < defaultInfoHeader->height; ++y){
 
 		for (size_t x = 0; x < defaultInfoHeader->width; ++x){
@@ -673,7 +713,7 @@ void* load_image_bmp_strategy(const char* path){
 			printf("%c", light_level_to_fragment( fmin(255, sqrt( red*red + green*green + blue*blue ) ) ));
 		}
 		printf("\n");
-	}
+	}*/
 
 	if (rawData != NULL) free(rawData);
 	if (palette != NULL) free(palette);
