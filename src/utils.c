@@ -622,7 +622,8 @@ void* load_image_bmp_strategy(const char* path){
 	switch (defaultInfoHeader->compression){
 		case 1:
 			//void* decodedData = bmp_decode_rle_8bit_strategy( rawData, palette, pixels, defaultInfoHeader->imagesize, infoHeaderType );
-			goto default;
+			//goto default;
+			break;
 		case 3:
 			palette = malloc( 12 );
 		
