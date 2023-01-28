@@ -437,29 +437,55 @@ size_t get_dword_mask_offset( uint32_t* dword )
 	return offset;
 }
 
-void* bmp_decode_rle_8bit_strategy( void* data, void* palette, size_t pixels, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
-{	
-	void* decodedData = malloc( pixels * 4 );
-	size_t pixelCount = 0;
+void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette, int32_t width, int32_t height, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
+{
+	uint32_t mask = headerType == BMP_HEADER_V5 ? 0x00FFFFFF : 0xFFFFFFFF;
 
-	for (size_t index = 0; index < dataSizeInBytes / 2; ++index){
+	const size_t max = dataSizeInBytes / 2;
+	size_t x = 0, y = height - 1, pixelCount = y*width + x;
+	for (size_t i = 0; i < max; ++i){
 
-		uint16_t current = *((uint16_t*)data + index);
-		uint8_t amount = current >> 8 & 255, paletteIndex = current & 255;
+		uint16_t dataWord = *( (uint16_t*)data + i );
+		uint8_t firstByte = dataWord >> 8 & 255, secondByte = dataWord & 255;
 		
-		uint32_t mask = (headerType == BMP_HEADER_V5) ? 0x00FFFFFF : 0xFFFFFFFF;
-		
-		uint32_t currentPixelData = *((uint32_t*)palette + paletteIndex) & mask;	
-		
-		for (size_t p = 0; p < amount; ++p){
-			*((uint32_t*)decodedData + pixelCount) = currentPixelData;
-			++pixelCount;
-		}	
-		
-		
-	}
+		if (firstByte > 0){
+			uint32_t pixelData = *( (uint32_t*)palette + secondByte ) & mask;
+
+			for (size_t p = 0; p < firstByte; ++p){
+				pixelCount = y*width + x;
+				*((uint32_t*)data + pixelCount) = pixelData;
+				++x;
+				if (x == width)
+				{
+					x = 0;
+					--y;
+				}
+			}
 	
-	return decodedData;
+		}else if (firstByte == 0 && secondByte <= 0x02){
+			switch (secondByte){
+				case 0x00:
+					x = 0;
+					--y;
+					pixelCount = y*width + x;
+					break;
+				case 0x01:
+					i = max;
+					break;					
+				default:
+					uint16_t nextWord = *( (uint16_t*)data + i + 1 );
+					int8_t h = nextWord >> 8, v = nextWord;
+					++i;
+					x += h;
+					y -= v;
+					pixelCount = y*width + x;
+					break;
+			}
+		}else{
+			
+		}
+
+	} 
 }
 
 void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
@@ -471,7 +497,7 @@ void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* 
 	uint8_t fifthIndex = *byte >> 3 & 1;
 	uint8_t sixthIndex = *byte >> 2 & 1;
 	uint8_t seventhIndex = *byte >> 1 & 1;
-	uint8_t eightIndex = *byte & 1 ;
+	uint8_t eighthIndex = *byte & 1 ;
 
 	uint32_t mask = headerType == BMP_HEADER_V5 ? 0x00FFFFFF : 0xFFFFFFFF;
 
@@ -482,7 +508,7 @@ void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* 
 	*(pixelDataTarget + 4) = *( (uint32_t*)palette + fifthIndex ) & mask;
 	*(pixelDataTarget + 5) = *( (uint32_t*)palette + sixthIndex ) & mask;
 	*(pixelDataTarget + 6) = *( (uint32_t*)palette + seventhIndex ) & mask;
-	*(pixelDataTarget + 7) = *( (uint32_t*)palette + eightIndex ) & mask;
+	*(pixelDataTarget + 7) = *( (uint32_t*)palette + eighthIndex ) & mask;
 
 	*pixelCounter += 8;
 
@@ -621,8 +647,21 @@ void* load_image_bmp_strategy(const char* path){
 	
 	switch (defaultInfoHeader->compression){
 		case 1:
-			//void* decodedData = bmp_decode_rle_8bit_strategy( rawData, palette, pixels, defaultInfoHeader->imagesize, infoHeaderType );
-			//goto default;
+
+			rawDataLength = defaultInfoHeader->imagesize;
+			rawData = malloc( rawDataLength );
+
+			fseek(file, headerData.dataoffset, SEEK_SET);
+			fread(rawData, rawDataLength, 1, file);
+
+			bmp_decode_rle_8bit_strategy( 
+				rawData, 
+				pixelData, 
+				palette, 
+				defaultInfoHeader->width,
+				defaultInfoHeader->height,
+				defaultInfoHeader->imagesize, 
+				infoHeaderType );
 			break;
 		case 3:
 			palette = malloc( 12 );
