@@ -437,55 +437,89 @@ size_t get_dword_mask_offset( uint32_t* dword )
 	return offset;
 }
 
+uint32_t BGRA_to_RGBA( uint32_t data )
+{
+	uint32_t out = 0;
+
+	out |= (data & 0x000000FF) << 16;
+	out |= (data & 0x0000FF00);
+	out |= (data & 0x00FF0000) >> 16;
+	out |= (data & 0xFF000000);
+
+	return out;
+}
+
 void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette, int32_t width, int32_t height, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
 {
+	//pixel data mask
 	uint32_t mask = headerType == BMP_HEADER_V5 ? 0x00FFFFFF : 0xFFFFFFFF;
 
-	const size_t max = dataSizeInBytes / 2;
-	size_t x = 0, y = height - 1, pixelCount = y*width + x;
+	size_t max = dataSizeInBytes/2, count = 0, x = 0, y = 0;
 	for (size_t i = 0; i < max; ++i){
+		uint16_t word = *( (uint16_t*)data + i );
+		uint8_t secondByte = word >> 8 & 255, firstByte = word & 255;
 
-		uint16_t dataWord = *( (uint16_t*)data + i );
-		uint8_t firstByte = dataWord >> 8 & 255, secondByte = dataWord & 255;
-		
 		if (firstByte > 0){
-			uint32_t pixelData = *( (uint32_t*)palette + secondByte ) & mask;
+			uint32_t pixelData = BGRA_to_RGBA( *( (uint32_t*)palette + secondByte ) );
 
-			for (size_t p = 0; p < firstByte; ++p){
-				pixelCount = y*width + x;
-				*((uint32_t*)data + pixelCount) = pixelData;
+
+			for (size_t p = 0; p < firstByte; ++p)
+			{
+				*( (uint32_t*)destination + ( (height-y-1)*width+x ) ) = pixelData;
 				++x;
-				if (x == width)
-				{
-					x = 0;
-					--y;
-				}
 			}
-	
-		}else if (firstByte == 0 && secondByte <= 0x02){
-			switch (secondByte){
-				case 0x00:
-					x = 0;
-					--y;
-					pixelCount = y*width + x;
-					break;
-				case 0x01:
-					i = max;
-					break;					
-				default:
-					uint16_t nextWord = *( (uint16_t*)data + i + 1 );
-					int8_t h = nextWord >> 8, v = nextWord;
-					++i;
-					x += h;
-					y -= v;
-					pixelCount = y*width + x;
-					break;
-			}
-		}else{
-			
-		}
 
-	} 
+		}else{
+			switch (secondByte){
+				case 0x00:; //eol
+
+					x = 0;
+					++y;
+
+					break;
+				case 0x01:; //eof
+
+					i = max;
+					break;
+				case 0x02:; //delta
+
+					++i;
+					uint16_t deltaWord = *( (uint16_t*)data + i );
+					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
+					x += horizontalDelta + 1;
+					y += verticalDelta;
+
+					break;
+				default:; //absolute
+					short odd = secondByte % 2 == 0 ? 0 : 1, processingSecondByte = 0;
+					
+					for (size_t p = 0; p < ceil ((double)secondByte / 2.0); ++p){
+						++i;
+						uint16_t absoluteWord = *( (uint16_t*)data + i );
+						uint8_t secondByte = absoluteWord >> 8 & 255, firstByte = absoluteWord & 255;
+						processingSecondByte = 0;
+
+
+						processByte:;
+						uint32_t absolutePixelData = *( (uint32_t*)palette + ( processingSecondByte == 0 ? firstByte : secondByte) );
+						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData );
+
+						++x;
+
+						
+						if ( processingSecondByte == 0 && ( odd == 0 || p != (secondByte - 1) ) )
+						{
+							processingSecondByte = 1;
+							goto processByte;
+						}
+
+					}
+
+					break;
+			}
+		}	
+	}
+	
 }
 
 void bmp_raw_data_unpack_1bit_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter ){
@@ -641,7 +675,7 @@ void* load_image_bmp_strategy(const char* path){
 	//process pixel data
 	const size_t pixels = defaultInfoHeader->width*defaultInfoHeader->height;
        	void* rawData = NULL;
-	void* pixelData = malloc( 4*pixels );
+	void* pixelData = calloc( pixels, 4 );
 
 	size_t bytesPerRow, rowPaddingInBytes, rawDataLength, bytesPerStep;
 	
@@ -653,6 +687,8 @@ void* load_image_bmp_strategy(const char* path){
 
 			fseek(file, headerData.dataoffset, SEEK_SET);
 			fread(rawData, rawDataLength, 1, file);
+
+			printf("LENGTH %d OFFSET %x\n", rawDataLength, headerData.dataoffset);
 
 			bmp_decode_rle_8bit_strategy( 
 				rawData, 
@@ -742,7 +778,7 @@ void* load_image_bmp_strategy(const char* path){
 	printf("%d %d %d\n", redSecondLast, greenSecondLast, blueSecondLast);
 	printf("%d %d %d\n", redLast, greenLast, blueLast);
 
-	/*printf("Displaying pixel data:\n");
+	printf("Displaying pixel data:\n");
 	for (size_t y = 0; y < defaultInfoHeader->height; ++y){
 
 		for (size_t x = 0; x < defaultInfoHeader->width; ++x){
@@ -753,7 +789,7 @@ void* load_image_bmp_strategy(const char* path){
 			printf("%c", light_level_to_fragment( fmin(255, sqrt( red*red + green*green + blue*blue ) ) ));
 		}
 		printf("\n");
-	}*/
+	}
 
 	if (rawData != NULL) free(rawData);
 	if (palette != NULL) free(palette);
