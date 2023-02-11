@@ -449,19 +449,94 @@ uint32_t BGRA_to_RGBA( uint32_t data )
 	return out;
 }
 
+void bmp_decode_rle_4bit_strategy( void* data, void* destination, void* palette, int32_t width, int32_t height, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
+{
+	//pixel data mask
+	uint32_t mask = headerType == BMP_HEADER_V5 ? 0x00FFFFFF : 0xFFFFFFFF;
+
+	size_t max = dataSizeInBytes/2, x = 0, y = 0;
+	for (size_t i = 0; i < max; ++i){
+		uint16_t word = *( (uint16_t*)data + i );
+		uint8_t secondByte = word >> 8 & 255, firstByte = word & 255;
+		uint8_t highOrderData = secondByte >> 4 & 15, lowOrderData = secondByte & 15;
+
+		if (firstByte > 0){
+			printf("ENCODED %d %d\n", firstByte, secondByte);
+			uint32_t firstPixelData = BGRA_to_RGBA( *( (uint32_t*)palette + highOrderData ) & mask ),
+				 secondPixelData = BGRA_to_RGBA( *( (uint32_t*)palette + lowOrderData ) & mask );
+			short odd = firstByte % 2 == 0 ? 0 : 1;
+			for (size_t p = 0; p < ceil((double)firstByte/2.0); ++p)
+			{
+				*( (uint32_t*)destination + ( (height-y-1)*width+x ) ) = firstPixelData;
+				++x;
+				if (odd == 0 || p != ceil( (double)firstByte/2.0 ) - 1)
+				{
+					*( (uint32_t*)destination + ( (height-y-1)*width+x ) ) = secondPixelData;
+					++x;
+				}
+			}
+
+		}else{
+			switch (secondByte){
+				case 0x00:; //eol
+					printf("EOL\n");
+					x = 0;
+					++y;
+					break;
+				case 0x01:; //eof
+					printf("EOF\n");
+					i = max;
+					break;
+				case 0x02:; //delta
+					printf("DELTA\n");
+					++i;
+					uint16_t deltaWord = *( (uint16_t*)data + i );
+					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
+					x += horizontalDelta + 1;
+					y += verticalDelta;
+					break;
+				default:; //absolute TODO 4-bit
+					printf("ABSOLUTE\n");
+					short odd = secondByte % 2 == 0 ? 0 : 1;
+					
+					for (size_t p = 0; p < ceil ((double)secondByte / 2.0); ++p){
+
+						uint8_t absoluteByte = *( (uint8_t*)data + i*2 + p );
+						uint8_t highOrderData = absoluteByte >> 4 & 15, lowOrderData = absoluteByte & 15;
+
+						uint32_t absolutePixelData = *( (uint32_t*)palette + highOrderData );
+						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData & mask );
+						++x;
+
+						if ( odd == 0 || p != ( ceil((double)secondByte/2.0) - 1) )
+						{
+							absolutePixelData = *( (uint32_t*)palette + lowOrderData );
+							*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData & mask );
+							++x;
+						}
+
+					}
+					i += ceil( (double)secondByte / 4.0 );
+
+					break;
+			}
+		}	
+	}
+	
+}
+
 void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette, int32_t width, int32_t height, size_t dataSizeInBytes, enum BMP_INFO_HEADER_TYPE headerType )
 {
 	//pixel data mask
 	uint32_t mask = headerType == BMP_HEADER_V5 ? 0x00FFFFFF : 0xFFFFFFFF;
 
-	size_t max = dataSizeInBytes/2, count = 0, x = 0, y = 0;
+	size_t max = dataSizeInBytes/2, x = 0, y = 0;
 	for (size_t i = 0; i < max; ++i){
 		uint16_t word = *( (uint16_t*)data + i );
 		uint8_t secondByte = word >> 8 & 255, firstByte = word & 255;
 
 		if (firstByte > 0){
-			uint32_t pixelData = BGRA_to_RGBA( *( (uint32_t*)palette + secondByte ) );
-
+			uint32_t pixelData = BGRA_to_RGBA( *( (uint32_t*)palette + secondByte ) & mask );
 
 			for (size_t p = 0; p < firstByte; ++p)
 			{
@@ -472,23 +547,18 @@ void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette,
 		}else{
 			switch (secondByte){
 				case 0x00:; //eol
-
 					x = 0;
 					++y;
-
 					break;
 				case 0x01:; //eof
-
 					i = max;
 					break;
 				case 0x02:; //delta
-
 					++i;
 					uint16_t deltaWord = *( (uint16_t*)data + i );
 					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
 					x += horizontalDelta + 1;
 					y += verticalDelta;
-
 					break;
 				default:; //absolute
 					short odd = secondByte % 2 == 0 ? 0 : 1, processingSecondByte = 0;
@@ -499,20 +569,17 @@ void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette,
 						uint8_t secondByte = absoluteWord >> 8 & 255, firstByte = absoluteWord & 255;
 						processingSecondByte = 0;
 
-
 						processByte:;
 						uint32_t absolutePixelData = *( (uint32_t*)palette + ( processingSecondByte == 0 ? firstByte : secondByte) );
-						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData );
+						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData & mask );
 
 						++x;
-
-						
-						if ( processingSecondByte == 0 && ( odd == 0 || p != (secondByte - 1) ) )
+	
+						if ( processingSecondByte == 0 && ( odd == 0 || p != ( ceil((float)secondByte/2.0) - 1) ) )
 						{
 							processingSecondByte = 1;
 							goto processByte;
 						}
-
 					}
 
 					break;
@@ -681,24 +748,33 @@ void* load_image_bmp_strategy(const char* path){
 	
 	switch (defaultInfoHeader->compression){
 		case 1:
-
+		case 2:
 			rawDataLength = defaultInfoHeader->imagesize;
 			rawData = malloc( rawDataLength );
 
 			fseek(file, headerData.dataoffset, SEEK_SET);
 			fread(rawData, rawDataLength, 1, file);
-
-			printf("LENGTH %d OFFSET %x\n", rawDataLength, headerData.dataoffset);
-
-			bmp_decode_rle_8bit_strategy( 
-				rawData, 
-				pixelData, 
-				palette, 
-				defaultInfoHeader->width,
-				defaultInfoHeader->height,
-				defaultInfoHeader->imagesize, 
-				infoHeaderType );
+			
+			if (defaultInfoHeader->compression == 1)
+				bmp_decode_rle_8bit_strategy( 
+					rawData, 
+					pixelData, 
+					palette, 
+					defaultInfoHeader->width,
+					defaultInfoHeader->height,
+					defaultInfoHeader->imagesize, 
+					infoHeaderType );
+			else
+				bmp_decode_rle_4bit_strategy( 
+					rawData, 
+					pixelData, 
+					palette, 
+					defaultInfoHeader->width,
+					defaultInfoHeader->height,
+					defaultInfoHeader->imagesize, 
+					infoHeaderType );
 			break;
+
 		case 3:
 			palette = malloc( 12 );
 		
