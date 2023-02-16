@@ -461,7 +461,6 @@ void bmp_decode_rle_4bit_strategy( void* data, void* destination, void* palette,
 		uint8_t highOrderData = secondByte >> 4 & 15, lowOrderData = secondByte & 15;
 
 		if (firstByte > 0){
-			printf("ENCODED %d %d\n", firstByte, secondByte);
 			uint32_t firstPixelData = BGRA_to_RGBA( *( (uint32_t*)palette + highOrderData ) & mask ),
 				 secondPixelData = BGRA_to_RGBA( *( (uint32_t*)palette + lowOrderData ) & mask );
 			short odd = firstByte % 2 == 0 ? 0 : 1;
@@ -479,16 +478,13 @@ void bmp_decode_rle_4bit_strategy( void* data, void* destination, void* palette,
 		}else{
 			switch (secondByte){
 				case 0x00:; //eol
-					printf("EOL\n");
 					x = 0;
 					++y;
 					break;
 				case 0x01:; //eof
-					printf("EOF\n");
 					i = max;
 					break;
 				case 0x02:; //delta
-					printf("DELTA\n");
 					++i;
 					uint16_t deltaWord = *( (uint16_t*)data + i );
 					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
@@ -496,28 +492,28 @@ void bmp_decode_rle_4bit_strategy( void* data, void* destination, void* palette,
 					y += verticalDelta;
 					break;
 				default:; //absolute TODO 4-bit
-					printf("ABSOLUTE\n");
 					short odd = secondByte % 2 == 0 ? 0 : 1;
-					
+					++i;
 					for (size_t p = 0; p < ceil ((double)secondByte / 2.0); ++p){
 
 						uint8_t absoluteByte = *( (uint8_t*)data + i*2 + p );
 						uint8_t highOrderData = absoluteByte >> 4 & 15, lowOrderData = absoluteByte & 15;
 
-						uint32_t absolutePixelData = *( (uint32_t*)palette + highOrderData );
-						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData & mask );
+						uint32_t absolutePixelData = *( (uint32_t*)palette + highOrderData ) & mask;
+
+						*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData );
 						++x;
+
 
 						if ( odd == 0 || p != ( ceil((double)secondByte/2.0) - 1) )
 						{
 							absolutePixelData = *( (uint32_t*)palette + lowOrderData );
-							*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData & mask );
+							*( (uint32_t*)destination + ((height-y-1)*width+x) ) = BGRA_to_RGBA( absolutePixelData );
 							++x;
 						}
 
 					}
-					i += ceil( (double)secondByte / 4.0 );
-
+					i += ceil( (double)secondByte / 4.0 ) - 1;
 					break;
 			}
 		}	
