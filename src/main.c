@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 
     //debug
 
-    load_image_bmp_strategy("test4.bmp");
+    load_image_bmp_strategy("test5.bmp");
 
     system("PAUSE");
 

@@ -488,10 +488,10 @@ void bmp_decode_rle_4bit_strategy( void* data, void* destination, void* palette,
 					++i;
 					uint16_t deltaWord = *( (uint16_t*)data + i );
 					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
-					x += horizontalDelta + 1;
+					x += horizontalDelta;
 					y += verticalDelta;
 					break;
-				default:; //absolute TODO 4-bit
+				default:; //absolute
 					short odd = secondByte % 2 == 0 ? 0 : 1;
 					++i;
 					for (size_t p = 0; p < ceil ((double)secondByte / 2.0); ++p){
@@ -553,7 +553,7 @@ void bmp_decode_rle_8bit_strategy( void* data, void* destination, void* palette,
 					++i;
 					uint16_t deltaWord = *( (uint16_t*)data + i );
 					uint8_t verticalDelta = deltaWord >> 8 & 255, horizontalDelta = deltaWord & 255;
-					x += horizontalDelta + 1;
+					x += horizontalDelta;
 					y += verticalDelta;
 					break;
 				default:; //absolute
