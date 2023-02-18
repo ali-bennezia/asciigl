@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+struct Texture;
+typedef struct Texture Texture;
+
 typedef struct BMPFileHeader {
 	uint16_t sgntr;
 	uint32_t fsize;
@@ -44,6 +47,9 @@ void bmp_raw_data_unpack_8bits_strategy( uint8_t* byte, void* palette, uint32_t*
 void bmp_raw_data_unpack_24bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter );
 void bmp_raw_data_unpack_32bits_strategy( uint8_t* byte, void* palette, uint32_t* pixelDataTarget, enum BMP_INFO_HEADER_TYPE headerType, size_t* pixelCounter );
 
-void* load_image_bmp_strategy(const char* path);
+void* load_image_bmp_strategy(const char* path, size_t* out_sizeInBytes );
+
+Texture* load_texture(const char* path);
+int free_texture(Texture* tex);
 
 #endif

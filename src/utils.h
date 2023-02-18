@@ -2,6 +2,7 @@
 #define UTILS_HEADERGUARD
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -44,12 +45,22 @@ typedef struct TriangularCoordinates{
     float a_weight, b_weight, c_weight;
 } TriangularCoordinates;
 
+typedef struct Texture{
+    size_t sizeInBytes;
+    //Pixels in 4-byte RGBA format 
+    uint32_t* data;
+} Texture;
+
 typedef struct Model{
     DynamicArray mesh, normals;
 
     //Transform in worldspace
     Vec3 position, rotation, scale;
+
+    Texture* texture;
 } Model;
+
+
 
 typedef struct AmbientLight{
     char* identifier;

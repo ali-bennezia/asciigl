@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "state.h"
+#include "images.h"
 
 #include <string.h>
 
@@ -415,12 +416,16 @@ Model gen_model(){
     mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
     mdl.normals = gen_dynamic_array( sizeof(Vec3)*3 );
 
+    mdl.texture = NULL;
+
     return mdl;
 }
 
 void free_model(Model mdl){
     free_dynamic_array(&mdl.mesh);
     free_dynamic_array(&mdl.normals);
+    if (mdl.texture != NULL)
+	free_texture(mdl.texture);
 }
 
 

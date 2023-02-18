@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "images.h"
 #include "utils.h"
 
@@ -249,10 +252,10 @@ void bmp_raw_data_unpack_32bits_strategy( uint8_t* byte, void* palette, uint32_t
 
 }
 
-//TODO Remove include
-#include "state.h"
 
-void* load_image_bmp_strategy(const char* path){
+//#include "state.h"
+
+void* load_image_bmp_strategy(const char* path, size_t* out_sizeInBytes){
 	
 	FILE* file = fopen(path, "rb");
 	if (file == NULL) return NULL; //err
@@ -266,7 +269,7 @@ void* load_image_bmp_strategy(const char* path){
 	fread(&headerData.res, 4, 1, file);
 	fread(&headerData.dataoffset, 4, 1, file);
 
-	printf("File size: %d bytes | Data offset: %x\n", headerData.fsize, headerData.dataoffset);
+	//printf("File size: %d bytes | Data offset: %x\n", headerData.fsize, headerData.dataoffset);
 
 	uint32_t infoHeaderSize;
 
@@ -306,8 +309,8 @@ void* load_image_bmp_strategy(const char* path){
 
 	BMPInfoHeader* defaultInfoHeader = (BMPInfoHeader*)infoData;
 
-	printf("BMP Info | Header size: %d | Width: %d, Height: %d | Compression: %d | Planes: %d | Colors used: %d | Bits per pixel: %d\n", defaultInfoHeader->infoheadersize, defaultInfoHeader->width, defaultInfoHeader->height,
-			defaultInfoHeader->compression, defaultInfoHeader->planes, defaultInfoHeader->colorsused, defaultInfoHeader->bitsperpixel);
+	/*printf("BMP Info | Header size: %d | Width: %d, Height: %d | Compression: %d | Planes: %d | Colors used: %d | Bits per pixel: %d\n", defaultInfoHeader->infoheadersize, defaultInfoHeader->width, defaultInfoHeader->height,
+			defaultInfoHeader->compression, defaultInfoHeader->planes, defaultInfoHeader->colorsused, defaultInfoHeader->bitsperpixel);*/
 
 	if (defaultInfoHeader->bitsperpixel <= 8){
 		fseek(file, 14+infoHeaderSize, SEEK_SET);
@@ -315,7 +318,8 @@ void* load_image_bmp_strategy(const char* path){
 	}
 
 	//process pixel data
-	const size_t pixels = defaultInfoHeader->width*defaultInfoHeader->height;
+	const size_t pixels = abs(defaultInfoHeader->width*defaultInfoHeader->height);
+	*out_sizeInBytes = pixels;
        	void* rawData = NULL;
 	void* pixelData = calloc( pixels, 4 );
 
@@ -395,8 +399,8 @@ void* load_image_bmp_strategy(const char* path){
 
 			}
 
-			printf("Loading pixel data (%d bytes):\n", rawDataLength);
-			printf("Padding: %d bytes | Used bytes per row: %d | Image size: %d\n", rowPaddingInBytes, bytesPerRow, rawDataLength);
+			/*printf("Loading pixel data (%d bytes):\n", rawDataLength);
+			printf("Padding: %d bytes | Used bytes per row: %d | Image size: %d\n", rowPaddingInBytes, bytesPerRow, rawDataLength);*/
 				
 			size_t currentPixel = 0;
 			//per-row
@@ -415,7 +419,7 @@ void* load_image_bmp_strategy(const char* path){
 			break;
 	}
 
-	printf("First, length-1nth and last pixels:\n");
+	//printf("First, length-1nth and last pixels:\n");
 	size_t first = 0, secondLast = pixels - 2, last = pixels - 1;
 	uint32_t firstPixel = *( (uint32_t*)pixelData + first );
 	uint32_t secondLastPixel = *( (uint32_t*)pixelData + secondLast );
@@ -425,25 +429,54 @@ void* load_image_bmp_strategy(const char* path){
 	size_t blueSecondLast = secondLastPixel >> 16 & 255, greenSecondLast = secondLastPixel >> 8 & 255, redSecondLast = secondLastPixel & 255;
 	size_t blueLast = lastPixel >> 16 & 255, greenLast = lastPixel >> 8 & 255, redLast = lastPixel & 255;
 
-	printf("%d %d %d\n", redFirst, greenFirst, blueFirst );	
+	/*printf("%d %d %d\n", redFirst, greenFirst, blueFirst );	
 	printf("%d %d %d\n", redSecondLast, greenSecondLast, blueSecondLast);
 	printf("%d %d %d\n", redLast, greenLast, blueLast);
 
-	printf("Displaying pixel data:\n");
-	for (size_t y = 0; y < defaultInfoHeader->height; ++y){
+	printf("Displaying pixel data:\n");*/
+	/*for (size_t y = 0; y < defaultInfoHeader->height; ++y){
 
 		for (size_t x = 0; x < defaultInfoHeader->width; ++x){
 			size_t index = y*defaultInfoHeader->width + x;
 			uint32_t currentPixel = *((uint32_t*)pixelData + index);
 			size_t blue = currentPixel >> 16 & 255, green = currentPixel >> 8 & 255, red = currentPixel & 255;
 
-			printf("%c", light_level_to_fragment( fmin(255, sqrt( red*red + green*green + blue*blue ) ) ));
+			//printf("%c", light_level_to_fragment( fmin(255, sqrt( red*red + green*green + blue*blue ) ) ));
 		}
-		printf("\n");
-	}
+		//printf("\n");
+	}*/
 
 	if (rawData != NULL) free(rawData);
 	if (palette != NULL) free(palette);
 	if (infoData != NULL) free(infoData);	
 	return pixelData;
 }
+
+Texture* load_texture(const char* path)
+{
+	char signature[3];
+	signature[2] = '\0';
+
+	FILE* f = fopen(path, "rb");
+	if (f == NULL) return NULL;
+	fread(&signature[0], 2, 1, f);
+	fclose(f);
+	
+	if ( strcmp( &signature[0], "BM" ) == 0 )
+	{
+		Texture* tex = malloc( sizeof( Texture ) );
+		tex->data = load_image_bmp_strategy(path, &tex->sizeInBytes);
+		return tex;
+	}else fprintf(stderr, "Unsupported file type. Signature: %s\n", &signature[0]);
+
+	return NULL;
+}
+
+int free_texture( Texture* tex )
+{
+	if (tex == NULL) return 1;
+	if (tex->data != NULL) free(tex->data);
+	free(tex);
+	return 0;
+}
+

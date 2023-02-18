@@ -335,7 +335,7 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     
     char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
     char depthTest = ( get_depth_testing_state() == DEPTH_TESTING_STATE_DISABLED || current_depth == 0 || current_depth > depth) ? 1 : 0;
-    char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL) == 1 ? 1 : 0;
+    char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL);
 
     if (screenCoordsTest == 1 && depthTest == 1 && frustumTest == 1){
 
