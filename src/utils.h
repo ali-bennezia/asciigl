@@ -7,6 +7,10 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 typedef struct DynamicArray{
     void* buffer;
     size_t usage;
@@ -46,16 +50,16 @@ typedef struct TriangularCoordinates{
 } TriangularCoordinates;
 
 typedef struct Texture{
-    size_t sizeInBytes;
+    size_t sizeInBytes, width, height;
     //Pixels in 4-byte RGBA format 
     uint32_t* data;
 } Texture;
 
 typedef struct Model{
-    DynamicArray mesh, normals;
+    DynamicArray mesh, normals, UVs;
 
     //Transform in worldspace
-    Vec3 position, rotation, scale;
+    Vec3 position, rotation, scale, color;
 
     Texture* texture;
 } Model;
@@ -125,6 +129,14 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model();
 void free_model(Model mdl);
 
+typedef struct RGB {
+	unsigned short red;
+	unsigned short green;
+	unsigned short blue;
+} RGB;
 
+#ifdef _WIN32
+WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue );
+#endif
 
 #endif

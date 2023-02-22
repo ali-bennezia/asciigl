@@ -404,17 +404,20 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model(){
     Model mdl;
     
-    Vec3 pos, rot, scale;
+    Vec3 pos, rot, scale, color;
     pos.x = 0; pos.y = 0; pos.z = 0;
     rot.x = 0; rot.y = 0; rot.z = 0;
     scale.x = 1; scale.y = 1; scale.z = 1;
+    color.x = 255; color.y = 255; color.z = 255;
 
     mdl.position = pos;
     mdl.rotation = rot;
     mdl.scale = scale;
 
+
     mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
-    mdl.normals = gen_dynamic_array( sizeof(Vec3)*3 );
+    mdl.normals = gen_dynamic_array( sizeof(Vec3) );
+    mdl.UVs = gen_dynamic_array( sizeof(Vec2) );
 
     mdl.texture = NULL;
 
@@ -424,8 +427,50 @@ Model gen_model(){
 void free_model(Model mdl){
     free_dynamic_array(&mdl.mesh);
     free_dynamic_array(&mdl.normals);
+    free_dynamic_array(&mdl.UVs);
     if (mdl.texture != NULL)
 	free_texture(mdl.texture);
 }
 
+#ifdef _WIN32
+RGB wincolors[15] = {
+	{0,0,139}, //dark blue
+	{0,100,0}, //dark green
+	{0,139,139}, //dark cyan
+	{139,0,0}, //dark red
+	{48,25,52}, //dark purple
+	{103,165,95}, //dark yellow
+	{225,217,209}, //dark white
+	{169,169,169}, //dark grey
+	{0,0,255}, //blue
+	{0,255,0}, //green
+	{0,255,255}, //cyan
+	{255,0,0}, //red
+	{128,0,128}, //purple
+	{255,255,0}, //yellow
+	{255,255,255} //white
+};
+WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue )
+{
+	size_t nearest = 14;
+	float dist = sqrt( 
+		pow( wincolors[14].red - red , 2 ) +
+		pow( wincolors[14].green - green , 2 ) +
+		pow( wincolors[14].blue - blue , 2 )
+	);
+	for (size_t i = 0; i < 14; ++i){
+		float idist = sqrt( 
+			pow( wincolors[i].red - red , 2 ) +
+			pow( wincolors[i].green - green , 2 ) +
+			pow( wincolors[i].blue - blue , 2 )
+		);
+		
+		if (idist < dist){
+			nearest = i;
+			dist = idist;
+		}
+	}
+	return nearest;	
+}
+#endif
 

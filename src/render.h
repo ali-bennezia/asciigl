@@ -8,10 +8,11 @@ Vec3 worldspace_coords_to_viewspace_coords(Vec3 in);
 Vec2 viewspace_coords_to_clipspace_coords(Vec3 in);
 IntVec2 clipspace_coords_to_screenspace_coords(Vec2 in);
 IntVec2 clipspace_to_screenspace(Vec2 in);
-void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals);
+void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex);
 Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scale_y);
 Vec3 scale_normal(Vec3 normal, Vec3 scale);
 void draw_model(Model model);
-void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal);
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex);
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue);
 
 #endif

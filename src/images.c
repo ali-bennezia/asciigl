@@ -255,7 +255,7 @@ void bmp_raw_data_unpack_32bits_strategy( uint8_t* byte, void* palette, uint32_t
 
 //#include "state.h"
 
-void* load_image_bmp_strategy(const char* path, size_t* out_sizeInBytes){
+void* load_image_bmp_strategy(const char* path, size_t* out_sizeInBytes, size_t* out_width, size_t* out_height){
 	
 	FILE* file = fopen(path, "rb");
 	if (file == NULL) return NULL; //err
@@ -320,6 +320,8 @@ void* load_image_bmp_strategy(const char* path, size_t* out_sizeInBytes){
 	//process pixel data
 	const size_t pixels = abs(defaultInfoHeader->width*defaultInfoHeader->height);
 	*out_sizeInBytes = pixels;
+	*out_width = abs( defaultInfoHeader->width );
+	*out_height = abs( defaultInfoHeader->height );
        	void* rawData = NULL;
 	void* pixelData = calloc( pixels, 4 );
 
@@ -465,7 +467,7 @@ Texture* load_texture(const char* path)
 	if ( strcmp( &signature[0], "BM" ) == 0 )
 	{
 		Texture* tex = malloc( sizeof( Texture ) );
-		tex->data = load_image_bmp_strategy(path, &tex->sizeInBytes);
+		tex->data = load_image_bmp_strategy(path, &tex->sizeInBytes, &tex->width, &tex->height);
 		return tex;
 	}else fprintf(stderr, "Unsupported file type. Signature: %s\n", &signature[0]);
 

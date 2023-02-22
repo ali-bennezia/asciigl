@@ -123,7 +123,7 @@ IntVec2 clipspace_to_screenspace(Vec2 in){
 }
 
 //three viewspace positions describing a triangle primitive
-void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
+void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex){
 
     Vec2 a_clipspace = viewspace_coords_to_clipspace_coords(a);
     Vec2 b_clipspace = viewspace_coords_to_clipspace_coords(b);
@@ -227,6 +227,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
                     vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
                                 vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight))) : normal;
+		Vec2 UV = UVs != NULL ? vec2_add( vec2_multiplication( *(Vec2*)UVs, coords.a_weight ),
+				vec2_add( vec2_multiplication( *((Vec2*)UVs + 1), coords.b_weight ), vec2_multiplication( *((Vec2*)UVs + 2), coords.c_weight ) )) : UV;
 
                /* printf("%f %f %f t %f %f %f tt %f %f %f\n", (*(Vec3*)normals).x, (*(Vec3*)normals).y, (*(Vec3*)normals).z, 
                 (*((Vec3*)normals+1)).x, (*((Vec3*)normals+1)).y, (*((Vec3*)normals+1)).z,
@@ -234,7 +236,13 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals){
 
                 //                printf("x%fy%f%z%f\n", normal.x, normal.y, normal.z);
 
-                draw_fragment(current_draw_screenspace.x + x, clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, depth, viewspace_position, normals != NULL ? &normal : NULL);
+                draw_fragment(current_draw_screenspace.x + x, 
+				clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, 
+				depth,
+				viewspace_position, 
+				normals != NULL ? &normal : NULL,
+				UVs != NULL ? &UV : NULL,
+				tex );
             }
 
         }
@@ -295,15 +303,16 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
 
 void draw_model(Model model){
 
-    //condition to take normals into account during rendering
+    //condition to take normals & UVs into account during rendering
     char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
+    char UVs = model.mesh.usage == model.UVs.usage/3 ? 1 : 0;
 
     //per-primitive
     for (size_t i = 0; i < model.mesh.usage; ++i){
         Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
 
         //normals
-        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i, sizeof(Vec3)*3) : NULL;
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
             normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
@@ -311,6 +320,9 @@ void draw_model(Model model){
             normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_ptr = &normals_out[0];
         }
+
+	//UVs
+	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : NULL;
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
         Vec3 b_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
@@ -325,12 +337,12 @@ void draw_model(Model model){
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
 
         
-        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr);
+        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture);
     }
 
 }
 
-void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal){
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex){
     float current_depth = get_depth_buffer_depth(x, y);
     
     char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
@@ -370,6 +382,14 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
-
     }
+}
+
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue)
+{
+	#ifdef _WIN32
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	SetConsoleTextAttribute(hConsole, get_win_console_color_attribute( red, green, blue ));
+	#elif defined linux
+	#endif	
 }

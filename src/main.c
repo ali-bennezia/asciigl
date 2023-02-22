@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 
     //debug
 
-    load_texture("test5.bmp");
+    Texture* tex = load_texture("test5.bmp");
 
     system("PAUSE");
 
