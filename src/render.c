@@ -385,12 +385,32 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     }
 }
 
-void set_draw_color(unsigned short red, unsigned short green, unsigned short blue)
+void set_default_draw_color()
 {
 	#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
-	SetConsoleTextAttribute(hConsole, get_win_console_color_attribute( red, green, blue ));
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE );
 	#elif defined linux
-	printf("%s", get_ansi_console_color_code( red, green, blue ) );
+	printf("\\033[0m");
+	#endif
+}
+
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue)
+{
+	#ifdef _WIN32
+	static WORD cache_win_draw_attr = 0;
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	WORD winattr = get_win_console_color_attribute( red, green, blue );
+	if (winattr != cache_win_draw_attr){
+		cache_win_draw_attr = winattr;
+		SetConsoleTextAttribute(hConsole, winattr);
+	}
+	#elif defined linux
+	static char[] cache_uni_draw_code = "";
+	const char[] drawcode = get_ansi_console_color_code( red, green, blue );
+	if ( strcmp( &cache_uni_draw_code[0], &drawcode[0] ) != 0 ){
+		cache_uni_draw_code = drawcode;
+		printf("%s", drawcode);
+	}
 	#endif	
 }

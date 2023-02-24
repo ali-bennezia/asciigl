@@ -71,6 +71,7 @@ int main(int argc, char* argv[]){
 
     //debug
     set_draw_color(0, 255, 0);
+    set_default_draw_color();
     Texture* tex = load_texture("test5.bmp");
 
     system("PAUSE");

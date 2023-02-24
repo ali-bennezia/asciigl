@@ -13,6 +13,7 @@ Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scal
 Vec3 scale_normal(Vec3 normal, Vec3 scale);
 void draw_model(Model model);
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex);
+void set_default_draw_color();
 void set_draw_color(unsigned short red, unsigned short green, unsigned short blue);
 
 #endif
