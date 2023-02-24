@@ -70,7 +70,7 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
-
+    set_draw_color(0, 255, 0);
     Texture* tex = load_texture("test5.bmp");
 
     system("PAUSE");

@@ -470,7 +470,66 @@ WORD get_win_console_color_attribute( unsigned short red, unsigned short green, 
 			dist = idist;
 		}
 	}
-	return nearest;	
+	return nearest+1;	
+}
+#elif defined linux
+RGB unicolors[15] = {
+	{0,0,0}, //black
+	{139,0,0}, //dark red
+	{0,100,0}, //dark green
+	{103,165,95}, //dark yell.
+	{0,0,139}, //dark blue
+	{139,0,139}, //dark mag.
+	{0,139,139}, //dark cyan
+	{211,211,211}, //light gray
+	{169,169,169}, //dark gray
+	{255,0,0}, //red
+	{0,255,0}, //green
+	{255,128,0}, //orange
+	{0,0,255}, //blue
+	{255,0,255}, //magenta
+	{0,255,255}, //cyan
+	{0,0,0} //white
+};
+const char[][] unicolorcodes = {
+	"\033[30m\0",
+	"\033[31m\0",
+	"\033[32m\0",
+	"\033[33m\0",
+	"\033[34m\0",
+	"\033[35m\0",
+	"\033[36m\0",
+	"\033[37m\0",
+	"\033[90m\0",
+	"\033[91m\0",
+	"\033[92m\0",
+	"\033[93m\0",
+	"\033[94m\0",
+	"\033[95m\0",
+	"\033[96m\0",
+	"\033[97m\0"
+};
+const char[] get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
+{
+	size_t nearest = 15;
+	float dist = sqrt( 
+		pow( unicolors[15].red - red , 2 ) +
+		pow( unicolors[15].green - green , 2 ) +
+		pow( unicolors[15].blue - blue , 2 )
+	);
+	for (size_t i = 0; i < 15; ++i){
+		float idist = sqrt( 
+			pow( unicolors[i].red - red , 2 ) +
+			pow( unicolors[i].green - green , 2 ) +
+			pow( unicolors[i].blue - blue , 2 )
+		);
+		
+		if (idist < dist){
+			nearest = i;
+			dist = idist;
+		}
+	}
+	return unicolorcodes[nearest];	
 }
 #endif
 

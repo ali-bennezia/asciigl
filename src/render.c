@@ -391,5 +391,6 @@ void set_draw_color(unsigned short red, unsigned short green, unsigned short blu
 	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
 	SetConsoleTextAttribute(hConsole, get_win_console_color_attribute( red, green, blue ));
 	#elif defined linux
+	printf("%s", get_ansi_console_color_code( red, green, blue ) );
 	#endif	
 }
