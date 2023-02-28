@@ -15,5 +15,6 @@ void draw_model(Model model);
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex);
 void set_default_draw_color();
 void set_draw_color(unsigned short red, unsigned short green, unsigned short blue);
+RGBA sample_texture(float UV_x, float UV_y, const Texture* tex);
 
 #endif

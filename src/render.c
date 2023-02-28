@@ -306,6 +306,11 @@ void draw_model(Model model){
     //condition to take normals & UVs into account during rendering
     char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
     char UVs = model.mesh.usage == model.UVs.usage/3 ? 1 : 0;
+    Vec2 placeholder_UVs[3] = { 
+	{1, -1},
+	{1, 0},
+	{0, 0} 
+    };
 
     //per-primitive
     for (size_t i = 0; i < model.mesh.usage; ++i){
@@ -322,7 +327,7 @@ void draw_model(Model model){
         }
 
 	//UVs
-	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : NULL;
+	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
 
         Vec3 a_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
         Vec3 b_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
@@ -389,7 +394,7 @@ void set_default_draw_color()
 {
 	#ifdef _WIN32
 	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE );
+	SetConsoleTextAttribute( hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE );
 	#elif defined linux
 	printf("\\033[0m");
 	#endif
@@ -413,4 +418,23 @@ void set_draw_color(unsigned short red, unsigned short green, unsigned short blu
 		printf("%s", drawcode);
 	}
 	#endif	
+}
+
+
+RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
+{
+	RGBA out;
+	
+	if (tex == NULL || tex->data == NULL) return out;
+
+	unsigned short x = UV_x*(tex->width-1),
+		y = UV_y*(tex->height-1);
+
+	uint32_t pixelData = *((uint32_t*)(tex->data) + y*tex->width + x);
+	out.red = pixelData >> 24 & 255;
+	out.green = pixelData >> 16 & 255;
+	out.blue = pixelData >> 8 & 255;
+	out.alpha = pixelData & 255;
+	
+	return out;
 }

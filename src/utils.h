@@ -24,6 +24,19 @@ void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize);
 void remove_data(DynamicArray* arr, size_t index, size_t dataSize);
 void free_dynamic_array(DynamicArray* arr);
 
+typedef struct RGB {
+	unsigned short red;
+	unsigned short green;
+	unsigned short blue;
+} RGB;
+
+typedef struct RGBA {
+	unsigned short red;
+	unsigned short green;
+	unsigned short blue;
+	unsigned short alpha;
+} RGBA;
+
 typedef struct Vector2{
     float x;
     float y;
@@ -59,22 +72,23 @@ typedef struct Model{
     DynamicArray mesh, normals, UVs;
 
     //Transform in worldspace
-    Vec3 position, rotation, scale, color;
+    Vec3 position, rotation, scale;
 
+    RGB color;
     Texture* texture;
 } Model;
-
-
 
 typedef struct AmbientLight{
     char* identifier;
     unsigned short intensity;
+    RGB color;
 } AmbientLight;
 
 typedef struct DirectionalLight{
     char* identifier;
     unsigned short intensity;
     Vec3 normal;
+    RGB color;
 } DirectionalLight;
 
 typedef struct PointLight{
@@ -82,6 +96,7 @@ typedef struct PointLight{
     unsigned short intensity;
     float range;
     Vec3 position;
+    RGB color;
 } PointLight;
 
 enum LIGHT_TYPE{
@@ -128,12 +143,6 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 
 Model gen_model();
 void free_model(Model mdl);
-
-typedef struct RGB {
-	unsigned short red;
-	unsigned short green;
-	unsigned short blue;
-} RGB;
 
 #ifdef _WIN32
 WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue );

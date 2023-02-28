@@ -9,6 +9,10 @@
 
 Model* mptr;
 
+void cleanup(){
+    set_default_draw_color();
+}
+
 void render_frame(){
     if (get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED)
         clear_depth_buffer();
@@ -43,6 +47,8 @@ void routine(){
 void init(){
     //init
 
+    atexit( cleanup );
+
     init_light_arrays();
     clear_depth_buffer();
 
@@ -51,14 +57,15 @@ void init(){
     set_frustum_FOV( 60.0 );
 
 
-    add_ambient_light("Light", 50);
+    RGB white = {255, 255, 255};
+    add_ambient_light("Light", 50, white);
 
     Vec3 normal;
     normal.x = -2.0; normal.y = 0.0; normal.z = 0;
-    add_directional_light("Some light", 255, vec3_normalize(normal));
+    add_directional_light("Some light", 255, vec3_normalize(normal), white);
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    add_point_light("Some point light", 255, 10, pos);
+    add_point_light("Some point light", 255, 10, pos, white);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -70,8 +77,7 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
-    set_draw_color(0, 255, 0);
-    set_default_draw_color();
+
     Texture* tex = load_texture("test5.bmp");
 
     system("PAUSE");

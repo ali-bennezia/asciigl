@@ -41,9 +41,9 @@ Vec3 get_player_rotation();
 void set_player_rotation(float x, float y, float z);
 void rotate_player(float x, float y, float z);
 
-void add_ambient_light(char* identifier, unsigned short intensity);
-void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal);
-void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position);
+void add_ambient_light(char* identifier, unsigned short intensity, RGB color);
+void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal, RGB color);
+void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position, RGB color);
 
 AmbientLight* get_ambient_light(char* identifier);
 DirectionalLight* get_directional_light(char* identifier);

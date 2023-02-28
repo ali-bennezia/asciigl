@@ -174,7 +174,7 @@ void init_light_arrays(){
     pointLights = gen_dynamic_array( sizeof(PointLight) );
 }
 
-void add_ambient_light(char* identifier, unsigned short intensity){
+void add_ambient_light(char* identifier, unsigned short intensity, RGB color){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -184,10 +184,11 @@ void add_ambient_light(char* identifier, unsigned short intensity){
     AmbientLight ambientLight;
     ambientLight.identifier = stored_identifier;
     ambientLight.intensity = intensity;
+    ambientLight.color = color;
     insert_data(&ambientLights, &ambientLight, sizeof(AmbientLight));
 }
 
-void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal){
+void add_directional_light(char* identifier, unsigned short intensity, Vec3 normal, RGB color){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -198,10 +199,11 @@ void add_directional_light(char* identifier, unsigned short intensity, Vec3 norm
     directionalLight.identifier = stored_identifier;
     directionalLight.intensity = intensity;
     directionalLight.normal = vec3_normalize(normal);
+    directionalLight.color = color;
     insert_data(&directionalLights, &directionalLight, sizeof(DirectionalLight));
 }
 
-void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position){
+void add_point_light(char* identifier, unsigned short intensity, float range, Vec3 position, RGB color){
     //copy & store identifier string
     size_t len = strlen(identifier);
     char* stored_identifier = malloc( sizeof(char) * (len + 1) );
@@ -213,6 +215,7 @@ void add_point_light(char* identifier, unsigned short intensity, float range, Ve
     pointLight.intensity = intensity;
     pointLight.range = range;
     pointLight.position = position;
+    pointLight.color = color;
     insert_data(&pointLights, &pointLight, sizeof(PointLight));
 }
 

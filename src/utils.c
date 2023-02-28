@@ -404,21 +404,23 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model(){
     Model mdl;
     
-    Vec3 pos, rot, scale, color;
+    Vec3 pos, rot, scale;
+    RGB color;
+
     pos.x = 0; pos.y = 0; pos.z = 0;
     rot.x = 0; rot.y = 0; rot.z = 0;
     scale.x = 1; scale.y = 1; scale.z = 1;
-    color.x = 255; color.y = 255; color.z = 255;
+    color.red = 255; color.green = 255; color.blue = 255;
 
     mdl.position = pos;
     mdl.rotation = rot;
     mdl.scale = scale;
 
-
     mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
     mdl.normals = gen_dynamic_array( sizeof(Vec3) );
     mdl.UVs = gen_dynamic_array( sizeof(Vec2) );
 
+    mdl.color = color;
     mdl.texture = NULL;
 
     return mdl;
