@@ -454,6 +454,13 @@ RGB wincolors[15] = {
 };
 WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue )
 {
+	//color quotient
+	unsigned short m = max( red, max( green, blue ) );
+	float red_mix = (float)red/(float)m;
+	float green_mix = (float)green/(float)m;
+	float blue_mix = (float)blue/(float)m;
+
+	//initialize to white
 	size_t nearest = 14;
 	float dist = sqrt( 
 		pow( wincolors[14].red - red , 2 ) +
@@ -461,6 +468,15 @@ WORD get_win_console_color_attribute( unsigned short red, unsigned short green, 
 		pow( wincolors[14].blue - blue , 2 )
 	);
 	for (size_t i = 0; i < 14; ++i){
+		//color quotient
+		unsigned short im = max( wincolors[i].red, max( wincolors[i].green, wincolors[i].blue ) );
+		float i_red_mix = (float)wincolors[i].red / (float)im;
+		float i_green_mix = (float)wincolors[i].green / (float)im;
+		float i_blue_mix = (float)wincolors[i].blue / (float)im;
+
+		if ( red_mix != i_red_mix || green_mix != i_green_mix || blue_mix != i_blue_mix ) continue;
+
+		//color distance
 		float idist = sqrt( 
 			pow( wincolors[i].red - red , 2 ) +
 			pow( wincolors[i].green - green , 2 ) +
@@ -513,6 +529,13 @@ const char[][] unicolorcodes = {
 };
 const char[] get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
 {
+	//color quotient
+	unsigned short m = max( red, max( green, blue ) );
+	float red_mix = (float)red/(float)m;
+	float green_mix = (float)green/(float)m;
+	float blue_mix = (float)blue/(float)m;
+
+	//initialize to white
 	size_t nearest = 15;
 	float dist = sqrt( 
 		pow( unicolors[15].red - red , 2 ) +
@@ -520,6 +543,15 @@ const char[] get_ansi_console_color_code( unsigned short red, unsigned short gre
 		pow( unicolors[15].blue - blue , 2 )
 	);
 	for (size_t i = 0; i < 15; ++i){
+		//color quotient
+		unsigned short im = max( wincolors[i].red, max( wincolors[i].green, wincolors[i].blue ) );
+		float i_red_mix = (float)wincolors[i].red / (float)im;
+		float i_green_mix = (float)wincolors[i].green / (float)im;
+		float i_blue_mix = (float)wincolors[i].blue / (float)im;
+
+		if ( red_mix != i_red_mix || green_mix != i_green_mix || blue_mix != i_blue_mix ) continue;
+
+		//color distance
 		float idist = sqrt( 
 			pow( unicolors[i].red - red , 2 ) +
 			pow( unicolors[i].green - green , 2 ) +
