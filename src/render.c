@@ -359,18 +359,26 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
          DynamicArray* ambientLights = get_ambient_lights(), *directionalLights = get_directional_lights(), *pointLights = get_point_lights();
 
         //light levels must be expressed between 0 and 255. very low light levels (inferior to 1) will not be rendered.
-        unsigned short lightLevel = 0;
+        unsigned short lightLevel_red = 0,
+		lightLevel_green = 0,
+		lightLevel_blue = 0;
 
         for (size_t i = 0; i < ambientLights->usage; ++i){
             AmbientLight* ambientLight = (AmbientLight*)ambientLights->buffer + i;
-            lightLevel += ambientLight->intensity;
+
+            lightLevel_red += ambientLight->color.red*((float)ambientLight->intensity/255.0);
+	    lightLevel_green += ambientLight->color.green*((float)ambientLight->intensity/255.0);
+	    lightLevel_blue += ambientLight->color.blue*((float)ambientLight->intensity/255.0);
         }
 
         if (normal != NULL)
             for (size_t i = 0; i < directionalLights->usage; ++i){
                 DirectionalLight* directionalLight = (DirectionalLight*)directionalLights->buffer + i;
                 float l = fabs(fmax(0.0,  vec3_dot_product( worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
-                lightLevel += l * directionalLight->intensity;
+
+                lightLevel_red += directionalLight->color.red * ((float)(l * directionalLight->intensity)/255.0);
+                lightLevel_green += directionalLight->color.green * ((float)(l * directionalLight->intensity)/255.0);
+                lightLevel_blue += directionalLight->color.blue * ((float)(l * directionalLight->intensity)/255.0);
             }
 
         for (size_t i = 0; i < pointLights->usage; ++i){
@@ -380,11 +388,21 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
             if (distance > pointLight->range) continue;
             float raw_range = sqrt( pointLight->intensity - 1 );
             float adjusted_distance = distance*(raw_range/pointLight->range);
-            lightLevel += (float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance );
+
+            lightLevel_red += pointLight->color.red*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
+            lightLevel_green += pointLight->color.green*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
+            lightLevel_blue += pointLight->color.blue*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
         }
 
-        lightLevel = max( min( lightLevel, 255 ), 0);
+        lightLevel_red = max( min( lightLevel_red, 255 ), 0);
+        lightLevel_green = max( min( lightLevel_green, 255 ), 0);
+        lightLevel_blue = max( min( lightLevel_blue, 255 ), 0);
 
+	const unsigned short sqtwofivefive = pow(255, 2);
+	unsigned short lightLevel = ( sqrt( pow( lightLevel_red, 2 ) + pow( lightLevel_green, 2 ) + pow( lightLevel_blue, 2 ) ) 
+		/ sqrt( sqtwofivefive*3 ) ) * 255;
+
+	set_draw_color( 100, 100, 100 );	
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
     }
