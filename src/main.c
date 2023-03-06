@@ -40,7 +40,7 @@ void routine(){
     while (1){
         render_frame();
         SLEEP(SLEEP_TIME);
-        system(CLEAR_CMD);
+	clear_console();
     }
 }
 
@@ -70,7 +70,7 @@ void init(){
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
     
-    system(CLEAR_CMD);
+    clear_console();
 
 }
 

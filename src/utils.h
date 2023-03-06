@@ -144,10 +144,9 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model();
 void free_model(Model mdl);
 
-#ifdef _WIN32
-WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue );
-#elif defined linux
-const char[] get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
-#endif
+const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
+
+void clear_console();
+
 
 #endif

@@ -3,6 +3,8 @@
 #include "render.h"
 #include "state.h"
 
+#include <stdio.h>
+
 
 //graphics pipline functions
 
@@ -402,40 +404,25 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 	unsigned short lightLevel = ( sqrt( pow( lightLevel_red, 2 ) + pow( lightLevel_green, 2 ) + pow( lightLevel_blue, 2 ) ) 
 		/ sqrt( sqtwofivefive*3 ) ) * 255;
 
-	set_draw_color( 100, 100, 100 );	
+	set_draw_color( lightLevel_red, lightLevel_green, lightLevel_blue );	
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
     }
 }
 
-void set_default_draw_color()
+void set_default_draw_color() // TODO
 {
-	#ifdef _WIN32
-	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
-	SetConsoleTextAttribute( hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE );
-	#elif defined linux
-	printf("\\033[0m");
-	#endif
+	printf("\033[0;0m");
 }
 
-void set_draw_color(unsigned short red, unsigned short green, unsigned short blue)
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue) //TODO: Check if ANSI is actually supported
 {
-	#ifdef _WIN32
-	static WORD cache_win_draw_attr = 0;
-	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
-	WORD winattr = get_win_console_color_attribute( red, green, blue );
-	if (winattr != cache_win_draw_attr){
-		cache_win_draw_attr = winattr;
-		SetConsoleTextAttribute(hConsole, winattr);
-	}
-	#elif defined linux
-	static char[] cache_uni_draw_code = "";
-	const char[] drawcode = get_ansi_console_color_code( red, green, blue );
-	if ( strcmp( &cache_uni_draw_code[0], &drawcode[0] ) != 0 ){
-		cache_uni_draw_code = drawcode;
+	static char cache_ansi_draw_code[6] = "     \0";
+	const char* drawcode = get_ansi_console_color_code( red, green, blue );
+	if ( strcmp( &cache_ansi_draw_code[0], &drawcode[0] ) != 0 ){
+		strcpy( &cache_ansi_draw_code[0], &drawcode[0]);
 		printf("%s", drawcode);
 	}
-	#endif	
 }
 
 

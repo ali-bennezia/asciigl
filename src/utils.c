@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "state.h"
 #include "images.h"
+#include "config.h"
 
 #include <string.h>
 
@@ -434,64 +435,7 @@ void free_model(Model mdl){
 	free_texture(mdl.texture);
 }
 
-#ifdef _WIN32
-RGB wincolors[15] = {
-	{0,0,139}, //dark blue
-	{0,100,0}, //dark green
-	{0,139,139}, //dark cyan
-	{139,0,0}, //dark red
-	{48,25,52}, //dark purple
-	{103,165,95}, //dark yellow
-	{225,217,209}, //dark white
-	{169,169,169}, //dark grey
-	{0,0,255}, //blue
-	{0,255,0}, //green
-	{0,255,255}, //cyan
-	{255,0,0}, //red
-	{128,0,128}, //purple
-	{255,255,0}, //yellow
-	{255,255,255} //white
-};
-WORD get_win_console_color_attribute( unsigned short red, unsigned short green, unsigned short blue )
-{
-	//color quotient
-	unsigned short m = max( red, max( green, blue ) );
-	float red_mix = (float)red/(float)m;
-	float green_mix = (float)green/(float)m;
-	float blue_mix = (float)blue/(float)m;
-
-	//initialize to white
-	size_t nearest = 14;
-	float dist = sqrt( 
-		pow( wincolors[14].red - red , 2 ) +
-		pow( wincolors[14].green - green , 2 ) +
-		pow( wincolors[14].blue - blue , 2 )
-	);
-	for (size_t i = 0; i < 14; ++i){
-		//color quotient
-		unsigned short im = max( wincolors[i].red, max( wincolors[i].green, wincolors[i].blue ) );
-		float i_red_mix = (float)wincolors[i].red / (float)im;
-		float i_green_mix = (float)wincolors[i].green / (float)im;
-		float i_blue_mix = (float)wincolors[i].blue / (float)im;
-
-		if ( red_mix != i_red_mix || green_mix != i_green_mix || blue_mix != i_blue_mix ) continue;
-
-		//color distance
-		float idist = sqrt( 
-			pow( wincolors[i].red - red , 2 ) +
-			pow( wincolors[i].green - green , 2 ) +
-			pow( wincolors[i].blue - blue , 2 )
-		);
-		
-		if (idist < dist){
-			nearest = i;
-			dist = idist;
-		}
-	}
-	return nearest+1;	
-}
-#elif defined linux
-RGB unicolors[15] = {
+RGB ansicolors[16] = {
 	{0,0,0}, //black
 	{139,0,0}, //dark red
 	{0,100,0}, //dark green
@@ -507,27 +451,27 @@ RGB unicolors[15] = {
 	{0,0,255}, //blue
 	{255,0,255}, //magenta
 	{0,255,255}, //cyan
-	{0,0,0} //white
+	{255,255,255} //white
 };
-const char[][] unicolorcodes = {
-	"\033[30m\0",
-	"\033[31m\0",
-	"\033[32m\0",
-	"\033[33m\0",
-	"\033[34m\0",
-	"\033[35m\0",
-	"\033[36m\0",
-	"\033[37m\0",
-	"\033[90m\0",
-	"\033[91m\0",
-	"\033[92m\0",
-	"\033[93m\0",
-	"\033[94m\0",
-	"\033[95m\0",
-	"\033[96m\0",
-	"\033[97m\0"
+const char ansicolorcodes[16][8] = {
+	"\033[0;30m\0",
+	"\033[0;31m\0",
+	"\033[0;32m\0",
+	"\033[0;33m\0",
+	"\033[0;34m\0",
+	"\033[0;35m\0",
+	"\033[0;36m\0",
+	"\033[0;37m\0",
+	"\033[0;90m\0",
+	"\033[0;91m\0",
+	"\033[0;92m\0",
+	"\033[0;93m\0",
+	"\033[0;94m\0",
+	"\033[0;95m\0",
+	"\033[0;96m\0",
+	"\033[0;97m\0"
 };
-const char[] get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
+const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
 {
 	//color quotient
 	unsigned short m = max( red, max( green, blue ) );
@@ -538,24 +482,24 @@ const char[] get_ansi_console_color_code( unsigned short red, unsigned short gre
 	//initialize to white
 	size_t nearest = 15;
 	float dist = sqrt( 
-		pow( unicolors[15].red - red , 2 ) +
-		pow( unicolors[15].green - green , 2 ) +
-		pow( unicolors[15].blue - blue , 2 )
+		pow( ansicolors[15].red - red , 2 ) +
+		pow( ansicolors[15].green - green , 2 ) +
+		pow( ansicolors[15].blue - blue , 2 )
 	);
 	for (size_t i = 0; i < 15; ++i){
 		//color quotient
-		unsigned short im = max( wincolors[i].red, max( wincolors[i].green, wincolors[i].blue ) );
-		float i_red_mix = (float)wincolors[i].red / (float)im;
-		float i_green_mix = (float)wincolors[i].green / (float)im;
-		float i_blue_mix = (float)wincolors[i].blue / (float)im;
+		unsigned short im = max( ansicolors[i].red, max( ansicolors[i].green, ansicolors[i].blue ) );
+		float i_red_mix = (float)ansicolors[i].red / (float)im;
+		float i_green_mix = (float)ansicolors[i].green / (float)im;
+		float i_blue_mix = (float)ansicolors[i].blue / (float)im;
 
 		if ( red_mix != i_red_mix || green_mix != i_green_mix || blue_mix != i_blue_mix ) continue;
 
 		//color distance
 		float idist = sqrt( 
-			pow( unicolors[i].red - red , 2 ) +
-			pow( unicolors[i].green - green , 2 ) +
-			pow( unicolors[i].blue - blue , 2 )
+			pow( ansicolors[i].red - red , 2 ) +
+			pow( ansicolors[i].green - green , 2 ) +
+			pow( ansicolors[i].blue - blue , 2 )
 		);
 		
 		if (idist < dist){
@@ -563,7 +507,9 @@ const char[] get_ansi_console_color_code( unsigned short red, unsigned short gre
 			dist = idist;
 		}
 	}
-	return unicolorcodes[nearest];	
+	return &(ansicolorcodes[nearest][0]);	
 }
-#endif
 
+void clear_console(){
+        system(CLEAR_CMD);
+}

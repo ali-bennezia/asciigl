@@ -292,12 +292,3 @@ void remove_light(char* identifier, enum LIGHT_TYPE lightType){
     }
 }
 
-
-Vec3 light_direction;
-
-void set_light_direction(float x, float y, float z){
-    light_direction.x = x;
-    light_direction.y = y;
-    light_direction.z = z;
-    light_direction = vec3_normalize(light_direction);
-}
