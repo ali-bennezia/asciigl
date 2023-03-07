@@ -17,13 +17,23 @@ char* get_frame_buffer();
 float* get_depth_buffer();
 
 void set_frame_buffer_fragment(int x, int y, char frag);
+
+void clear_frame_buffer();
+
 void set_depth_buffer_depth(int x, int y, float depth);
 float get_depth_buffer_depth(int x, int y);
+
+void set_color_buffer_color(int x, int y, RGB color);
+RGB get_color_buffer_color(int x, int y);
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
 enum DEPTH_TESTING_STATE get_depth_testing_state();
 
 void clear_depth_buffer();
+
+void set_default_draw_color();
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue);
+RGB get_draw_color();
 
 float get_frustum_FOV();
 float get_frustum_near_plane();

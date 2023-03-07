@@ -17,11 +17,7 @@ void render_frame(){
     if (get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED)
         clear_depth_buffer();
 
-    for (int i = 0; i < FRAME_HEIGHT; ++i){
-        for (int w = 0; w < FRAME_WIDTH; ++w)
-            get_frame_buffer()[i * (FRAME_WIDTH+1) + w] = ' ';
-        get_frame_buffer()[i * (FRAME_WIDTH+1) + FRAME_WIDTH] = '\n';
-    }
+    clear_frame_buffer();
     get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
@@ -58,19 +54,23 @@ void init(){
 
 
     RGB white = {255, 255, 255};
-    add_ambient_light("Light", 50, white);
+    RGB red = {255, 0, 0};
+
+    add_ambient_light("Light", 100, red);
 
     Vec3 normal;
     normal.x = -2.0; normal.y = 0.0; normal.z = 0;
     add_directional_light("Some light", 255, vec3_normalize(normal), white);
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    add_point_light("Some point light", 255, 10, pos, white);
+    //add_point_light("Some point light", 50, 1, pos, white);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
     
     clear_console();
+
+
 
 }
 
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]){
 
     mdl.position.z = 2.0;
     mdl.position.x = 0.0;
-    mdl.scale.x = 2.0;
+    mdl.scale.x = 4.0;
 
     insert_primitive(&mdl, trgl);
     insert_primitive(&mdl, trgl2);
@@ -218,6 +218,9 @@ int main(int argc, char* argv[]){
     insert_primitive_normals(&mdl, normals6);
     
     mptr = &mdl;
+
+
+
 
     init();
 

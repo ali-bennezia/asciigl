@@ -124,6 +124,48 @@ IntVec2 clipspace_to_screenspace(Vec2 in){
     return out;
 }
 
+Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scale_y){
+
+    Vec2 out;
+
+    float normal_magnitude = sqrt( normal_x * normal_x + normal_y * normal_y );
+    if (scale_x == 1 && scale_y == 1 || normal_magnitude == 0){
+        out.x = normal_x; out.y = normal_y;
+        return out;
+    }
+
+    float sin_theta = normal_y/normal_magnitude;
+    float cos_theta = normal_x/normal_magnitude;
+
+    float post_scale_radius = sqrt( scale_x * scale_x * cos_theta * cos_theta + scale_y * scale_y * sin_theta * sin_theta );
+
+    out.x = (scale_y * cos_theta * normal_magnitude)/post_scale_radius;
+    out.y = (scale_x * sin_theta * normal_magnitude)/post_scale_radius;
+
+    return out;
+}
+
+Vec3 scale_normal(Vec3 normal, Vec3 scale){
+
+    Vec2 axis_normal, axis_scale;
+
+    //X axis
+    Vec2 x_axis_normal = scale_normal_axis( normal.z, normal.y, scale.z, scale.y );
+    normal.z = x_axis_normal.x; normal.y = x_axis_normal.y;
+
+    //Y axis
+    Vec2 y_axis_normal = scale_normal_axis( normal.x, normal.z, scale.x, scale.z );
+    normal.x = y_axis_normal.x; normal.z = y_axis_normal.y;
+
+    //Z axis
+    Vec2 z_axis_normal = scale_normal_axis( normal.x, normal.y, scale.x, scale.y );
+    normal.x = z_axis_normal.x; normal.y = z_axis_normal.y;
+
+
+
+    return normal;
+}
+
 //three viewspace positions describing a triangle primitive
 void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex){
 
@@ -261,48 +303,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
     
 }
 
-Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scale_y){
-
-    Vec2 out;
-
-    float normal_magnitude = sqrt( normal_x * normal_x + normal_y * normal_y );
-    if (scale_x == 1 && scale_y == 1 || normal_magnitude == 0){
-        out.x = normal_x; out.y = normal_y;
-        return out;
-    }
-
-    float sin_theta = normal_y/normal_magnitude;
-    float cos_theta = normal_x/normal_magnitude;
-
-    float post_scale_radius = sqrt( scale_x * scale_x * cos_theta * cos_theta + scale_y * scale_y * sin_theta * sin_theta );
-
-    out.x = (scale_y * cos_theta * normal_magnitude)/post_scale_radius;
-    out.y = (scale_x * sin_theta * normal_magnitude)/post_scale_radius;
-
-    return out;
-}
-
-Vec3 scale_normal(Vec3 normal, Vec3 scale){
-
-    Vec2 axis_normal, axis_scale;
-
-    //X axis
-    Vec2 x_axis_normal = scale_normal_axis( normal.z, normal.y, scale.z, scale.y );
-    normal.z = x_axis_normal.x; normal.y = x_axis_normal.y;
-
-    //Y axis
-    Vec2 y_axis_normal = scale_normal_axis( normal.x, normal.z, scale.x, scale.z );
-    normal.x = y_axis_normal.x; normal.z = y_axis_normal.y;
-
-    //Z axis
-    Vec2 z_axis_normal = scale_normal_axis( normal.x, normal.y, scale.x, scale.y );
-    normal.x = z_axis_normal.x; normal.y = z_axis_normal.y;
-
-
-
-    return normal;
-}
-
 void draw_model(Model model){
 
     //condition to take normals & UVs into account during rendering
@@ -357,8 +357,9 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     char frustumTest = is_viewspace_position_in_frustum(viewspacePosition, NULL);
 
     if (screenCoordsTest == 1 && depthTest == 1 && frustumTest == 1){
-
-         DynamicArray* ambientLights = get_ambient_lights(), *directionalLights = get_directional_lights(), *pointLights = get_point_lights();
+	
+	set_color_buffer_color(x, y, get_draw_color());
+        DynamicArray* ambientLights = get_ambient_lights(), *directionalLights = get_directional_lights(), *pointLights = get_point_lights();
 
         //light levels must be expressed between 0 and 255. very low light levels (inferior to 1) will not be rendered.
         unsigned short lightLevel_red = 0,
@@ -368,9 +369,10 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         for (size_t i = 0; i < ambientLights->usage; ++i){
             AmbientLight* ambientLight = (AmbientLight*)ambientLights->buffer + i;
 
-            lightLevel_red += ambientLight->color.red*((float)ambientLight->intensity/255.0);
-	    lightLevel_green += ambientLight->color.green*((float)ambientLight->intensity/255.0);
-	    lightLevel_blue += ambientLight->color.blue*((float)ambientLight->intensity/255.0);
+	    float intensity = (float)ambientLight->intensity;
+            lightLevel_red += ((float)ambientLight->color.red/255.0)*intensity;
+	    lightLevel_green += ((float)ambientLight->color.green/255.0)*intensity;
+	    lightLevel_blue += ((float)ambientLight->color.blue/255.0)*intensity;
         }
 
         if (normal != NULL)
@@ -378,9 +380,10 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
                 DirectionalLight* directionalLight = (DirectionalLight*)directionalLights->buffer + i;
                 float l = fabs(fmax(0.0,  vec3_dot_product( worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
 
-                lightLevel_red += directionalLight->color.red * ((float)(l * directionalLight->intensity)/255.0);
-                lightLevel_green += directionalLight->color.green * ((float)(l * directionalLight->intensity)/255.0);
-                lightLevel_blue += directionalLight->color.blue * ((float)(l * directionalLight->intensity)/255.0);
+		float intensity = (float)(l * directionalLight->intensity);
+                lightLevel_red += ((float)directionalLight->color.red/255.0) * intensity;
+                lightLevel_green += ((float)directionalLight->color.green/255.0) * intensity;
+                lightLevel_blue += ((float)directionalLight->color.blue/255.0) * intensity;
             }
 
         for (size_t i = 0; i < pointLights->usage; ++i){
@@ -391,9 +394,10 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
             float raw_range = sqrt( pointLight->intensity - 1 );
             float adjusted_distance = distance*(raw_range/pointLight->range);
 
-            lightLevel_red += pointLight->color.red*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
-            lightLevel_green += pointLight->color.green*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
-            lightLevel_blue += pointLight->color.blue*(((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ))/255.0);
+	    float intensity = ((float)pointLight->intensity/(1.0 + adjusted_distance * adjusted_distance ));
+            lightLevel_red += ((float)pointLight->color.red/255.0)*intensity;
+            lightLevel_green += ((float)pointLight->color.green/255.0)*intensity;
+            lightLevel_blue += ((float)pointLight->color.blue/255.0)*intensity;
         }
 
         lightLevel_red = max( min( lightLevel_red, 255 ), 0);
@@ -410,21 +414,16 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     }
 }
 
-void set_default_draw_color() // TODO
+void render()
 {
-	printf("\033[0;0m");
+
 }
 
-void set_draw_color(unsigned short red, unsigned short green, unsigned short blue) //TODO: Check if ANSI is actually supported
-{
-	static char cache_ansi_draw_code[6] = "     \0";
-	const char* drawcode = get_ansi_console_color_code( red, green, blue );
-	if ( strcmp( &cache_ansi_draw_code[0], &drawcode[0] ) != 0 ){
-		strcpy( &cache_ansi_draw_code[0], &drawcode[0]);
-		printf("%s", drawcode);
-	}
+void clear_console(){
+        system(CLEAR_CMD);
+	set_default_draw_color();
+	//strcpy(&cache_ansi_draw_code[0], "     \0");
 }
-
 
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 {
@@ -443,3 +442,4 @@ RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 	
 	return out;
 }
+

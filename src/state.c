@@ -7,6 +7,7 @@
 
 char frame_buffer[TOTAL_FRAGMENTS_PER_FRAME+1];
 float depth_buffer[FRAME_HEIGHT * FRAME_WIDTH];
+RGB color_buffer[FRAME_HEIGHT * FRAME_WIDTH];
 
 Vec3 player_position;
 Vec3 player_rotation;
@@ -57,6 +58,15 @@ void set_frame_buffer_fragment(int x, int y, char frag){
     frame_buffer[y*(FRAME_WIDTH+1) + x] = frag;
 }
 
+void clear_frame_buffer()
+{
+    for (int i = 0; i < FRAME_HEIGHT; ++i){
+        for (int w = 0; w < FRAME_WIDTH; ++w)
+            get_frame_buffer()[i * (FRAME_WIDTH+1) + w] = ' ';
+        get_frame_buffer()[i * (FRAME_WIDTH+1) + FRAME_WIDTH] = '\n';
+    }
+}
+
 void set_depth_buffer_depth(int x, int y, float depth){
     //top-left = x 0 y 0
     if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
@@ -72,7 +82,22 @@ float get_depth_buffer_depth(int x, int y){
     return depth == 0 ? depth : 1.0/depth;
 }
 
+void set_color_buffer_color(int x, int y, RGB color){
+    //top-left = x 0 y 0
+    if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
+        return;
+    color_buffer[y*(FRAME_WIDTH) + x] = color;
+}
 
+RGB get_color_buffer_color(int x, int y){
+    //top-left = x 0 y 0
+    if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
+    {
+	RGB white = {255, 255, 255};
+	return white;
+    }
+    return color_buffer[y*(FRAME_WIDTH) + x];
+}
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state) {
     depthState = state;
@@ -85,6 +110,36 @@ enum DEPTH_TESTING_STATE get_depth_testing_state(){
 void clear_depth_buffer(){
     for (size_t i = 0; i < FRAME_WIDTH * FRAME_HEIGHT; ++i)
         depth_buffer[i] = 0;
+}
+
+
+static RGB drawcolor;
+void set_default_draw_color()
+{
+	//printf("\033[0;0m");
+	drawcolor.red = 255;
+	drawcolor.green = 255;
+	drawcolor.blue = 255;
+}
+
+//static char cache_ansi_draw_code[6] = "     \0";
+void set_draw_color(unsigned short red, unsigned short green, unsigned short blue) //TODO: Check if ANSI is actually supported
+{
+
+	/*const char* drawcode = get_ansi_console_color_code( red, green, blue );
+	if ( strcmp( &cache_ansi_draw_code[0], &drawcode[0] ) != 0 ){
+		strcpy( &cache_ansi_draw_code[0], &drawcode[0]);
+		printf("%s", drawcode);
+	}*/
+
+	drawcolor.red = red;
+	drawcolor.green = green;
+	drawcolor.blue = blue;
+}
+
+RGB get_draw_color()
+{
+	return drawcolor;
 }
 
 float get_frustum_FOV(){
