@@ -414,11 +414,6 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     }
 }
 
-void render()
-{
-
-}
-
 void clear_console(){
         system(CLEAR_CMD);
 	set_default_draw_color();

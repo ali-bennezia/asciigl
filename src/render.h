@@ -18,7 +18,6 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale);
 void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex);
 void draw_model(Model model);
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex);
-void render();
 
 void clear_console();
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex);

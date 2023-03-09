@@ -6,8 +6,8 @@
 //state
 
 char frame_buffer[TOTAL_FRAGMENTS_PER_FRAME+1];
-float depth_buffer[FRAME_HEIGHT * FRAME_WIDTH];
-RGB color_buffer[FRAME_HEIGHT * FRAME_WIDTH];
+float depth_buffer[TOTAL_FRAGMENTS_PER_FRAME];
+RGB color_buffer[TOTAL_FRAGMENTS_PER_FRAME];
 
 Vec3 player_position;
 Vec3 player_rotation;
@@ -43,6 +43,35 @@ Vec3 get_player_lookup(){
     return player_lookup;
 }
 
+void process_draw_string( char* out, size_t* outSize )
+{
+    char* data = malloc( TOTAL_FRAGMENTS_PER_FRAME*8 + 1 );
+
+    size_t data_index = 7;
+    RGB col = get_color_buffer_color(0, 0);
+    strcpy( data, get_ansi_console_color_code( col.red, col.green, col.blue ) ); 
+    for (size_t i = 1; i < TOTAL_FRAGMENTS_PER_FRAME; ++i)
+    {
+	int x = i % FRAME_WIDTH, y = (i - x)/FRAME_WIDTH;
+	RGB icol = get_color_buffer_color( x, y );
+	
+	if (memcmp( &icol, &col, sizeof(RGB) ) != 0)
+	{
+		col = icol;
+		data_index += 7;
+		strcpy( data + data_index, get_ansi_console_color_code( col.red, col.blue, col.green ) );
+	}
+
+	data[data_index] = get_frame_buffer_fragment( x, y );	
+	++data_index;
+    }
+    data[data_index] = '\0';
+    ++data_index;
+    data = realloc( data, data_index );
+    *outSize = data_index;
+    out = data;
+}
+
 char* get_frame_buffer(){
     return &frame_buffer[0];
 }
@@ -55,16 +84,22 @@ void set_frame_buffer_fragment(int x, int y, char frag){
     //top-left = x 0 y 0
     if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
         return;
-    frame_buffer[y*(FRAME_WIDTH+1) + x] = frag;
+    frame_buffer[y*FRAME_WIDTH + x] = frag;
+}
+
+char get_frame_buffer_fragment(int x, int y)
+{
+     //top-left = x 0 y 0
+    if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
+        return ' ';
+    return frame_buffer[y*FRAME_WIDTH + x]; 
 }
 
 void clear_frame_buffer()
 {
-    for (int i = 0; i < FRAME_HEIGHT; ++i){
-        for (int w = 0; w < FRAME_WIDTH; ++w)
-            get_frame_buffer()[i * (FRAME_WIDTH+1) + w] = ' ';
-        get_frame_buffer()[i * (FRAME_WIDTH+1) + FRAME_WIDTH] = '\n';
-    }
+    for (size_t i = 0; i < TOTAL_FRAGMENTS_PER_FRAME; ++i)
+	frame_buffer[i] = ' ';
+    frame_buffer[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 }
 
 void set_depth_buffer_depth(int x, int y, float depth){

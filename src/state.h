@@ -13,10 +13,13 @@ enum DEPTH_TESTING_STATE{
 Vec3 get_player_lookat();
 Vec3 get_player_lookup();
 
+void process_draw_string( char* out, size_t* outSize );
+
 char* get_frame_buffer();
 float* get_depth_buffer();
 
 void set_frame_buffer_fragment(int x, int y, char frag);
+char get_frame_buffer_fragment(int x, int y);
 
 void clear_frame_buffer();
 

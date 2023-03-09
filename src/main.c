@@ -18,7 +18,7 @@ void render_frame(){
         clear_depth_buffer();
 
     clear_frame_buffer();
-    get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
+    //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
     (&(mptr->rotation))->x += 4.0;
@@ -29,7 +29,11 @@ void render_frame(){
 
     draw_model(*mptr);
 
-    printf("%s", get_frame_buffer());
+    //printf("%s", get_frame_buffer());
+    char* frame_string = NULL;
+    size_t frame_string_size = 0;
+    process_draw_string( frame_string, &frame_string_size );
+    free(frame_string);
 }
 
 void routine(){
@@ -46,6 +50,8 @@ void init(){
     atexit( cleanup );
 
     init_light_arrays();
+
+    clear_frame_buffer();
     clear_depth_buffer();
 
     set_frustum_near_plane( 0.1 );
@@ -69,8 +75,6 @@ void init(){
     set_player_rotation(0,0,0);
     
     clear_console();
-
-
 
 }
 
