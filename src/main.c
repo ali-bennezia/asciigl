@@ -32,7 +32,8 @@ void render_frame(){
     //printf("%s", get_frame_buffer());
     char* frame_string = NULL;
     size_t frame_string_size = 0;
-    process_draw_string( frame_string, &frame_string_size );
+    process_draw_string( &frame_string, &frame_string_size );
+    printf("%s", frame_string);
     free(frame_string);
 }
 
@@ -62,14 +63,14 @@ void init(){
     RGB white = {255, 255, 255};
     RGB red = {255, 0, 0};
 
-    add_ambient_light("Light", 100, red);
+    add_ambient_light("Light", 10, white);
 
     Vec3 normal;
     normal.x = -2.0; normal.y = 0.0; normal.z = 0;
-    add_directional_light("Some light", 255, vec3_normalize(normal), white);
+    add_directional_light("Some light", 50, vec3_normalize(normal), white);
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    //add_point_light("Some point light", 50, 1, pos, white);
+    add_point_light("Some point light", 50, 1, pos, white);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);

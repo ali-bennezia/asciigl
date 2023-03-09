@@ -43,33 +43,41 @@ Vec3 get_player_lookup(){
     return player_lookup;
 }
 
-void process_draw_string( char* out, size_t* outSize )
+void process_draw_string( char** out, size_t* outSize )
 {
-    char* data = malloc( TOTAL_FRAGMENTS_PER_FRAME*8 + 1 );
+    char* data = malloc( TOTAL_FRAGMENTS_PER_FRAME*8 + FRAME_HEIGHT );
 
     size_t data_index = 7;
     RGB col = get_color_buffer_color(0, 0);
     strcpy( data, get_ansi_console_color_code( col.red, col.green, col.blue ) ); 
     for (size_t i = 1; i < TOTAL_FRAGMENTS_PER_FRAME; ++i)
     {
-	int x = i % FRAME_WIDTH, y = (i - x)/FRAME_WIDTH;
+	int x = i % FRAME_WIDTH;
+	int y = (i - x)/FRAME_WIDTH;
+
 	RGB icol = get_color_buffer_color( x, y );
 	
 	if (memcmp( &icol, &col, sizeof(RGB) ) != 0)
 	{
 		col = icol;
-		data_index += 7;
 		strcpy( data + data_index, get_ansi_console_color_code( col.red, col.blue, col.green ) );
+		data_index += 7;
 	}
 
 	data[data_index] = get_frame_buffer_fragment( x, y );	
 	++data_index;
+	
+	if (x == FRAME_WIDTH - 1)
+	{
+		data[data_index] = '\n';
+		++data_index;
+	}	
     }
     data[data_index] = '\0';
     ++data_index;
     data = realloc( data, data_index );
     *outSize = data_index;
-    out = data;
+    *out = data;
 }
 
 char* get_frame_buffer(){
