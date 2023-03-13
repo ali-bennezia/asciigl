@@ -56,6 +56,16 @@ void free_dynamic_array(DynamicArray* arr){
     arr->size = 0;
 }
 
+RGB RGBA_to_RGB( RGBA in )
+{
+	RGB out;
+	//memcpy( &out, &in, sizeof(RGB) );
+	out.red = in.red;	
+	out.green = in.green;
+	out.blue = in.blue;
+	return out;	
+}
+
 float to_rads(float degrees){
     return degrees / 180.0 * M_PI;
 }

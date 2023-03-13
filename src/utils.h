@@ -37,6 +37,8 @@ typedef struct RGBA {
 	unsigned short alpha;
 } RGBA;
 
+RGB RGBA_to_RGB( RGBA in );
+
 typedef struct Vector2{
     float x;
     float y;

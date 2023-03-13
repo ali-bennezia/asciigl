@@ -167,7 +167,7 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
 }
 
 //three viewspace positions describing a triangle primitive
-void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex){
+void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex, Model* mdl){
 
     Vec2 a_clipspace = viewspace_coords_to_clipspace_coords(a);
     Vec2 b_clipspace = viewspace_coords_to_clipspace_coords(b);
@@ -286,7 +286,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 				viewspace_position, 
 				normals != NULL ? &normal : NULL,
 				UVs != NULL ? &UV : NULL,
-				tex );
+				tex,
+				mdl );
             }
 
         }
@@ -307,9 +308,9 @@ void draw_model(Model model){
 
     //condition to take normals & UVs into account during rendering
     char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
-    char UVs = model.mesh.usage == model.UVs.usage/3 ? 1 : 0;
+    char UVs = model.mesh.usage == model.UVs.usage/3 && model.UVs.usage != 0 ? 1 : 0;
     Vec2 placeholder_UVs[3] = { 
-	{1, -1},
+	{1, 1},
 	{1, 0},
 	{0, 0} 
     };
@@ -344,12 +345,12 @@ void draw_model(Model model){
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
 
         
-        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture);
+        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
     }
 
 }
 
-void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex){
+void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex, Model* mdl){
     float current_depth = get_depth_buffer_depth(x, y);
     
     char screenCoordsTest = (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT) ? 0 : 1;
@@ -404,11 +405,19 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         lightLevel_green = max( min( lightLevel_green, 255 ), 0);
         lightLevel_blue = max( min( lightLevel_blue, 255 ), 0);
 
+	RGB fragColor = (tex != NULL && UV != NULL) ? 
+		RGBA_to_RGB( sample_texture( UV->x, UV->y, tex ) ) : 
+		mdl->color;
+
+	unsigned short combined_red = (float)fragColor.red * (float)lightLevel_red / 255.0,
+		combined_green = (float)fragColor.green * (float)lightLevel_green / 255.0,
+		combined_blue = (float)fragColor.blue * (float)lightLevel_blue / 255.0;
+
 	const unsigned short sqtwofivefive = pow(255, 2);
-	unsigned short lightLevel = ( sqrt( pow( lightLevel_red, 2 ) + pow( lightLevel_green, 2 ) + pow( lightLevel_blue, 2 ) ) 
+	unsigned short lightLevel = ( sqrt( pow( combined_red, 2 ) + pow( combined_green, 2 ) + pow( combined_blue, 2 ) ) 
 		/ sqrt( sqtwofivefive*3 ) ) * 255;
 
-	set_draw_color( lightLevel_red, lightLevel_green, lightLevel_blue );	
+	set_draw_color( combined_red, combined_green, combined_blue );	
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         set_depth_buffer_depth(x, y, depth);
     }
@@ -422,7 +431,7 @@ void clear_console(){
 
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 {
-	RGBA out;
+	RGBA out = {255, 255, 255, 255};
 	
 	if (tex == NULL || tex->data == NULL) return out;
 

@@ -70,7 +70,7 @@ void init(){
     add_directional_light("Some light", 50, vec3_normalize(normal), white);
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    add_point_light("Some point light", 50, 1, pos, white);
+    add_point_light("Some point light", 150, 10, pos, white);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]){
 
     //debug
 
-    Texture* tex = load_texture("test5.bmp");
+    Texture* tex = load_texture("test2.bmp");
 
     system("PAUSE");
 
@@ -185,6 +185,7 @@ int main(int argc, char* argv[]){
     mdl.position.z = 2.0;
     mdl.position.x = 0.0;
     mdl.scale.x = 4.0;
+    mdl.texture = tex;
 
     insert_primitive(&mdl, trgl);
     insert_primitive(&mdl, trgl2);
