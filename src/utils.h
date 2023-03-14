@@ -37,7 +37,14 @@ typedef struct RGBA {
 	unsigned short alpha;
 } RGBA;
 
+typedef struct NormalizedRGB {
+	float red;
+	float green;
+	float blue;
+} NormalizedRGB;
+
 RGB RGBA_to_RGB( RGBA in );
+NormalizedRGB normalize_RGB(RGB color);
 
 typedef struct Vector2{
     float x;

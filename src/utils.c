@@ -66,6 +66,19 @@ RGB RGBA_to_RGB( RGBA in )
 	return out;	
 }
 
+NormalizedRGB normalize_RGB(RGB color)
+{
+	NormalizedRGB out;
+
+	float m = max( color.red, max( color.green, color.blue ) );
+
+	out.red = (float)color.red / m;
+	out.green = (float)color.green / m;
+	out.blue = (float)color.blue / m;
+
+	return out;
+}
+
 float to_rads(float degrees){
     return degrees / 180.0 * M_PI;
 }
@@ -480,38 +493,35 @@ const char ansicolorcodes[16][8] = {
 }; //TODO: Improve color selection algorithm
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
 {
+	RGB in = {red, green, blue};
+
 	//color quotient
-	unsigned short m = max( red, max( green, blue ) );
-	float red_mix = (float)red/(float)m;
-	float green_mix = (float)green/(float)m;
-	float blue_mix = (float)blue/(float)m;
+	NormalizedRGB inMix = normalize_RGB( in );
 
 	//initialize to white
 	size_t nearest = 15;
-	float dist = sqrt( 
-		pow( ansicolors[15].red - red , 2 ) +
-		pow( ansicolors[15].green - green , 2 ) +
-		pow( ansicolors[15].blue - blue , 2 )
+	RGB nearestRGB = ansicolors[15];	
+	NormalizedRGB nearestMix = normalize_RGB( nearestRGB );
+	float mdist = sqrt( 
+		pow( nearestMix.red, 2 ) +
+		pow( nearestMix.green, 2 ) +
+		pow( nearestMix.blue, 2 )
 	);
+
 	for (size_t i = 0; i < 15; ++i){
-		//color quotient
-		unsigned short im = max( ansicolors[i].red, max( ansicolors[i].green, ansicolors[i].blue ) );
-		float i_red_mix = (float)ansicolors[i].red / (float)im;
-		float i_green_mix = (float)ansicolors[i].green / (float)im;
-		float i_blue_mix = (float)ansicolors[i].blue / (float)im;
+		//color mix quotient
+		NormalizedRGB iMix = normalize_RGB( ansicolors[i] );
 
-		if ( red_mix != i_red_mix || green_mix != i_green_mix || blue_mix != i_blue_mix ) continue;
-
-		//color distance
+		//color mix distance
 		float idist = sqrt( 
-			pow( ansicolors[i].red - red , 2 ) +
-			pow( ansicolors[i].green - green , 2 ) +
-			pow( ansicolors[i].blue - blue , 2 )
+			pow( iMix.red-inMix.red, 2 ) +
+			pow( iMix.green-inMix.green, 2 ) +
+			pow( iMix.blue-inMix.blue, 2 )
 		);
 		
-		if (idist < dist){
+		if (idist < mdist){
 			nearest = i;
-			dist = idist;
+			mdist = idist;
 		}
 	}
 	return &(ansicolorcodes[nearest][0]);	
