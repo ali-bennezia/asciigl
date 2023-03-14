@@ -477,7 +477,7 @@ const char ansicolorcodes[16][8] = {
 	"\033[0;95m\0",
 	"\033[0;96m\0",
 	"\033[0;97m\0"
-};
+}; //TODO: Improve color selection algorithm
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
 {
 	//color quotient

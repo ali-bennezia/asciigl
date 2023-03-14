@@ -439,10 +439,10 @@ RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 
 	uint32_t pixelData = *((uint32_t*)tex->data + y*tex->width + x);
 	out.alpha = pixelData >> 24 & 255;
-	out.blue = pixelData >> 16 & 255;
+	out.red = pixelData >> 16 & 255;
 	out.green = pixelData >> 8 & 255;
-	out.red = pixelData & 255;
-	
+	out.blue = pixelData & 255;
+
 	return out;
 }
 
