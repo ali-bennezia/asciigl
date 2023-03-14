@@ -415,13 +415,10 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
 Model gen_model(){
     Model mdl;
     
-    Vec3 pos, rot, scale;
-    RGB color;
-
-    pos.x = 0; pos.y = 0; pos.z = 0;
-    rot.x = 0; rot.y = 0; rot.z = 0;
-    scale.x = 1; scale.y = 1; scale.z = 1;
-    color.red = 255; color.green = 255; color.blue = 255;
+    Vec3 pos = {0, 0, 0}, 
+	rot = {0, 0, 0}, 
+	scale = {1, 1, 1};
+    RGB color = {255, 255, 255};
 
     mdl.position = pos;
     mdl.rotation = rot;

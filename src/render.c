@@ -408,14 +408,13 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 	RGB fragColor = (tex != NULL && UV != NULL) ? 
 		RGBA_to_RGB( sample_texture( UV->x, UV->y, tex ) ) : 
 		mdl->color;
-
 	unsigned short combined_red = (float)fragColor.red * (float)lightLevel_red / 255.0,
 		combined_green = (float)fragColor.green * (float)lightLevel_green / 255.0,
 		combined_blue = (float)fragColor.blue * (float)lightLevel_blue / 255.0;
 
 	const unsigned short sqtwofivefive = pow(255, 2);
-	unsigned short lightLevel = ( sqrt( pow( combined_red, 2 ) + pow( combined_green, 2 ) + pow( combined_blue, 2 ) ) 
-		/ sqrt( sqtwofivefive*3 ) ) * 255;
+	unsigned short lightLevel = (float)( sqrt( pow( combined_red, 2 ) + pow( combined_green, 2 ) + pow( combined_blue, 2 ) ) 
+		/ (float)sqrt( sqtwofivefive*3 ) ) * 255;
 
 	set_draw_color( combined_red, combined_green, combined_blue );	
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
@@ -432,17 +431,17 @@ void clear_console(){
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 {
 	RGBA out = {255, 255, 255, 255};
-	
+
 	if (tex == NULL || tex->data == NULL) return out;
 
-	unsigned short x = UV_x*(tex->width-1),
-		y = UV_y*(tex->height-1);
+	size_t x = (size_t)(UV_x*(tex->width-1)) % tex->width,
+		y = (size_t)(UV_y*(tex->height-1)) % tex->height;
 
-	uint32_t pixelData = *((uint32_t*)(tex->data) + y*tex->width + x);
-	out.red = pixelData >> 24 & 255;
-	out.green = pixelData >> 16 & 255;
-	out.blue = pixelData >> 8 & 255;
-	out.alpha = pixelData & 255;
+	uint32_t pixelData = *((uint32_t*)tex->data + y*tex->width + x);
+	out.alpha = pixelData >> 24 & 255;
+	out.blue = pixelData >> 16 & 255;
+	out.green = pixelData >> 8 & 255;
+	out.red = pixelData & 255;
 	
 	return out;
 }
