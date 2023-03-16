@@ -71,6 +71,11 @@ NormalizedRGB normalize_RGB(RGB color)
 	NormalizedRGB out;
 
 	float m = max( color.red, max( color.green, color.blue ) );
+	if (m == 0)
+	{
+		out.red = 0; out.green = 0; out.blue = 0;
+		return out;
+	}
 
 	out.red = (float)color.red / m;
 	out.green = (float)color.green / m;
@@ -490,7 +495,7 @@ const char ansicolorcodes[16][8] = {
 	"\033[0;95m\0",
 	"\033[0;96m\0",
 	"\033[0;97m\0"
-}; //TODO: Improve color selection algorithm
+}; 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue )
 {
 	RGB in = {red, green, blue};
