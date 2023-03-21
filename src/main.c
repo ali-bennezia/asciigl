@@ -84,6 +84,7 @@ int main(int argc, char* argv[]){
 
     //debug
 
+
     Texture* tex = load_texture("test2.bmp");
     load_model_obj_strategy("model.obj", NULL);
 

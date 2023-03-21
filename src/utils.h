@@ -156,5 +156,4 @@ void free_model(Model mdl);
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
 
 
-
 #endif

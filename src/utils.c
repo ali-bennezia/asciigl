@@ -532,3 +532,4 @@ const char* get_ansi_console_color_code( unsigned short red, unsigned short gree
 	return &(ansicolorcodes[nearest][0]);	
 }
 
+
