@@ -18,6 +18,7 @@ typedef struct DynamicArray{
 } DynamicArray;
 
 DynamicArray gen_dynamic_array(size_t dataSize);
+void clear_dynamic_array( DynamicArray* arr, size_t dataSize );
 void insert_data(DynamicArray* arr, void* data, size_t dataSize);
 void* get_data(DynamicArray* arr, size_t index, size_t dataSize);
 void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize);

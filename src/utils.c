@@ -20,6 +20,13 @@ DynamicArray gen_dynamic_array(size_t dataSize){
     return out;
 }
 
+void clear_dynamic_array( DynamicArray* arr, size_t dataSize )
+{
+	arr->buffer = realloc( arr->buffer, dataSize*10 );
+	arr->size = 10;
+	arr->usage = 0;
+}
+
 void insert_data(DynamicArray* arr, void* data, size_t dataSize)
 {
     if (arr->usage == arr->size){
