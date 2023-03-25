@@ -86,7 +86,6 @@ int main(int argc, char* argv[]){
 
 
     Texture* tex = load_texture("test2.bmp");
-    load_model_obj_strategy("model.obj", NULL);
 
     system("PAUSE");
 
@@ -230,6 +229,7 @@ int main(int argc, char* argv[]){
 
 
 
+    load_model_obj_strategy("model.obj", &mdl);
 
     init();
 

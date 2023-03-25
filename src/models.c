@@ -7,7 +7,7 @@
 
 int load_model_obj_strategy(const char* path, Model* destination)
 {
-
+	if (destination == NULL) return 1;
 	FILE* file = fopen( path, "r" );
 	if (file == NULL) return 1;
 
@@ -68,12 +68,67 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	fclose(file);
 
-	printf("%d vertices, %d UVs, %d normals, %d indices loaded.\n", vertices.usage, uvs.usage, normals.usage, indices.usage);	
+	printf("%d vertices, %d UVs, %d normals, %d indices loaded.\n", vertices.usage, uvs.usage, normals.usage, indices.usage);
 
-	free_dynamic_array( &indices );
-	free_dynamic_array( &normals );
-	free_dynamic_array( &uvs );	
-	free_dynamic_array( &vertices );	
+	if ( destination->mesh.buffer == NULL ) free_dynamic_array( &destination->mesh );
+	if ( destination->normals.buffer == NULL ) free_dynamic_array( &destination->normals );
+	if ( destination->UVs.buffer == NULL ) free_dynamic_array( &destination->UVs );
+	return 0;
+	if (indices.usage > 0){
+
+		DynamicArray unwrapped_vertices = gen_dynamic_array( sizeof( float ) * 3 ),
+			unwrapped_uvs = gen_dynamic_array( sizeof( float ) * 2 ),
+			unwrapped_normals = gen_dynamic_array( sizeof( float ) * 3 );
+
+		for (size_t i = 0; i < indices.usage/3; ++i){
+
+			int index_a = *((int*)indices.buffer + i*3);
+			int index_b = *((int*)indices.buffer + i*3 + 1);
+			int index_c = *((int*)indices.buffer + i*3 + 2);
+
+			//vertices unwrapping
+			float uwrverts[3][3] = {{ *((float*)vertices.buffer + index_a*3), *((float*)vertices.buffer + index_a*3 + 1), *((float*)vertices.buffer + index_a*3 + 2) },
+				{ *((float*)vertices.buffer + index_b*3), *((float*)vertices.buffer + index_b*3 + 1), *((float*)vertices.buffer + index_b*3 + 2) },
+				{ *((float*)vertices.buffer + index_c*3), *((float*)vertices.buffer + index_c*3 + 1), *((float*)vertices.buffer + index_c*3 + 2) }
+			};
+			insert_data( &unwrapped_vertices, &uwrverts[0][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_vertices, &uwrverts[1][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_vertices, &uwrverts[2][0], sizeof(float) * 3 );
+
+			//UVs unwrapping
+			float uwruvs[3][2] = {{ *((float*)uvs.buffer + index_a*2), *((float*)uvs.buffer + index_a*2 + 1) },
+				{ *((float*)uvs.buffer + index_b*2), *((float*)uvs.buffer + index_b*2 + 1) },
+				{ *((float*)uvs.buffer + index_c*2), *((float*)uvs.buffer + index_c*2 + 1) }
+			};
+			insert_data( &unwrapped_uvs, &uwruvs[0][0], sizeof(float) * 2 );
+			insert_data( &unwrapped_uvs, &uwruvs[1][0], sizeof(float) * 2 );
+			insert_data( &unwrapped_uvs, &uwruvs[2][0], sizeof(float) * 2 );
+
+			//normals unwrapping
+			float uwrnormals[3][3] = {{ *((float*)normals.buffer + index_a*3), *((float*)normals.buffer + index_a*3 + 1), *((float*)normals.buffer + index_a*3 + 2) },
+				{ *((float*)normals.buffer + index_b*3), *((float*)normals.buffer + index_b*3 + 1), *((float*)normals.buffer + index_b*3 + 2) },
+				{ *((float*)normals.buffer + index_c*3), *((float*)normals.buffer + index_c*3 + 1), *((float*)normals.buffer + index_c*3 + 2) }
+			};
+			insert_data( &unwrapped_normals, &uwrnormals[0][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_normals, &uwrnormals[1][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_normals, &uwrnormals[2][0], sizeof(float) * 3 );
+				
+		}
+
+		free_dynamic_array( &indices );
+		free_dynamic_array( &normals );
+		free_dynamic_array( &uvs );	
+		free_dynamic_array( &vertices );
+
+		destination->mesh = unwrapped_vertices;
+		destination->UVs = unwrapped_uvs;
+		destination->normals = unwrapped_normals;	
+
+	}else{
+		destination->mesh = vertices;
+		destination->UVs = uvs;
+		destination->normals = normals;
+	}
 
 	return 0;
 }
