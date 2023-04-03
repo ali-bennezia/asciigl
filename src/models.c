@@ -25,6 +25,9 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	printf("Loading model %s ...\n", path);
 
+	int detectedPrimitive = 0;
+	enum PRIMITIVE_TYPE primitiveType = TRIANGLE_PRIMITIVE;
+
 	DynamicArray vertices = gen_dynamic_array( sizeof( float ) * 3 ),
 		uvs = gen_dynamic_array( sizeof( float ) * 2 ),
 		normals = gen_dynamic_array( sizeof( float ) * 3 ),
@@ -62,8 +65,18 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			insert_data( &normals, &ndata[3], sizeof(float)*3 );
 
 		}else if( strcmp( token, "f" ) == 0 ){
-			char* ind = strtok( NULL, " " );
-			while( ind != NULL ){
+			DynamicArray tokens = gen_dynamic_array( sizeof(char*) );
+
+			char* cur_token = strtok( NULL, " " );
+			while ( cur_token != NULL ){
+				insert_data( &tokens, &cur_token, sizeof(char*) );
+				cur_token = strtok( NULL, " " );
+			}
+
+			for (size_t i = 0; i < tokens.usage; ++i){
+				char* ind = *((char**)tokens.buffer + i);
+
+				// printf("Processing reference token: %s\n", ind);
 				int index_a = atoi( strtok ( ind, "/" ) );
 				int index_b = atoi( strtok ( NULL, "/" ) );
 				int index_c = atoi( strtok ( NULL, "/" ) );
@@ -71,10 +84,17 @@ int load_model_obj_strategy(const char* path, Model* destination)
 				insert_data( &indices, &index_a, sizeof(int) );
 				insert_data( &indices, &index_b, sizeof(int) );
 				insert_data( &indices, &index_c, sizeof(int) );
-
-				ind = strtok( NULL, " " );
 			}
 
+			if (!detectedPrimitive){
+				detectedPrimitive = 1;
+				if ( floatmod( tokens.usage, 3 ) == 0 )
+					primitiveType = TRIANGLE_PRIMITIVE;
+				else if ( floatmod( tokens.usage, 4 ) == 0 )
+					primitiveType = QUAD_PRIMITIVE;
+			}
+
+			free_dynamic_array( &tokens );
 		}else continue;
 	}
 
@@ -82,65 +102,82 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	printf("%d vertices, %d UVs, %d normals, %d indices loaded.\n", vertices.usage, uvs.usage, normals.usage, indices.usage);
 
-	if ( destination->mesh.buffer == NULL ) free_dynamic_array( &destination->mesh );
-	if ( destination->normals.buffer == NULL ) free_dynamic_array( &destination->normals );
-	if ( destination->UVs.buffer == NULL ) free_dynamic_array( &destination->UVs );
-	return 0;
+	if ( destination->mesh.buffer != NULL ) free_dynamic_array( &destination->mesh );
+	if ( destination->normals.buffer != NULL ) free_dynamic_array( &destination->normals );
+	if ( destination->UVs.buffer != NULL ) free_dynamic_array( &destination->UVs );
+	//return 0;
 	if (indices.usage > 0){
 
 		DynamicArray unwrapped_vertices = gen_dynamic_array( sizeof( float ) * 3 ),
 			unwrapped_uvs = gen_dynamic_array( sizeof( float ) * 2 ),
 			unwrapped_normals = gen_dynamic_array( sizeof( float ) * 3 );
 
+		printf(" == indices ==\n");
+		for (size_t i = 0; i < indices.usage/3; ++i)
+			printf("%d/%d/%d\n",
+				*((int*)indices.buffer + i*3),
+				*((int*)indices.buffer + i*3 + 1),
+				*((int*)indices.buffer + i*3 + 2));
+	
+
+
 		for (size_t i = 0; i < indices.usage/3; ++i){
 
-			int index_a = *((int*)indices.buffer + i*3);
-			int index_b = *((int*)indices.buffer + i*3 + 1);
-			int index_c = *((int*)indices.buffer + i*3 + 2);
+			int index_a = *((int*)indices.buffer + i*3) - 1;
+			int index_b = *((int*)indices.buffer + i*3 + 1) - 1;
+			int index_c = *((int*)indices.buffer + i*3 + 2) - 1;
 
 			//vertices unwrapping
-			float uwrverts[3][3] = {{ *((float*)vertices.buffer + index_a*3), *((float*)vertices.buffer + index_a*3 + 1), *((float*)vertices.buffer + index_a*3 + 2) },
-				{ *((float*)vertices.buffer + index_b*3), *((float*)vertices.buffer + index_b*3 + 1), *((float*)vertices.buffer + index_b*3 + 2) },
-				{ *((float*)vertices.buffer + index_c*3), *((float*)vertices.buffer + index_c*3 + 1), *((float*)vertices.buffer + index_c*3 + 2) }
-			};
-			insert_data( &unwrapped_vertices, &uwrverts[0][0], sizeof(float) * 3 );
-			insert_data( &unwrapped_vertices, &uwrverts[1][0], sizeof(float) * 3 );
-			insert_data( &unwrapped_vertices, &uwrverts[2][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_vertices, (float*)vertices.buffer + index_a*3, sizeof(float) * 3 );
 
 			//UVs unwrapping
-			float uwruvs[3][2] = {{ *((float*)uvs.buffer + index_a*2), *((float*)uvs.buffer + index_a*2 + 1) },
-				{ *((float*)uvs.buffer + index_b*2), *((float*)uvs.buffer + index_b*2 + 1) },
-				{ *((float*)uvs.buffer + index_c*2), *((float*)uvs.buffer + index_c*2 + 1) }
-			};
-			insert_data( &unwrapped_uvs, &uwruvs[0][0], sizeof(float) * 2 );
-			insert_data( &unwrapped_uvs, &uwruvs[1][0], sizeof(float) * 2 );
-			insert_data( &unwrapped_uvs, &uwruvs[2][0], sizeof(float) * 2 );
+			insert_data( &unwrapped_uvs, (float*)uvs.buffer + index_b*2, sizeof(float) * 2 );
 
 			//normals unwrapping
-			float uwrnormals[3][3] = {{ *((float*)normals.buffer + index_a*3), *((float*)normals.buffer + index_a*3 + 1), *((float*)normals.buffer + index_a*3 + 2) },
-				{ *((float*)normals.buffer + index_b*3), *((float*)normals.buffer + index_b*3 + 1), *((float*)normals.buffer + index_b*3 + 2) },
-				{ *((float*)normals.buffer + index_c*3), *((float*)normals.buffer + index_c*3 + 1), *((float*)normals.buffer + index_c*3 + 2) }
-			};
-			insert_data( &unwrapped_normals, &uwrnormals[0][0], sizeof(float) * 3 );
-			insert_data( &unwrapped_normals, &uwrnormals[1][0], sizeof(float) * 3 );
-			insert_data( &unwrapped_normals, &uwrnormals[2][0], sizeof(float) * 3 );
+			insert_data( &unwrapped_normals, (float*)normals.buffer + index_c*3, sizeof(float) * 3 );
 				
 		}
 
-		free_dynamic_array( &indices );
+		printf(" == unwrapped vertices ==\n");	
+		for (size_t i = 0; i < unwrapped_vertices.usage; ++i)
+			printf("%f %f %f\n",
+				*((float*)unwrapped_vertices.buffer + i*3),
+				*((float*)unwrapped_vertices.buffer + i*3 + 1),
+				*((float*)unwrapped_vertices.buffer + i*3 + 2));
+
 		free_dynamic_array( &normals );
 		free_dynamic_array( &uvs );	
 		free_dynamic_array( &vertices );
 
 		destination->mesh = unwrapped_vertices;
 		destination->UVs = unwrapped_uvs;
-		destination->normals = unwrapped_normals;	
+		destination->normals = unwrapped_normals;
+
+		printf("Unwrapped. Mesh usage: %d\n", unwrapped_vertices.usage);	
 
 	}else{
 		destination->mesh = vertices;
 		destination->UVs = uvs;
 		destination->normals = normals;
 	}
+
+	if ( primitiveType == QUAD_PRIMITIVE ){
+
+		DynamicArray tri_vertices = gen_dynamic_array( sizeof(float)*3 ),
+			tri_UVs = gen_dynamic_array( sizeof(float)*2 ),
+			tri_normals = gen_dynamic_array( sizeof(float)*3 );
+
+		for( size_t i = 0: i < destination->mesh.usage / 12; ++i ){
+			float vert[3] = {
+				*((float*)destination->mesh.buffer + i * 4),
+				*((float*)destination->mesh.buffer + i * 4 + 1),
+				*((float*)destination->mesh.buffer + i * 4 + 2)
+			};
+		}
+
+	}
+
+	free_dynamic_array( &indices );
 
 	return 0;
 }

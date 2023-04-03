@@ -198,8 +198,8 @@ int main(int argc, char* argv[]){
 
     mdl.position.z = 2.0;
     mdl.position.x = 0.0;
-    mdl.scale.x = 4.0;
-    mdl.texture = tex;
+    mdl.scale.x = 1.0;
+    //mdl.texture = tex;
 
     insert_primitive(&mdl, trgl);
     insert_primitive(&mdl, trgl2);
@@ -241,7 +241,16 @@ int main(int argc, char* argv[]){
 
 
 
-    load_model_obj_strategy("model.obj", &mdl);
+    load_model_obj_strategy("cube.obj", mptr);
+
+    for(size_t i = 0; i < mptr->mesh.usage; ++i)
+	printf("%f %f %f\n", *((float*)mptr->mesh.buffer + i*3),
+		*((float*)mptr->mesh.buffer + i*3 + 1),
+		*((float*)mptr->mesh.buffer + i*3 + 2));
+
+    printf("Mesh buffer usage: %d\n", mptr->mesh.usage);
+    printf("Loaded\n");
+    system("PAUSE");
 
     init();
 

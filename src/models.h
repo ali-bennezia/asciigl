@@ -15,6 +15,11 @@
 
 typedef struct Model Model;
 
+enum PRIMITIVE_TYPE{
+	TRIANGLE_PRIMITIVE,
+	QUAD_PRIMITIVE
+};
+
 int load_model_obj_strategy(const char* path, Model* destination);
 
 #endif
