@@ -79,11 +79,11 @@ void init(){
     add_ambient_light("Light", 10, white);
 
     Vec3 normal;
-    normal.x = -2.0; normal.y = 0.0; normal.z = 0;
-    add_directional_light("Some light", 50, vec3_normalize(normal), white);
+    normal.x = -2.0; normal.y = 0.0; normal.z = 1;
+    add_directional_light("Some light", 100, vec3_normalize(normal), white);
     Vec3 pos;
     pos.x = 1; pos.y = 0; pos.z = 2;
-    add_point_light("Some point light", 150, 10, pos, white);
+    //add_point_light("Some point light", 150, 10, pos, white);
 
     set_player_position(0,0,0);
     set_player_rotation(0,0,0);
@@ -99,16 +99,16 @@ int main(int argc, char* argv[]){
 
     Texture* tex = load_texture("test2.bmp");
 
-    system("PAUSE");
+    //system("PAUSE");
 
 
     Model mdl = gen_model();
 
-    mdl.position.z = 2.0;
+    mdl.position.z = 20.0;
     mdl.position.x = 0.0;
-    mdl.scale.x = 1.0/5.0;
-    mdl.scale.y = 1.0/5.0;
-    mdl.scale.z = 1.0/5.0;
+    mdl.scale.x = 1.0;
+    mdl.scale.y = 1.0;
+    mdl.scale.z = 1.0;
     //mdl.texture = tex;
     
     mptr = &mdl;
@@ -116,15 +116,16 @@ int main(int argc, char* argv[]){
 
 
     load_model_obj_strategy("cube.obj", mptr);
+    //system("PAUSE");
 
-    for(size_t i = 0; i < mptr->mesh.usage; ++i)
+    /*for(size_t i = 0; i < mptr->mesh.usage; ++i)
 	printf("%f %f %f\n", *((float*)mptr->mesh.buffer + i*3),
 		*((float*)mptr->mesh.buffer + i*3 + 1),
 		*((float*)mptr->mesh.buffer + i*3 + 2));
 
     printf("Mesh buffer usage: %d\n", mptr->mesh.usage);
     printf("Loaded\n");
-    system("PAUSE");
+    system("PAUSE");*/
 
     init();
 

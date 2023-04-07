@@ -62,7 +62,7 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			float normal_z = atof( strtok( NULL, " " ) );
 			float ndata[3] = { normal_x, normal_y, normal_z };
 
-			insert_data( &normals, &ndata[3], sizeof(float)*3 );
+			insert_data( &normals, &ndata[0], sizeof(float)*3 );
 
 		}else if( strcmp( token, "f" ) == 0 ){
 			DynamicArray tokens = gen_dynamic_array( sizeof(char*) );
@@ -113,7 +113,7 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			unwrapped_normals = gen_dynamic_array( sizeof( float ) * 3 );
 
 		for (size_t i = 0; i < indices.usage/3; ++i){
-
+			
 			int index_a = *((int*)indices.buffer + i*3) - 1;
 			int index_b = *((int*)indices.buffer + i*3 + 1) - 1;
 			int index_c = *((int*)indices.buffer + i*3 + 2) - 1;
@@ -128,8 +128,6 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			insert_data( &unwrapped_normals, (float*)normals.buffer + index_c*3, sizeof(float) * 3 );
 				
 		}
-
-
 
 		free_dynamic_array( &normals );
 		free_dynamic_array( &uvs );	
@@ -146,7 +144,6 @@ int load_model_obj_strategy(const char* path, Model* destination)
 	}
 
 	if ( primitiveType == QUAD_PRIMITIVE ){
-
 		DynamicArray tri_vertices = gen_dynamic_array( sizeof(float)*3 ),
 			tri_UVs = gen_dynamic_array( sizeof(float)*2 ),
 			tri_normals = gen_dynamic_array( sizeof(float)*3 );
@@ -233,13 +230,13 @@ int load_model_obj_strategy(const char* path, Model* destination)
 					*((float*)destination->normals.buffer + i * 12 + 11)
 				};
 				
-				insert_data( &tri_normals, &vert_a[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &vert_b[0], sizeof(float)*3 );
-				insert_data( &tri_normals, &vert_c[0], sizeof(float)*3 );	
+				insert_data( &tri_normals, &normals_a[0], sizeof(float)*3 );	
+				insert_data( &tri_normals, &normals_b[0], sizeof(float)*3 );
+				insert_data( &tri_normals, &normals_c[0], sizeof(float)*3 );	
 		
-				insert_data( &tri_normals, &vert_c[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &vert_d[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &vert_a[0], sizeof(float)*3 );
+				insert_data( &tri_normals, &normals_c[0], sizeof(float)*3 );	
+				insert_data( &tri_normals, &normals_d[0], sizeof(float)*3 );	
+				insert_data( &tri_normals, &normals_a[0], sizeof(float)*3 );
 
 			}
 
@@ -253,7 +250,23 @@ int load_model_obj_strategy(const char* path, Model* destination)
 		destination->UVs = tri_UVs;
 		destination->normals = tri_normals;
 
-		
+		/*for (size_t i = 0; i < destination->normals.usage/3; ++i){
+			printf("%f %f %f\n", 
+				*((float*)destination->normals.buffer + i*9),
+				*((float*)destination->normals.buffer + i*9 + 1),
+				*((float*)destination->normals.buffer + i*9 + 2));
+			printf("%f %f %f\n", 
+				*((float*)destination->normals.buffer + i*9 + 3),
+				*((float*)destination->normals.buffer + i*9 + 4),
+				*((float*)destination->normals.buffer + i*9 + 5));
+			printf("%f %f %f\n", 
+				*((float*)destination->normals.buffer + i*9 + 6),
+				*((float*)destination->normals.buffer + i*9 + 7),
+				*((float*)destination->normals.buffer + i*9 + 8));
+		}*/
+
+		//printf("Final result: %d vertices, %d UVs, %d normals\n", destination->mesh.usage, destination->UVs.usage, destination->normals.usage);
+		//system("PAUSE");	
 
 	}
 

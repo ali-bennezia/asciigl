@@ -18,7 +18,7 @@
 
 //macros config
 
-#define FPS 80
+#define FPS 60
 
 //macros & cross-platform include handling
 
