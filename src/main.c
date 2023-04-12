@@ -95,37 +95,22 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
-
-
     Texture* tex = load_texture("test2.bmp");
-
-    //system("PAUSE");
-
 
     Model mdl = gen_model();
 
     mdl.position.z = 20.0;
     mdl.position.x = 0.0;
-    mdl.scale.x = 1.0;
-    mdl.scale.y = 1.0;
-    mdl.scale.z = 1.0;
+    mdl.scale.x = 1;
+    mdl.scale.y = 1;
+    mdl.scale.z = 1;
     //mdl.texture = tex;
     
     mptr = &mdl;
 
 
 
-    load_model_obj_strategy("cube.obj", mptr);
-    //system("PAUSE");
-
-    /*for(size_t i = 0; i < mptr->mesh.usage; ++i)
-	printf("%f %f %f\n", *((float*)mptr->mesh.buffer + i*3),
-		*((float*)mptr->mesh.buffer + i*3 + 1),
-		*((float*)mptr->mesh.buffer + i*3 + 2));
-
-    printf("Mesh buffer usage: %d\n", mptr->mesh.usage);
-    printf("Loaded\n");
-    system("PAUSE");*/
+    load_model_obj_strategy("monkey.obj", mptr);
 
     init();
 

@@ -270,6 +270,8 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	}
 
+	destination->mesh.usage /= 3;
+
 	free_dynamic_array( &indices );
 
 	return 0;
