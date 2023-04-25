@@ -11,5 +11,6 @@ A command-line interface 3D ASCII renderer, written in C.
 - Dynamic lights (Point and spot lights)
 - Model textures
 - In-built .bmp textures and .obj models loading
+- Colors
 
 More features are planned, currently work in progress.
