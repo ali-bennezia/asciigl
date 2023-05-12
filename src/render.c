@@ -57,14 +57,8 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     float frustum_plane_y_half_boundary = frustum_plane_x_half_boundary * (float)(FRAME_HEIGHT_WIDTH_RATIO);
 
     if (clipSpace != NULL){
-        if (frustum_plane_x_half_boundary == 0.0 || frustum_plane_y_half_boundary == 0.0)
-        {
-            clipSpace->x = 0;
-            clipSpace->y = 0;
-        }else{
-            clipSpace->x = frustum_plane_x_difference/frustum_plane_x_half_boundary;
-            clipSpace->y = frustum_plane_y_difference/frustum_plane_y_half_boundary;
-        }
+	clipSpace->x = frustum_plane_x_half_boundary == 0 ? 0 : frustum_plane_x_difference/frustum_plane_x_half_boundary;
+	clipSpace->y = frustum_plane_y_half_boundary == 0 ? 0 : frustum_plane_y_difference/frustum_plane_y_half_boundary;
     }
 
     char outsideNearOrFarPlane = ( x < get_frustum_near_plane() || x > get_frustum_far_plane() ) ? 1 : 0;
@@ -87,10 +81,11 @@ Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
 
     double inToCameraDistance = vec3_magnitude( difference );
 
-    double inToCameraXZAngleRadians = atan2(difference.z, difference.x);
+    double inToCameraXZAngleRadians = difference.x != 0 ? atan2(difference.z, difference.x) : 0;
     double targetXZAngle = inToCameraXZAngleRadians - to_rads( get_player_rotation().y );
 
-    double inToCameraVerticalAngleRadians = atan2(difference.y, sqrt( difference.x*difference.x + difference.z*difference.z ));
+    double magnitudeXZ = sqrt( difference.x*difference.x + difference.z*difference.z );
+    double inToCameraVerticalAngleRadians = magnitudeXZ != 0 ? atan2(difference.y, magnitudeXZ) : 0;
     double targetVerticalAngle = inToCameraVerticalAngleRadians - to_rads( player_rotation.x );
 
     double horizontalWeight = cos(targetVerticalAngle);
@@ -106,8 +101,6 @@ Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
 Vec2 viewspace_coords_to_clipspace_coords(Vec3 in){
     Vec2 out;
     is_viewspace_position_in_frustum(in, &out);
-
-    //printf("viewspace: %f %f %f clipspace: %f %f\n",in.x, in.y, in.z, out.x, out.y);
 
     return out;
 }
@@ -151,9 +144,12 @@ Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scal
 
     float post_scale_radius = sqrt( scale_x * scale_x * cos_theta * cos_theta + scale_y * scale_y * sin_theta * sin_theta );
 
-    out.x = (scale_y * cos_theta * normal_magnitude)/post_scale_radius;
-    out.y = (scale_x * sin_theta * normal_magnitude)/post_scale_radius;
-
+    if (post_scale_radius != 0){
+    	out.x = (scale_y * cos_theta * normal_magnitude)/post_scale_radius;
+    	out.y = (scale_x * sin_theta * normal_magnitude)/post_scale_radius;
+    }else{
+	out.x = 0; out.y = 0;
+    }
     return out;
 }
 
@@ -249,26 +245,69 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
     IntVec2 nearest_screenspace;
 
     IntVec2* current_processed_segment_screenspace = &short1_screenspace;
+    IntVec2* current_processed_segment_point1_screenspace = &short1_point1_screenspace;
     Vec2* current_processed_segment_clipspace = short1_clipspace;
     Vec2* current_processed_segment_point1_clipspace = short1_point1_clipspace;
     
     char done_short1 = 0;
 
-    rasterize:
+    rasterize:;
 
-    if (current_processed_segment_screenspace->y != 0)
-        for (int y = min(0, current_processed_segment_screenspace->y); y <= max(0,current_processed_segment_screenspace->y); ++y){
-            float progression = (float)abs(y)/(float)(abs(current_processed_segment_screenspace->y));
+
+    if (current_processed_segment_screenspace->y != 0){
+	int vertical_rasterize = current_processed_segment_screenspace->y;
+	
+	int vertical_rasterize_point1_screenspace = current_processed_segment_point1_screenspace->y; 
+	int vertical_rasterize_point2_screenspace = current_processed_segment_point1_screenspace->y + current_processed_segment_screenspace->y; 
+
+	if ( (vertical_rasterize_point1_screenspace < 0 && vertical_rasterize_point2_screenspace < 0) ||
+		(vertical_rasterize_point1_screenspace > FRAME_HEIGHT && vertical_rasterize_point2_screenspace > FRAME_HEIGHT) )
+		goto pass;
+
+	int vertical_rasterize_point1_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point1_screenspace)); 
+	int vertical_rasterize_point2_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point2_screenspace));
+
+	int vertical_iteration_begin_val = min( vertical_rasterize_point1_screenspace, vertical_rasterize_point2_screenspace ); 
+	int vertical_iteration_end_val = max( vertical_rasterize_point1_screenspace, vertical_rasterize_point2_screenspace ); 
+
+	int vertical_iteration_begin_val_bounded = min( vertical_rasterize_point1_screenspace_bounded, vertical_rasterize_point2_screenspace_bounded ); 
+	int vertical_iteration_end_val_bounded = max( vertical_rasterize_point1_screenspace_bounded, vertical_rasterize_point2_screenspace_bounded ); 
+
+	int y_begin_offset = vertical_iteration_begin_val_bounded - vertical_iteration_begin_val;  //vertical_rasterize_point1_screenspace - current_processed_segment_point1_screenspace->y;
+	int y_end_offset = vertical_iteration_end_val - vertical_iteration_end_val_bounded; // (current_processed_segment_point1_screenspace->y + current_processed_segment_screenspace->y) - vertical_rasterize_point2_screnspace;
+
+        for (int y = min(0, vertical_rasterize) + y_begin_offset; y <= max(0, vertical_rasterize) - y_end_offset; ++y){
+            float progression = vertical_rasterize == 0 ? 1 : (float)abs(y)/(float)(abs(vertical_rasterize));
             Vec2 current_draw_clipspace 
-            = vec2_add(*current_processed_segment_point1_clipspace, vec2_multiplication( *current_processed_segment_clipspace, progression ));
+            	= vec2_add(*current_processed_segment_point1_clipspace, vec2_multiplication( *current_processed_segment_clipspace, progression ));
 
             float nearest_factor = (current_draw_clipspace.y-longest_point1_clipspace->y)/longest_clipspace->y;
             nearest_screenspace = clipspace_coords_to_screenspace_coords( vec2_add( *longest_point1_clipspace, vec2_multiplication(*longest_clipspace, nearest_factor) ) );
             IntVec2 current_draw_screenspace = clipspace_coords_to_screenspace_coords(current_draw_clipspace);
 
-            int horizontal_rasterize = nearest_screenspace.x - current_draw_screenspace.x;
+	    int horizontal_rasterize_point1_screenspace = current_draw_screenspace.x;
+	    int horizontal_rasterize_point2_screenspace = nearest_screenspace.x;
 
-            for (int x = min(0, horizontal_rasterize); x <= max(0, horizontal_rasterize); ++x){
+	    if ( (horizontal_rasterize_point1_screenspace < 0 && horizontal_rasterize_point2_screenspace < 0) ||
+		(horizontal_rasterize_point1_screenspace > FRAME_WIDTH && horizontal_rasterize_point2_screenspace > FRAME_WIDTH) )
+		goto pass;
+
+	    int horizontal_rasterize_point1_screenspace_bounded = min(FRAME_WIDTH, max(0, horizontal_rasterize_point1_screenspace));
+	    int horizontal_rasterize_point2_screenspace_bounded = min(FRAME_WIDTH, max(0, horizontal_rasterize_point2_screenspace));
+
+	    int horizontal_iteration_begin_val = min(horizontal_rasterize_point1_screenspace, horizontal_rasterize_point2_screenspace);
+	    int horizontal_iteration_end_val = max(horizontal_rasterize_point1_screenspace, horizontal_rasterize_point2_screenspace);
+
+	    int horizontal_iteration_begin_val_bounded = min(horizontal_rasterize_point1_screenspace_bounded, horizontal_rasterize_point2_screenspace_bounded);
+	    int horizontal_iteration_end_val_bounded = max(horizontal_rasterize_point1_screenspace_bounded, horizontal_rasterize_point2_screenspace_bounded);
+
+	    int x_begin_offset = horizontal_iteration_begin_val_bounded - horizontal_iteration_begin_val;
+	    int x_end_offset = horizontal_iteration_end_val - horizontal_iteration_end_val_bounded;
+
+            int horizontal_rasterize = horizontal_rasterize_point2_screenspace - horizontal_rasterize_point1_screenspace;
+
+	    
+            for (int x = min(0, horizontal_rasterize) + x_begin_offset; x <= max(0, horizontal_rasterize) - x_end_offset; ++x){
 
                 Vec2 draw_point_clipspace_float;
                 draw_point_clipspace_float.x = current_draw_clipspace.x + (float)x * 2.0/(float)FRAME_WIDTH;
@@ -280,20 +319,18 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
                 Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
                     vec3_add(   vec3_multiplication(b, coords.b_weight), 
                                 vec3_multiplication(c, coords.c_weight)));
+		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) continue;
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
                     vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
                                 vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight))) : normal;
 		Vec2 UV = UVs != NULL ? vec2_add( vec2_multiplication( *(Vec2*)UVs, coords.a_weight ),
 				vec2_add( vec2_multiplication( *((Vec2*)UVs + 1), coords.b_weight ), vec2_multiplication( *((Vec2*)UVs + 2), coords.c_weight ) )) : UV;
 
-               /* printf("%f %f %f t %f %f %f tt %f %f %f\n", (*(Vec3*)normals).x, (*(Vec3*)normals).y, (*(Vec3*)normals).z, 
-                (*((Vec3*)normals+1)).x, (*((Vec3*)normals+1)).y, (*((Vec3*)normals+1)).z,
-                (*((Vec3*)normals+2)).x, (*((Vec3*)normals+2)).y, (*((Vec3*)normals+2)).z ); */
+		IntVec2 frag_screenspace = { 	current_draw_screenspace.x + x,
+						clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y };
 
-                //                printf("x%fy%f%z%f\n", normal.x, normal.y, normal.z);
-
-                draw_fragment(current_draw_screenspace.x + x, 
-				clipspace_coords_to_screenspace_coords(*current_processed_segment_point1_clipspace).y + y, 
+                draw_fragment( 	frag_screenspace.x, 
+				frag_screenspace.y, 
 				depth,
 				viewspace_position, 
 				normals != NULL ? &normal : NULL,
@@ -303,11 +340,14 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
             }
 
         }
+    }
+	pass:;
 
     if (done_short1 == 0){
         done_short1 = 1;
 
         current_processed_segment_screenspace = &short2_screenspace;
+	current_processed_segment_point1_screenspace = &short2_point1_screenspace;
         current_processed_segment_clipspace = short2_clipspace;
         current_processed_segment_point1_clipspace = short2_point1_clipspace;
 

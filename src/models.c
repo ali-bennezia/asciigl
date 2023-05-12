@@ -23,8 +23,6 @@ int load_model_obj_strategy(const char* path, Model* destination)
 	FILE* file = fopen( path, "r" );
 	if (file == NULL) return 1;
 
-	printf("Loading model %s ...\n", path);
-
 	int detectedPrimitive = 0;
 	enum PRIMITIVE_TYPE primitiveType = TRIANGLE_PRIMITIVE;
 
@@ -99,8 +97,6 @@ int load_model_obj_strategy(const char* path, Model* destination)
 	}
 
 	fclose(file);
-
-	printf("%d vertices, %d UVs, %d normals, %d indices loaded.\n", vertices.usage, uvs.usage, normals.usage, indices.usage);
 
 	if ( destination->mesh.buffer != NULL ) free_dynamic_array( &destination->mesh );
 	if ( destination->normals.buffer != NULL ) free_dynamic_array( &destination->normals );
@@ -249,25 +245,6 @@ int load_model_obj_strategy(const char* path, Model* destination)
 		destination->mesh = tri_vertices;
 		destination->UVs = tri_UVs;
 		destination->normals = tri_normals;
-
-		/*for (size_t i = 0; i < destination->normals.usage/3; ++i){
-			printf("%f %f %f\n", 
-				*((float*)destination->normals.buffer + i*9),
-				*((float*)destination->normals.buffer + i*9 + 1),
-				*((float*)destination->normals.buffer + i*9 + 2));
-			printf("%f %f %f\n", 
-				*((float*)destination->normals.buffer + i*9 + 3),
-				*((float*)destination->normals.buffer + i*9 + 4),
-				*((float*)destination->normals.buffer + i*9 + 5));
-			printf("%f %f %f\n", 
-				*((float*)destination->normals.buffer + i*9 + 6),
-				*((float*)destination->normals.buffer + i*9 + 7),
-				*((float*)destination->normals.buffer + i*9 + 8));
-		}*/
-
-		//printf("Final result: %d vertices, %d UVs, %d normals\n", destination->mesh.usage, destination->UVs.usage, destination->normals.usage);
-		//system("PAUSE");	
-
 	}
 
 	destination->mesh.usage /= 3;

@@ -49,6 +49,8 @@ void clear_depth_buffer();
 void set_default_draw_color();
 void set_draw_color(unsigned short red, unsigned short green, unsigned short blue);
 RGB get_draw_color();
+void set_print_color(unsigned short red, unsigned short green, unsigned short blue);
+void set_default_print_color();
 
 float get_frustum_FOV();
 float get_frustum_near_plane();

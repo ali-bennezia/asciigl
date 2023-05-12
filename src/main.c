@@ -31,6 +31,8 @@ void render_frame(){
         clear_depth_buffer();
 
     clear_frame_buffer();
+    set_default_draw_color();
+
     //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
@@ -39,6 +41,7 @@ void render_frame(){
 
     //translate_player(0.05, 0, 0.05);
     //rotate_player(0, 10, 0);
+    rotate_player(0, -1, 0);
 
     draw_model(*mptr);
 
@@ -46,8 +49,11 @@ void render_frame(){
     char* frame_string = NULL;
     size_t frame_string_size = 0;
     process_draw_string( &frame_string, &frame_string_size );
-    printf("%s", frame_string);
+    printf( "%s", frame_string );
     free(frame_string);
+
+    set_default_print_color();
+    printf("y rotation: %f\n", get_player_rotation().y);
 }
 
 void routine(){
@@ -76,7 +82,7 @@ void init(){
     RGB white = {255, 255, 255};
     RGB red = {255, 0, 0};
 
-    add_ambient_light("Light", 10, white);
+    add_ambient_light("Light", 30, white);
 
     Vec3 normal;
     normal.x = -2.0; normal.y = 0.0; normal.z = 1;
@@ -86,7 +92,7 @@ void init(){
     //add_point_light("Some point light", 150, 10, pos, white);
 
     set_player_position(0,0,0);
-    set_player_rotation(0,0,0);
+    set_player_rotation(0,-60,0);
     
     clear_console();
 
@@ -110,7 +116,7 @@ int main(int argc, char* argv[]){
 
 
 
-    load_model_obj_strategy("monkey.obj", mptr);
+    load_model_obj_strategy("sphere.obj", mptr);
 
     init();
 

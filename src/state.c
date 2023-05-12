@@ -15,14 +15,16 @@
 #include "utils.h"
 #include "render.h"
 
+#include <stdio.h>
+
 //state
 
 char frame_buffer[TOTAL_FRAGMENTS_PER_FRAME+1];
 float depth_buffer[TOTAL_FRAGMENTS_PER_FRAME];
 RGB color_buffer[TOTAL_FRAGMENTS_PER_FRAME];
 
-Vec3 player_position;
-Vec3 player_rotation;
+Vec3 player_position = { 0, 0, 0 };
+Vec3 player_rotation = { 0, 0, 0 };
 
 Vec3 player_lookat, player_lookup;
 
@@ -195,6 +197,19 @@ void set_draw_color(unsigned short red, unsigned short green, unsigned short blu
 RGB get_draw_color()
 {
 	return drawcolor;
+}
+
+void set_print_color(unsigned short red, unsigned short green, unsigned short blue)
+{
+	char colprint[8];
+	colprint[7] = '\0';
+	strcpy( &colprint[0], get_ansi_console_color_code( red, green, blue ) );
+	printf("%s", &colprint[0]);
+}
+
+void set_default_print_color()
+{
+	set_print_color( 255, 255, 255 );
 }
 
 float get_frustum_FOV(){
