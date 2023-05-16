@@ -23,15 +23,10 @@
 int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
 
     //frustum center lign's locus
-    Vec3 p, f;
+    Vec3 p = {0, 0, 0}, f = {0, 0, 1};
 
-    p.x = 0;
-    p.y = 0;
-    p.z = 0;
-
-    f.x = 0;
-    f.y = 0;
-    f.z = 1;
+    //directions
+    Vec3 player_lookright = {1, 0, 0}, player_lookup = {0, 1, 0};
 
     //factor for nearest point calculation
     float x = -( ( 3.0*(p.x*f.x + p.y * f.y + p.z * f.z) - 2.0*( f.x * pos.x + f.y * pos.y + f.z * pos.z ))/(2.0*( f.x*f.x + f.y*f.y + f.z*f.z )) );
@@ -45,15 +40,15 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     difference.x = pos.x - nearest.x;
     difference.y = pos.y - nearest.y;
     difference.z = pos.z - nearest.z;
-    
-    Vec3 player_lookright = vec3_normalize( vec3_cross_product(get_player_lookup(), f) );
+   
+    //Vec3 player_lookright = vec3_normalize( vec3_cross_product(get_player_lookup(), f) );
 
     float frustum_plane_x_difference = vec3_division(difference, player_lookright);
-    float frustum_plane_y_difference = vec3_division(difference, get_player_lookup());
+    float frustum_plane_y_difference = vec3_division(difference, player_lookup);
 
     float r = tan( to_rads( get_frustum_FOV() / 2.0 ) );
 
-    float frustum_plane_x_half_boundary = r*x;
+    float frustum_plane_x_half_boundary = r*fabs( x );
     float frustum_plane_y_half_boundary = frustum_plane_x_half_boundary * (float)(FRAME_HEIGHT_WIDTH_RATIO);
 
     if (clipSpace != NULL){
@@ -61,8 +56,8 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
 	clipSpace->y = frustum_plane_y_half_boundary == 0 ? 0 : frustum_plane_y_difference/frustum_plane_y_half_boundary;
     }
 
-    char outsideNearOrFarPlane = ( x < get_frustum_near_plane() || x > get_frustum_far_plane() ) ? 1 : 0;
-    char outsideFrustumBoundaries = ( fabs(frustum_plane_x_difference) > fabs(frustum_plane_x_half_boundary) || 
+    int outsideNearOrFarPlane = ( x < get_frustum_near_plane() || x > get_frustum_far_plane() ) ? 1 : 0;
+    int outsideFrustumBoundaries = ( fabs(frustum_plane_x_difference) > fabs(frustum_plane_x_half_boundary) || 
     fabs(frustum_plane_y_difference) > fabs(frustum_plane_y_half_boundary)) ? 1 : 0;
 
     return (outsideNearOrFarPlane == 1 || outsideFrustumBoundaries == 1) ? 0 : 1;
@@ -81,8 +76,11 @@ Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
 
     double inToCameraDistance = vec3_magnitude( difference );
 
-    double inToCameraXZAngleRadians = difference.x != 0 ? atan2(difference.z, difference.x) : 0;
-    double targetXZAngle = inToCameraXZAngleRadians - to_rads( get_player_rotation().y );
+    double inToCameraXZAngleRadians = difference.z != 0 ? atan2(-difference.x, difference.z) : 0;
+    double targetXZAngle = inToCameraXZAngleRadians;
+    if (difference.z < 0)
+	targetXZAngle = M_PI - targetXZAngle;
+    targetXZAngle -= to_rads( get_player_rotation().y );
 
     double magnitudeXZ = sqrt( difference.x*difference.x + difference.z*difference.z );
     double inToCameraVerticalAngleRadians = magnitudeXZ != 0 ? atan2(difference.y, magnitudeXZ) : 0;
@@ -91,9 +89,9 @@ Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
     double horizontalWeight = cos(targetVerticalAngle);
     double verticalWeight = sin(targetVerticalAngle);
 
-    out.x = cos(targetXZAngle) * inToCameraDistance * horizontalWeight;
+    out.z = cos(targetXZAngle) * inToCameraDistance * horizontalWeight;
     out.y = verticalWeight * inToCameraDistance;
-    out.z = sin(targetXZAngle) * inToCameraDistance * horizontalWeight;
+    out.x = -sin(targetXZAngle) * inToCameraDistance * horizontalWeight;
 
     return out;
 }
@@ -315,11 +313,11 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
                 TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, draw_point_clipspace_float);
                 
                 //fragment data
-                float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
                 Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
                     vec3_add(   vec3_multiplication(b, coords.b_weight), 
                                 vec3_multiplication(c, coords.c_weight)));
 		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) continue;
+                float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
                     vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
                                 vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight))) : normal;

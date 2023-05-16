@@ -92,7 +92,7 @@ void init(){
     //add_point_light("Some point light", 150, 10, pos, white);
 
     set_player_position(0,0,0);
-    set_player_rotation(0,-60,0);
+    set_player_rotation(0,0,0);
     
     clear_console();
 
