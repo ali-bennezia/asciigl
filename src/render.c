@@ -31,15 +31,15 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     //factor for nearest point calculation
     float x = -( ( 3.0*(p.x*f.x + p.y * f.y + p.z * f.z) - 2.0*( f.x * pos.x + f.y * pos.y + f.z * pos.z ))/(2.0*( f.x*f.x + f.y*f.y + f.z*f.z )) );
 
-    Vec3 nearest;
-    nearest.x = p.x + f.x*x;
-    nearest.y = p.y + f.y*x;
-    nearest.z = p.z + f.z*x;
+    Vec3 nearest = { p.x + f.x*x, p.y + f.y*x, p.z + f.z*x };
+    //nearest.x = p.x + f.x*x;
+    //nearest.y = p.y + f.y*x;
+    //nearest.z = p.z + f.z*x;
 
-    Vec3 difference;
-    difference.x = pos.x - nearest.x;
-    difference.y = pos.y - nearest.y;
-    difference.z = pos.z - nearest.z;
+    Vec3 difference = { pos.x - nearest.x, pos.y - nearest.y, pos.z - nearest.z };
+    //difference.x = pos.x - nearest.x;
+    //difference.y = pos.y - nearest.y;
+    //difference.z = pos.z - nearest.z;
    
     //Vec3 player_lookright = vec3_normalize( vec3_cross_product(get_player_lookup(), f) );
 
@@ -247,7 +247,7 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
     Vec2* current_processed_segment_clipspace = short1_clipspace;
     Vec2* current_processed_segment_point1_clipspace = short1_point1_clipspace;
     
-    char done_short1 = 0;
+    int done_short1 = 0;
 
     rasterize:;
 
@@ -275,7 +275,7 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	int y_end_offset = vertical_iteration_end_val - vertical_iteration_end_val_bounded; // (current_processed_segment_point1_screenspace->y + current_processed_segment_screenspace->y) - vertical_rasterize_point2_screnspace;
 
         for (int y = min(0, vertical_rasterize) + y_begin_offset; y <= max(0, vertical_rasterize) - y_end_offset; ++y){
-            float progression = vertical_rasterize == 0 ? 1 : (float)abs(y)/(float)(abs(vertical_rasterize));
+            float progression = (float)abs(y)/(float)(abs(vertical_rasterize));
             Vec2 current_draw_clipspace 
             	= vec2_add(*current_processed_segment_point1_clipspace, vec2_multiplication( *current_processed_segment_clipspace, progression ));
 
@@ -316,7 +316,9 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
                 Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
                     vec3_add(   vec3_multiplication(b, coords.b_weight), 
                                 vec3_multiplication(c, coords.c_weight)));
-		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) continue;
+		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) 
+			continue;
+
                 float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
                     vec3_add(   vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 

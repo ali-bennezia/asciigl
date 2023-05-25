@@ -111,6 +111,12 @@ float to_degs(float rads){
     return rads / M_PI * 180.0;
 }
 
+float clamp(float f, float min, float max)
+{
+    const float t = f < min ? min : f;
+    return t > max ? max : t;
+}
+
 float vec2_magnitude(Vec2 vec){
     return sqrt( vec.x * vec.x + vec.y * vec.y );
 }
@@ -353,25 +359,25 @@ TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, V
     float pb = vec2_magnitude( vec2_difference(p, b) );
     float pc = vec2_magnitude( vec2_difference(p, c) );
 
-    float beta = bc == 0 || ab == 0 ? 0 : acos( (ac*ac-bc*bc-ab*ab)/(-2.0*bc*ab) );
-    float gamma_prime = pc == 0 || bc == 0 ? 0 : acos( (pb*pb-pc*pc-bc*bc)/(-2.0*pc*bc) );
+    float beta = (bc == 0 || ab == 0) ? 0 : acos( clamp( (ac*ac-bc*bc-ab*ab)/(-2.0*bc*ab), -1, 1) );
+    float gamma_prime = (pc == 0 || bc == 0) ? 0 : acos( clamp( (pb*pb-pc*pc-bc*bc)/(-2.0*pc*bc), -1, 1) );
     float alpha_prime = M_PI - beta - gamma_prime;
 
     float alpha_prime_sin = sin(alpha_prime);
 
-    float double_crad_ibc = alpha_prime_sin == 0 ? 0 : bc/alpha_prime_sin;
+    float double_crad_ibc = alpha_prime_sin == 0 ? 0 : (bc/alpha_prime_sin);
     float ib = double_crad_ibc*sin(gamma_prime);
     float ic = double_crad_ibc*sin(beta);
 
-    float ab_weight = ic == 0 ? 0 : pc/ic;
+    float ab_weight = ic == 0 ? 0 : (pc/ic);
 
-    out.a_weight =  ab == 0 ? 0 : ib/ab;
+    out.a_weight =  ab == 0 ? 0 : (ib/ab);
     out.b_weight = 1.0 - out.a_weight;
     out.c_weight = 1.0 - ab_weight;
 
     out.a_weight *= ab_weight;
     out.b_weight *= ab_weight;
-    
+
     return out;
 }
 

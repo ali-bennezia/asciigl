@@ -130,6 +130,7 @@ enum LIGHT_TYPE{
 float floatmod(float a, float b);
 float to_rads(float degrees);
 float to_degs(float rads);
+float clamp(float f, float min, float max);
 
 float vec2_magnitude(Vec2 vec);
 float vec2_dot_product(Vec2 a, Vec2 b);

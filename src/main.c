@@ -116,7 +116,7 @@ int main(int argc, char* argv[]){
 
 
 
-    load_model_obj_strategy("sphere.obj", mptr);
+    load_model_obj_strategy("cube.obj", mptr);
 
     init();
 
