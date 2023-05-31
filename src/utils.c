@@ -211,9 +211,7 @@ Vec3 vec3_normalize(Vec3 vec){
     float magnitude = vec3_magnitude(vec);
     if (magnitude == 0)
     {
-        vec.x = 0;
-        vec.y = 0;
-        vec.z = 0;
+        //vec = { 0, 0, 0 };
         return vec;
     }else{
         vec.x /= magnitude;
@@ -227,7 +225,7 @@ float vec3_division(Vec3 dividand, Vec3 divider){
     Vec3 normalized_dividand = vec3_normalize(dividand), normalized_divider = vec3_normalize(divider);
     float parallelity = vec3_dot_product(normalized_dividand, normalized_divider);
     float divider_magnitude = vec3_magnitude(divider);
-    if (parallelity == 0 || divider_magnitude == 0)
+    if (divider_magnitude == 0)
         return 0;
 
     return vec3_magnitude(dividand) * parallelity / divider_magnitude;
@@ -235,10 +233,11 @@ float vec3_division(Vec3 dividand, Vec3 divider){
 
 Vec3 vec3_multiplication(Vec3 vec, float scalar)
 {
-    Vec3 out;
-    out.x = vec.x * scalar;
-    out.y = vec.y * scalar;
-    out.z = vec.z * scalar;
+    Vec3 out = { 
+	vec.x * scalar,
+	vec.y * scalar,
+	vec.z * scalar 
+    };
     return out;
 }
 

@@ -32,16 +32,7 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     float x = -( ( 3.0*(p.x*f.x + p.y * f.y + p.z * f.z) - 2.0*( f.x * pos.x + f.y * pos.y + f.z * pos.z ))/(2.0*( f.x*f.x + f.y*f.y + f.z*f.z )) );
 
     Vec3 nearest = { p.x + f.x*x, p.y + f.y*x, p.z + f.z*x };
-    //nearest.x = p.x + f.x*x;
-    //nearest.y = p.y + f.y*x;
-    //nearest.z = p.z + f.z*x;
-
     Vec3 difference = { pos.x - nearest.x, pos.y - nearest.y, pos.z - nearest.z };
-    //difference.x = pos.x - nearest.x;
-    //difference.y = pos.y - nearest.y;
-    //difference.z = pos.z - nearest.z;
-   
-    //Vec3 player_lookright = vec3_normalize( vec3_cross_product(get_player_lookup(), f) );
 
     float frustum_plane_x_difference = vec3_division(difference, player_lookright);
     float frustum_plane_y_difference = vec3_division(difference, player_lookup);
@@ -52,8 +43,8 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     float frustum_plane_y_half_boundary = frustum_plane_x_half_boundary * (float)(FRAME_HEIGHT_WIDTH_RATIO);
 
     if (clipSpace != NULL){
-	clipSpace->x = frustum_plane_x_half_boundary == 0 ? 0 : frustum_plane_x_difference/frustum_plane_x_half_boundary;
-	clipSpace->y = frustum_plane_y_half_boundary == 0 ? 0 : frustum_plane_y_difference/frustum_plane_y_half_boundary;
+	clipSpace->x = frustum_plane_x_half_boundary == 0 ? 0 : (frustum_plane_x_difference/frustum_plane_x_half_boundary);
+	clipSpace->y = frustum_plane_y_half_boundary == 0 ? 0 : (frustum_plane_y_difference/frustum_plane_y_half_boundary);
     }
 
     int outsideNearOrFarPlane = ( x < get_frustum_near_plane() || x > get_frustum_far_plane() ) ? 1 : 0;
@@ -66,13 +57,12 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
 Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
     Vec3 out;
 
-    Vec3 difference;
-
     Vec3 player_position = get_player_position(), player_rotation = get_player_rotation();
-
-    difference.x = in.x - player_position.x;
-    difference.y = in.y - player_position.y;
-    difference.z = in.z - player_position.z;
+    Vec3 difference = {
+    	in.x - player_position.x,
+    	in.y - player_position.y,
+    	in.z - player_position.z
+    };
 
     double inToCameraDistance = vec3_magnitude( difference );
 
@@ -137,8 +127,8 @@ Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scal
         return out;
     }
 
-    float sin_theta = normal_y/normal_magnitude;
-    float cos_theta = normal_x/normal_magnitude;
+    float sin_theta = normal_magnitude == 0 ? 0 : (normal_y/normal_magnitude);
+    float cos_theta = normal_magnitude == 0 ? 0 : (normal_x/normal_magnitude);
 
     float post_scale_radius = sqrt( scale_x * scale_x * cos_theta * cos_theta + scale_y * scale_y * sin_theta * sin_theta );
 
@@ -249,8 +239,9 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
     
     int done_short1 = 0;
 
-    rasterize:;
+    //if ( get_player_rotation().y <= -270 ) printf("A\n");
 
+    rasterize:;
 
     if (current_processed_segment_screenspace->y != 0){
 	int vertical_rasterize = current_processed_segment_screenspace->y;
@@ -261,6 +252,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	if ( (vertical_rasterize_point1_screenspace < 0 && vertical_rasterize_point2_screenspace < 0) ||
 		(vertical_rasterize_point1_screenspace > FRAME_HEIGHT && vertical_rasterize_point2_screenspace > FRAME_HEIGHT) )
 		goto pass;
+
+    	//if ( get_player_rotation().y < -267 ) printf("B\n");
 
 	int vertical_rasterize_point1_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point1_screenspace)); 
 	int vertical_rasterize_point2_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point2_screenspace));
@@ -274,6 +267,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	int y_begin_offset = vertical_iteration_begin_val_bounded - vertical_iteration_begin_val;  //vertical_rasterize_point1_screenspace - current_processed_segment_point1_screenspace->y;
 	int y_end_offset = vertical_iteration_end_val - vertical_iteration_end_val_bounded; // (current_processed_segment_point1_screenspace->y + current_processed_segment_screenspace->y) - vertical_rasterize_point2_screnspace;
 
+ 	//if ( get_player_rotation().y < -267 ) printf("C\n");
+
         for (int y = min(0, vertical_rasterize) + y_begin_offset; y <= max(0, vertical_rasterize) - y_end_offset; ++y){
             float progression = (float)abs(y)/(float)(abs(vertical_rasterize));
             Vec2 current_draw_clipspace 
@@ -285,6 +280,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 
 	    int horizontal_rasterize_point1_screenspace = current_draw_screenspace.x;
 	    int horizontal_rasterize_point2_screenspace = nearest_screenspace.x;
+
+	    //if ( get_player_rotation().y <= -270 ) printf("D\n");
 
 	    if ( (horizontal_rasterize_point1_screenspace < 0 && horizontal_rasterize_point2_screenspace < 0) ||
 		(horizontal_rasterize_point1_screenspace > FRAME_WIDTH && horizontal_rasterize_point2_screenspace > FRAME_WIDTH) )
@@ -302,22 +299,30 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	    int x_begin_offset = horizontal_iteration_begin_val_bounded - horizontal_iteration_begin_val;
 	    int x_end_offset = horizontal_iteration_end_val - horizontal_iteration_end_val_bounded;
 
+    	    //if ( get_player_rotation().y <= -270 ) printf("E\n");
+
             int horizontal_rasterize = horizontal_rasterize_point2_screenspace - horizontal_rasterize_point1_screenspace;
 
+	    int x_begin = max(0, min(0, horizontal_rasterize) + x_begin_offset);
+	    int x_end = min(FRAME_WIDTH, max(0, horizontal_rasterize) - x_end_offset);
 	    
-            for (int x = min(0, horizontal_rasterize) + x_begin_offset; x <= max(0, horizontal_rasterize) - x_end_offset; ++x){
+            for (int x = x_begin; x <= x_end; ++x){
 
                 Vec2 draw_point_clipspace_float;
                 draw_point_clipspace_float.x = current_draw_clipspace.x + (float)x * 2.0/(float)FRAME_WIDTH;
                 draw_point_clipspace_float.y = current_draw_clipspace.y;
                 TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, draw_point_clipspace_float);
                 
+    		//if ( get_player_rotation().y == -270 ) printf("x %d\n", x);
+
                 //fragment data
                 Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
                     vec3_add(   vec3_multiplication(b, coords.b_weight), 
                                 vec3_multiplication(c, coords.c_weight)));
 		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) 
 			continue;
+
+    		//if ( get_player_rotation().y <= -270 ) printf("H\n");
 
                 float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
@@ -338,6 +343,8 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 				tex,
 				mdl );
             }
+
+    	    //if ( get_player_rotation().y <= -270 ) printf("I\n");
 
         }
     }
@@ -395,7 +402,6 @@ void draw_model(Model model){
         Vec3 a_viewspace = worldspace_coords_to_viewspace_coords(a_worldspace);
         Vec3 b_viewspace = worldspace_coords_to_viewspace_coords(b_worldspace);
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
-
         
         rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
     }

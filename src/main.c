@@ -43,6 +43,7 @@ void render_frame(){
     //rotate_player(0, 10, 0);
     rotate_player(0, -1, 0);
 
+
     draw_model(*mptr);
 
     //printf("%s", get_frame_buffer());
@@ -84,11 +85,9 @@ void init(){
 
     add_ambient_light("Light", 30, white);
 
-    Vec3 normal;
-    normal.x = -2.0; normal.y = 0.0; normal.z = 1;
+    Vec3 normal = {-2, 0, 1};
     add_directional_light("Some light", 100, vec3_normalize(normal), white);
-    Vec3 pos;
-    pos.x = 1; pos.y = 0; pos.z = 2;
+    Vec3 pos = {1, 0, 2};
     //add_point_light("Some point light", 150, 10, pos, white);
 
     set_player_position(0,0,0);
@@ -107,16 +106,14 @@ int main(int argc, char* argv[]){
 
     mdl.position.z = 20.0;
     mdl.position.x = 0.0;
-    mdl.scale.x = 1;
-    mdl.scale.y = 1;
-    mdl.scale.z = 1;
+
+    Vec3 unit_scale = { 1, 1, 1 };
+    mdl.scale = unit_scale;
     //mdl.texture = tex;
     
     mptr = &mdl;
 
-
-
-    load_model_obj_strategy("cube.obj", mptr);
+    load_model_obj_strategy("sphere.obj", mptr);
 
     init();
 
