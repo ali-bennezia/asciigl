@@ -36,12 +36,12 @@ void render_frame(){
     //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
-    (&(mptr->rotation))->x += 4.0;
-    (&(mptr->rotation))->z += 4.0;
+    //(&(mptr->rotation))->x += 4.0;
+    //(&(mptr->rotation))->z += 4.0;
 
     //translate_player(0.05, 0, 0.05);
     //rotate_player(0, 10, 0);
-    rotate_player(0, -1, 0);
+    //rotate_player(0, -1, 0);
 
 
     draw_model(*mptr);
@@ -54,7 +54,6 @@ void render_frame(){
     free(frame_string);
 
     set_default_print_color();
-    printf("y rotation: %f\n", get_player_rotation().y);
 }
 
 void routine(){
@@ -113,7 +112,7 @@ int main(int argc, char* argv[]){
     
     mptr = &mdl;
 
-    load_model_obj_strategy("sphere.obj", mptr);
+    load_model_obj_strategy("cube.obj", mptr);
 
     init();
 

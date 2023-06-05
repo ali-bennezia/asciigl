@@ -162,6 +162,56 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
     return normal;
 }
 
+void rasterize_and_draw_primitive_v2(
+	Vec3 a_viewpsace,
+	Vec3 b_viewspace,
+	Vec3 c_viewspace,
+
+	Vec3* normals,
+	Vec2* UVs,
+	Texture* tex,
+	Model* mdl
+){
+
+	Vec2 a_clipspace = viewspace_coords_to_clipspace_coords( a_viewspace ),
+		b_clipspace = viewspace_coords_to_clipspace_coords( b_viewspace ),
+		c_clipspace = viewspace_coords_to_clipspace_coords( c_viewspace );
+
+	Vec2 ab_clipspace = vec2_difference( b_clipspace, a_clipspace ),
+		bc_clipspace = vec2_difference( c_clipspace, b_clipspace ),
+		ca_clipspace = vec2_difference ( a_clipspace, c_clipspace );
+
+	float ab_clipspace_length = vec2_magnitude( ab_clipspace ),
+		bc_clipspace_length = vec2_magnitude( bc_clipspace ),
+		ca_clipspace_length = vec2_magnitude( ca_clipspace );
+
+	if ( ab_clipspace_length == 0 || bc_clipspace_length == 0 || ca_clipspace_length == 0 )
+		return;
+
+	float a_depth = vec3_magnitude( a_viewspace ),
+		b_depth = vec3_magnitude( b_viewspace ),
+		c_depth = vec3_magnitude( c_viewspace );
+
+	/*Vec2 a_screenspace = vec2_int_to_float( clipspace_to_screenspace( a_clipspace ) ),
+		b_screenspace = vec2_int_to_float( clipspace_to_screenspace( b_clipspace ) ),
+		c_screenspace = vec2_int_to_float( clipspace_to_screenspace( c_clipspace ) );*/
+
+	float ab_clipspace_vertical_span = fabs( ab_clipspace.y ),
+		bc_clipspace_vertical_span = fabs( bc_clipspace.y ),
+		ca_clipspace_vertical_span = fabs( ca_clipspace.y );
+
+	Vec2* longest_vspan_segment_clipspace = NULL, *longest_vspan_segment_point1_clipspace = NULL;
+
+	if ( ab_clipspace_vertical_span >= bc_clipspace_vertical_span && ab_clipspace_vertical_span >= ca_clipspace_vertical_span ){
+		
+	}else if ( bc_clipspace_vertical_span >= ab_clipspace_vertical_span && bc_clipspace_vertical_span >=  ca_clipspace_vertical_span ){
+
+	}else{
+
+	}
+
+}
+
 //three viewspace positions describing a triangle primitive
 void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* UVs, Texture* tex, Model* mdl){
 
@@ -239,8 +289,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
     
     int done_short1 = 0;
 
-    //if ( get_player_rotation().y <= -270 ) printf("A\n");
-
     rasterize:;
 
     if (current_processed_segment_screenspace->y != 0){
@@ -252,8 +300,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	if ( (vertical_rasterize_point1_screenspace < 0 && vertical_rasterize_point2_screenspace < 0) ||
 		(vertical_rasterize_point1_screenspace > FRAME_HEIGHT && vertical_rasterize_point2_screenspace > FRAME_HEIGHT) )
 		goto pass;
-
-    	//if ( get_player_rotation().y < -267 ) printf("B\n");
 
 	int vertical_rasterize_point1_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point1_screenspace)); 
 	int vertical_rasterize_point2_screenspace_bounded = min(FRAME_HEIGHT, max(0, vertical_rasterize_point2_screenspace));
@@ -267,8 +313,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	int y_begin_offset = vertical_iteration_begin_val_bounded - vertical_iteration_begin_val;  //vertical_rasterize_point1_screenspace - current_processed_segment_point1_screenspace->y;
 	int y_end_offset = vertical_iteration_end_val - vertical_iteration_end_val_bounded; // (current_processed_segment_point1_screenspace->y + current_processed_segment_screenspace->y) - vertical_rasterize_point2_screnspace;
 
- 	//if ( get_player_rotation().y < -267 ) printf("C\n");
-
         for (int y = min(0, vertical_rasterize) + y_begin_offset; y <= max(0, vertical_rasterize) - y_end_offset; ++y){
             float progression = (float)abs(y)/(float)(abs(vertical_rasterize));
             Vec2 current_draw_clipspace 
@@ -280,8 +324,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 
 	    int horizontal_rasterize_point1_screenspace = current_draw_screenspace.x;
 	    int horizontal_rasterize_point2_screenspace = nearest_screenspace.x;
-
-	    //if ( get_player_rotation().y <= -270 ) printf("D\n");
 
 	    if ( (horizontal_rasterize_point1_screenspace < 0 && horizontal_rasterize_point2_screenspace < 0) ||
 		(horizontal_rasterize_point1_screenspace > FRAME_WIDTH && horizontal_rasterize_point2_screenspace > FRAME_WIDTH) )
@@ -299,8 +341,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 	    int x_begin_offset = horizontal_iteration_begin_val_bounded - horizontal_iteration_begin_val;
 	    int x_end_offset = horizontal_iteration_end_val - horizontal_iteration_end_val_bounded;
 
-    	    //if ( get_player_rotation().y <= -270 ) printf("E\n");
-
             int horizontal_rasterize = horizontal_rasterize_point2_screenspace - horizontal_rasterize_point1_screenspace;
 
 	    int x_begin = max(0, min(0, horizontal_rasterize) + x_begin_offset);
@@ -313,16 +353,12 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
                 draw_point_clipspace_float.y = current_draw_clipspace.y;
                 TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, draw_point_clipspace_float);
                 
-    		//if ( get_player_rotation().y == -270 ) printf("x %d\n", x);
-
                 //fragment data
                 Vec3 viewspace_position = vec3_add( vec3_multiplication(a, coords.a_weight), 
                     vec3_add(   vec3_multiplication(b, coords.b_weight), 
                                 vec3_multiplication(c, coords.c_weight)));
 		if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) 
 			continue;
-
-    		//if ( get_player_rotation().y <= -270 ) printf("H\n");
 
                 float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
                 Vec3 normal = normals != NULL ? vec3_add( vec3_multiplication(*(Vec3*)normals, coords.a_weight), 
@@ -343,8 +379,6 @@ void rasterize_and_draw_primitive(Vec3 a, Vec3 b, Vec3 c, Vec3* normals, Vec2* U
 				tex,
 				mdl );
             }
-
-    	    //if ( get_player_rotation().y <= -270 ) printf("I\n");
 
         }
     }
