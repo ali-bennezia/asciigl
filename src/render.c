@@ -162,8 +162,47 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
     return normal;
 }
 
+void rasterize_segment(
+	Vec2* longest_segment_clipspace,
+	Vec2* longest_segment_point1_clipspace,
+
+	Vec2* shorter_segment_clipspace,
+	Vec2* shorter_segment_point1_clipspace
+){
+	
+	float x_start_point_clipspace = (*shorter_segment_point1_clipspace).x, x_end_point_clipspace = (*shorter_segment_point1_clipspace).x + (*shorter_segment_clipspace).x;
+	float y_start_point_clipspace = (*shorter_segment_point1_clipspace).y, y_end_point_clipspace = (*shorter_segment_point1_clipspace).y + (*shorter_segment_clipspace).y;
+
+	Vec2 draw_direction = vec2_normalize( *shorter_segment_clipspace );
+	float shorter_segment_length = vec2_magnitude( *shorter_segment_clipspace );
+	
+	float x_start_offset = 0, x_end_offset = 0, y_start_offset = 0, y_end_offset = 0,
+		x_start_quotient = 0, y_start_quotient = 0,
+		x_end_quotient = 0, y_end_quotient = 0;
+	
+	if ( fabs( x_start_point_clipspace ) > 1 ){
+		x_start_offset = ( x_start_point_clipspace < 0 ? -1 : 1 ) - x_start_point_clipspace;
+		x_start_quotient = x_start_offset / draw_direction.x;
+	}
+
+	if ( fabs( y_start_point_clipspace ) > 1 ){
+		y_start_offset = ( y_start_point_clipspace < 0 ? -1 : 1 ) - y_start_point_clipspace;
+		y_start_quotient = y_start_offset / draw_direction.y;
+	}
+
+	float start_offset_largest_quotient = fmax( x_start_quotient, y_start_quotient );
+
+	if ( start_offset_largest_quotient < 0 || start_offset_largest_quotient > shorter_segment_length )
+		return;
+
+	Vec2 start_offset_vector_clipspace = vec2_multiplication( draw_direction, start_offset_largest_quotient );
+	x_start_point_clipspace += start_offset_vector_clipspace.x;	
+	y_start_point_clipspace += start_offset_vector_clipspace.y;
+
+}
+
 void rasterize_and_draw_primitive_v2(
-	Vec3 a_viewpsace,
+	Vec3 a_viewspace,
 	Vec3 b_viewspace,
 	Vec3 c_viewspace,
 
@@ -179,7 +218,7 @@ void rasterize_and_draw_primitive_v2(
 
 	Vec2 ab_clipspace = vec2_difference( b_clipspace, a_clipspace ),
 		bc_clipspace = vec2_difference( c_clipspace, b_clipspace ),
-		ca_clipspace = vec2_difference ( a_clipspace, c_clipspace );
+		ca_clipspace = vec2_difference( a_clipspace, c_clipspace );
 
 	float ab_clipspace_length = vec2_magnitude( ab_clipspace ),
 		bc_clipspace_length = vec2_magnitude( bc_clipspace ),
@@ -200,15 +239,35 @@ void rasterize_and_draw_primitive_v2(
 		bc_clipspace_vertical_span = fabs( bc_clipspace.y ),
 		ca_clipspace_vertical_span = fabs( ca_clipspace.y );
 
-	Vec2* longest_vspan_segment_clipspace = NULL, *longest_vspan_segment_point1_clipspace = NULL;
+	Vec2* longest_segment_clipspace = NULL, *longest_segment_point1_clipspace = NULL,
+		*short1_segment_clipspace = NULL, *short1_segment_point1_clipspace = NULL,	
+		*short2_segment_clipspace = NULL, *short2_segment_point1_clipspace = NULL;
 
 	if ( ab_clipspace_vertical_span >= bc_clipspace_vertical_span && ab_clipspace_vertical_span >= ca_clipspace_vertical_span ){
-		
+
+		longest_segment_clipspace = &ab_clipspace; longest_segment_point1_clipspace = &a_clipspace;
+
+		short1_segment_clipspace = &bc_clipspace; short1_segment_point1_clipspace = &b_clipspace;
+		short2_segment_clipspace = &ca_clipspace; short2_segment_point1_clipspace = &c_clipspace;
+
 	}else if ( bc_clipspace_vertical_span >= ab_clipspace_vertical_span && bc_clipspace_vertical_span >=  ca_clipspace_vertical_span ){
+
+		longest_segment_clipspace = &bc_clipspace; longest_segment_point1_clipspace = &b_clipspace;
+
+		short1_segment_clipspace = &ab_clipspace; short1_segment_point1_clipspace = &a_clipspace;
+		short2_segment_clipspace = &ca_clipspace; short2_segment_point1_clipspace = &c_clipspace;
 
 	}else{
 
+		longest_segment_clipspace = &ca_clipspace; longest_segment_point1_clipspace = &c_clipspace;
+
+		short1_segment_clipspace = &ab_clipspace; short1_segment_point1_clipspace = &a_clipspace;
+		short2_segment_clipspace = &bc_clipspace; short2_segment_point1_clipspace = &b_clipspace;
+
 	}
+
+	
+
 
 }
 
