@@ -127,6 +127,16 @@ enum LIGHT_TYPE{
     LIGHT_TYPE_POINT
 };
 
+// Defines a segment in 2D floating-point coordinates
+typedef struct Segment {
+    Vec2 start, end;
+} Segment;
+
+// Defines a region in 2D floating-point coordinates
+typedef struct Region {
+    Vec2 start, end;
+} Region;
+
 float floatmod(float a, float b);
 float to_rads(float degrees);
 float to_degs(float rads);
@@ -153,6 +163,9 @@ Vec3 vec3_mirror(Vec3 vec);
 Vec3 vec3_add(Vec3 a, Vec3 b);
 Vec3 vec3_difference(Vec3 a, Vec3 b);
 Vec3 vec3_scale(Vec3 vec, Vec3 scale);
+
+int is_segment_within_vertical_range( Segment segment, float limit_1, float limit_2 );
+int clamp_segment_within_region( Segment* out, Segment segment, Region region );
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);

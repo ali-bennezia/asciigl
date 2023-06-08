@@ -163,15 +163,12 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
 }
 
 void rasterize_segment(
-	Vec2* longest_segment_clipspace,
-	Vec2* longest_segment_point1_clipspace,
-
-	Vec2* shorter_segment_clipspace,
-	Vec2* shorter_segment_point1_clipspace
+	Segment longer_segment,
+	Segment shorter_segment
 ){
 	
-	float x_start_point_clipspace = (*shorter_segment_point1_clipspace).x, x_end_point_clipspace = (*shorter_segment_point1_clipspace).x + (*shorter_segment_clipspace).x;
-	float y_start_point_clipspace = (*shorter_segment_point1_clipspace).y, y_end_point_clipspace = (*shorter_segment_point1_clipspace).y + (*shorter_segment_clipspace).y;
+	float x_start_point_clipspace = shorter_segment.start.x, x_end_point_clipspace = shorter_segment.end.x;
+	float y_start_point_clipspace = shorter_segment.start.y, y_end_point_clipspace = shorter_segment.end.y;
 
 	Vec2 draw_direction = vec2_normalize( *shorter_segment_clipspace );
 	float shorter_segment_length = vec2_magnitude( *shorter_segment_clipspace );

@@ -272,6 +272,42 @@ Vec3 vec3_scale(Vec3 vec, Vec3 scale){
     return vec;
 }
 
+int is_segment_within_vertical_range( Segment segment, float limit_1, float limit_2 )
+{
+   float lower = fmin( limit_1, limit_2 ), higher = fmax( limit_1, limit_2 );
+   
+   if ( (segment.start.y > higher && segment.end.y > higher) || (segment.start.y < lower && segment.end.y < lower) )
+	return 0; else return 1;
+}
+
+int clamp_segment_within_region( Segment* out, Segment segment, Region region )
+{
+   float region_vertical_upper_boundary = fmax( segment.start.y, segment.end.y ), region_vertical_lower_boundary = fmin( segment.start.y, segment.end.y ),
+	region_horizontal_upper_boundary = fmax( segment.start.x, segment.end.x ), region_horizontal_lower_boundary = fmin( segment.start.x, segment.end.x );
+
+   Vec2 segment_dir = vec2_normalize( vec2_difference( segment.end, segment.start ) );
+
+   if ( vec2_magntiude( segment_dir.y ) == 0 ){
+	*out = segment;
+	return 1;
+   }
+
+   float start_add_vertical_quotient = 0;
+
+   if ( segment.start.y > region_vertical_upper_boundary ){
+	float vertical_difference = region_vertical_upper_boundary - segment.start.y;
+	start_add_vertical_quotient = vertical_difference / segment_dir.y
+   } 
+
+   if ( segment.start.y < region_vertical_lower_boundary ){
+	float vertical_difference = region_vertical_lower_boundary - segment.start.y;
+	start_add_vertical_quotient = vertical_difference / segment_dir.y
+   } 
+
+
+
+}
+
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 
     float x_rads = to_rads(rotation.x), y_rads = to_rads(rotation.y), z_rads = to_rads(rotation.z);

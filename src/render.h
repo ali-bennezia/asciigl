@@ -28,11 +28,8 @@ Vec2 scale_normal_axis(float normal_x, float normal_y, float scale_x, float scal
 Vec3 scale_normal(Vec3 normal, Vec3 scale);
 
 void rasterize_segment(
-	Vec2* longest_segment_clipspace,
-	Vec2* longest_segment_point1_clipspace,
-
-	Vec2* shorter_segment_clipspace,
-	Vec2* shorter_segment_point1_clipspace
+	Segment longer_segment,
+	Segment shorter_segment,
 );
 void rasterize_and_draw_primitive_v2(
 	Vec3 a_viewpsace,
