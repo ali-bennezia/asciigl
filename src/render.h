@@ -29,7 +29,7 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale);
 
 void rasterize_segment(
 	Segment longer_segment,
-	Segment shorter_segment,
+	Segment shorter_segment
 );
 void rasterize_and_draw_primitive_v2(
 	Vec3 a_viewpsace,

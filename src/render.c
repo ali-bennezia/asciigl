@@ -166,35 +166,21 @@ void rasterize_segment(
 	Segment longer_segment,
 	Segment shorter_segment
 ){
-	
-	float x_start_point_clipspace = shorter_segment.start.x, x_end_point_clipspace = shorter_segment.end.x;
-	float y_start_point_clipspace = shorter_segment.start.y, y_end_point_clipspace = shorter_segment.end.y;
-
-	Vec2 draw_direction = vec2_normalize( *shorter_segment_clipspace );
-	float shorter_segment_length = vec2_magnitude( *shorter_segment_clipspace );
-	
-	float x_start_offset = 0, x_end_offset = 0, y_start_offset = 0, y_end_offset = 0,
-		x_start_quotient = 0, y_start_quotient = 0,
-		x_end_quotient = 0, y_end_quotient = 0;
-	
-	if ( fabs( x_start_point_clipspace ) > 1 ){
-		x_start_offset = ( x_start_point_clipspace < 0 ? -1 : 1 ) - x_start_point_clipspace;
-		x_start_quotient = x_start_offset / draw_direction.x;
-	}
-
-	if ( fabs( y_start_point_clipspace ) > 1 ){
-		y_start_offset = ( y_start_point_clipspace < 0 ? -1 : 1 ) - y_start_point_clipspace;
-		y_start_quotient = y_start_offset / draw_direction.y;
-	}
-
-	float start_offset_largest_quotient = fmax( x_start_quotient, y_start_quotient );
-
-	if ( start_offset_largest_quotient < 0 || start_offset_largest_quotient > shorter_segment_length )
+	if ( !( is_segment_within_vertical_range( longer_segment, -1, 1 ) ) || !( is_segment_within_vertical_range( shorter_segment, -1, 1 ) ) )
 		return;
 
-	Vec2 start_offset_vector_clipspace = vec2_multiplication( draw_direction, start_offset_largest_quotient );
-	x_start_point_clipspace += start_offset_vector_clipspace.x;	
-	y_start_point_clipspace += start_offset_vector_clipspace.y;
+	// Clamp within screen
+	Segment clamped_shorter_segment;
+	clamp_segment_within_vertical_range( &clamped_shorter_segment, shorter_segment, -1, 1);
+	
+	Vec2 longer_segment_vec2 = vec2_difference( longer_segment.end, longer_segment.start );
+
+	Vec2 p = longer_segment.start, f = vec2_normalize( longer_segment_vec2 );
+
+	
+
+	float x = -( ( 3.0*(p.x*f.x + p.y * f.y + p.z * f.z) - 2.0*( f.x * pos.x + f.y * pos.y + f.z * pos.z ))/(2.0*( f.x*f.x + f.y*f.y + f.z*f.z )) );
+	
 
 }
 

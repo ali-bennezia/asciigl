@@ -99,6 +99,7 @@ void init(){
 int main(int argc, char* argv[]){
 
     //debug
+
     Texture* tex = load_texture("test2.bmp");
 
     Model mdl = gen_model();

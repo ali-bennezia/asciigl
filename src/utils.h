@@ -132,11 +132,6 @@ typedef struct Segment {
     Vec2 start, end;
 } Segment;
 
-// Defines a region in 2D floating-point coordinates
-typedef struct Region {
-    Vec2 start, end;
-} Region;
-
 float floatmod(float a, float b);
 float to_rads(float degrees);
 float to_degs(float rads);
@@ -152,6 +147,7 @@ float vec2_division(Vec2 dividand, Vec2 divider);
 Vec2 vec2x2_average(Vec2 a, Vec2 b);
 Vec2 vec2x3_average(Vec2 a, Vec2 b, Vec2 c);
 Vec2 vec2_difference(Vec2 a, Vec2 b);
+Vec2 vec2_inverse(Vec2 vec);
 
 float vec3_magnitude(Vec3 vec);
 float vec3_dot_product(Vec3 a, Vec3 b);
@@ -165,7 +161,9 @@ Vec3 vec3_difference(Vec3 a, Vec3 b);
 Vec3 vec3_scale(Vec3 vec, Vec3 scale);
 
 int is_segment_within_vertical_range( Segment segment, float limit_1, float limit_2 );
-int clamp_segment_within_region( Segment* out, Segment segment, Region region );
+int is_segment_within_horizontal_range( Segment segment, float limit_1, float limit_2 );
+int clamp_segment_within_vertical_range( Segment* out, Segment segment, float limit_1, float limit_2 );
+int clamp_segment_within_horizontal_range( Segment* out, Segment segment, float limit_1, float limit_2 );
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);
