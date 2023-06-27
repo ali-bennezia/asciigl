@@ -173,15 +173,30 @@ void rasterize_segment(
 	Segment clamped_shorter_segment;
 	clamp_segment_within_vertical_range( &clamped_shorter_segment, shorter_segment, -1, 1);
 	
-	Vec2 longer_segment_vec2 = vec2_difference( longer_segment.end, longer_segment.start );
+
+	Vec2 pixel_size_clipspace = { 1.0/(float)FRAME_WIDTH, 1.0/(float)FRAME_HEIGHT };
+	Vec2 longer_segment_vec2 = vec2_difference( longer_segment.end, longer_segment.start ), 
+				clamped_shorter_segment_vec2 = vec2_difference( clamped_shorter_segment.end, clamped_shorter_segment.start );
+	
+	float clamped_shorter_segment_vertical_quotient = pixel_size_clipspace.y / clamped_shorter_segment_vec2.y;
+	Vec2 clamped_shorter_segment_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_vertical_quotient );
 
 	Vec2 p = longer_segment.start, f = vec2_normalize( longer_segment_vec2 );
 
-	
+	size_t vertical_iterations = clamped_shorter_segment_vec2.y / pixel_size_clipspace.y;
+	Vec2 pos = clamped_shorter_segment.start;
+	for (size_t vertical_iteration = 0; vertical_iteration < vertical_iterations; ++vertical_iteration){
+		pos = vec2_add( pos, pixel_size_clipspace );
+		float x = -( ( 3.0*(p.x*f.x + p.y * f.y) - 2.0*( f.x * pos.x + f.y * pos.y ))/(2.0*( f.x*f.x + f.y*f.y )) );
+		Vec2 nearest_longer_segment_point_clipspace = vec2_add( p, vec2_multiplication(f, x) );
+		
+		Segment horizontal_draw_segment	= {
+			pos,
+			nearest_longer_segment_point_clipspace
+		}, clamped_horizontal_draw_segment;
 
-	float x = -( ( 3.0*(p.x*f.x + p.y * f.y + p.z * f.z) - 2.0*( f.x * pos.x + f.y * pos.y + f.z * pos.z ))/(2.0*( f.x*f.x + f.y*f.y + f.z*f.z )) );
-	
-
+		clamp_segment_within_horizontal_range( &clamped_horizontal_draw_segment, horizontal_draw_segment, -1, 1);
+	}
 }
 
 void rasterize_and_draw_primitive_v2(
