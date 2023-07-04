@@ -164,38 +164,102 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale){
 
 void rasterize_segment(
 	Segment longer_segment,
-	Segment shorter_segment
+	Segment shorter_segment,
+
+	Vec3 a_viewspace,
+	Vec3 b_viewspace,
+	Vec3 c_viewspace,
+
+	Vec2 a_clipspace,
+	Vec2 b_clipspace,
+	Vec2 c_clipspace,
+
+	float a_depth, float b_depth, float c_depth,
+
+	Vec3* normals,
+	Vec2* UVs,
+	Texture* tex,
+	Model* mdl
 ){
-	if ( !( is_segment_within_vertical_range( longer_segment, -1, 1 ) ) || !( is_segment_within_vertical_range( shorter_segment, -1, 1 ) ) )
+	if ( !( is_segment_within_vertical_range( shorter_segment, -1, 1 ) ) )
 		return;
 
 	// Clamp within screen
-	Segment clamped_shorter_segment;
-	clamp_segment_within_vertical_range( &clamped_shorter_segment, shorter_segment, -1, 1);
-	
+	Segment clamped_longer_segment, clamped_shorter_segment;
+	clamp_segment_within_vertical_horizontal_ranges( &clamped_longer_segment, longer_segment, -1, 1, -1, 1);
+	clamp_segment_within_vertical_horizontal_ranges( &clamped_shorter_segment, shorter_segment, -1, 1, -1, 1);
 
-	Vec2 pixel_size_clipspace = { 1.0/(float)FRAME_WIDTH, 1.0/(float)FRAME_HEIGHT };
-	Vec2 longer_segment_vec2 = vec2_difference( longer_segment.end, longer_segment.start ), 
-				clamped_shorter_segment_vec2 = vec2_difference( clamped_shorter_segment.end, clamped_shorter_segment.start );
-	
-	float clamped_shorter_segment_vertical_quotient = pixel_size_clipspace.y / clamped_shorter_segment_vec2.y;
-	Vec2 clamped_shorter_segment_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_vertical_quotient );
+	Vec2 pixel_size_clipspace = { 2.0/(float)FRAME_WIDTH, 2.0/(float)FRAME_HEIGHT };
+	Vec2 clamped_longer_segment_vec2 = vec2_difference( clamped_longer_segment.end, clamped_longer_segment.start ),
+		clamped_shorter_segment_vec2 = vec2_difference( clamped_shorter_segment.end, clamped_shorter_segment.start );
 
-	Vec2 p = longer_segment.start, f = vec2_normalize( longer_segment_vec2 );
+	float clamped_shorter_segment_vertical_quotient = fabs( pixel_size_clipspace.y / clamped_shorter_segment_vec2.y );
+	Vec2 clamped_shorter_segment_vertical_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_vertical_quotient );
 
-	size_t vertical_iterations = clamped_shorter_segment_vec2.y / pixel_size_clipspace.y;
+	size_t vertical_iterations = ceil( fabs( clamped_shorter_segment_vec2.y / pixel_size_clipspace.y ) );
 	Vec2 pos = clamped_shorter_segment.start;
+
+	//if (clamped_shorter_segment_vertical_iteration_step.y < 0) pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
+
 	for (size_t vertical_iteration = 0; vertical_iteration < vertical_iterations; ++vertical_iteration){
-		pos = vec2_add( pos, pixel_size_clipspace );
-		float x = -( ( 3.0*(p.x*f.x + p.y * f.y) - 2.0*( f.x * pos.x + f.y * pos.y ))/(2.0*( f.x*f.x + f.y*f.y )) );
-		Vec2 nearest_longer_segment_point_clipspace = vec2_add( p, vec2_multiplication(f, x) );
-		
+
+	        float nearest_factor = (pos.y-clamped_longer_segment.start.y)/clamped_longer_segment_vec2.y;
+        	Vec2 nearest_longer_segment_point_clipspace = vec2_add( clamped_longer_segment.start, vec2_multiplication(clamped_longer_segment_vec2, nearest_factor) );
+	
 		Segment horizontal_draw_segment	= {
 			pos,
 			nearest_longer_segment_point_clipspace
 		}, clamped_horizontal_draw_segment;
 
-		clamp_segment_within_horizontal_range( &clamped_horizontal_draw_segment, horizontal_draw_segment, -1, 1);
+		clamp_segment_within_horizontal_range( &clamped_horizontal_draw_segment, horizontal_draw_segment, -1, 1 );
+		Vec2 clamped_horizontal_draw_segment_vec2 = vec2_difference( clamped_horizontal_draw_segment.end, clamped_horizontal_draw_segment.start );
+	
+		size_t horizontal_iterations = ceil( fabs( clamped_horizontal_draw_segment_vec2.x / pixel_size_clipspace.x ) );
+		Vec2 hpos = pos;
+
+		float hpos_x_iteration = clamped_horizontal_draw_segment_vec2.x > 0 ? pixel_size_clipspace.x : -pixel_size_clipspace.x;
+
+		//if ( clamped_horizontal_draw_segment_vec2.x < 0 ) hpos.x += hpos_x_iteration;
+
+		for (size_t horizontal_iteration = 0; horizontal_iteration < horizontal_iterations; ++horizontal_iteration){
+
+			TriangularCoordinates coords = calculate_triangular_coordinates(a_clipspace, b_clipspace, c_clipspace, hpos);
+                
+			//fragment data
+			Vec3 viewspace_position = vec3x3_add( 
+				vec3_multiplication(a_viewspace, coords.a_weight), 
+				vec3_multiplication(b_viewspace, coords.b_weight), 
+				vec3_multiplication(c_viewspace, coords.c_weight)
+			);
+			if ( is_viewspace_position_in_frustum( viewspace_position, NULL ) == 0 ) 
+				continue;
+
+	                float depth = a_depth * coords.a_weight + b_depth * coords.b_weight + c_depth * coords.c_weight;
+        	        Vec3 normal = normals != NULL ? 
+				vec3x3_add( 
+					vec3_multiplication(*((Vec3*)normals + 0), coords.a_weight), 
+                			vec3_multiplication(*((Vec3*)normals + 1), coords.b_weight), 
+                                	vec3_multiplication(*((Vec3*)normals + 2), coords.c_weight)
+				)
+			 : normal;
+			Vec2 UV = UVs != NULL ? vec2_add( vec2_multiplication( *(Vec2*)UVs, coords.a_weight ),
+				vec2_add( vec2_multiplication( *((Vec2*)UVs + 1), coords.b_weight ), vec2_multiplication( *((Vec2*)UVs + 2), coords.c_weight ) )) : UV;
+
+			IntVec2 draw_screenspace = clipspace_coords_to_screenspace_coords(hpos);
+
+	                draw_fragment(	draw_screenspace.x, 
+					draw_screenspace.y, 
+					depth,
+					viewspace_position, 
+					normals != NULL ? &normal : NULL,
+					UVs != NULL ? &UV : NULL,
+					tex,
+					mdl );
+
+			hpos.x += hpos_x_iteration;
+		}
+
+		pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
 	}
 }
 
@@ -248,7 +312,7 @@ void rasterize_and_draw_primitive_v2(
 		short1_segment_clipspace = &bc_clipspace; short1_segment_point1_clipspace = &b_clipspace;
 		short2_segment_clipspace = &ca_clipspace; short2_segment_point1_clipspace = &c_clipspace;
 
-	}else if ( bc_clipspace_vertical_span >= ab_clipspace_vertical_span && bc_clipspace_vertical_span >=  ca_clipspace_vertical_span ){
+	}else if ( bc_clipspace_vertical_span >= ab_clipspace_vertical_span && bc_clipspace_vertical_span >= ca_clipspace_vertical_span ){
 
 		longest_segment_clipspace = &bc_clipspace; longest_segment_point1_clipspace = &b_clipspace;
 
@@ -264,8 +328,56 @@ void rasterize_and_draw_primitive_v2(
 
 	}
 
-	
+	Segment longer_segment = {
+		*longest_segment_point1_clipspace,
+		vec2_add( *longest_segment_point1_clipspace, *longest_segment_clipspace )
+	}, short1_segment = {
+		*short1_segment_point1_clipspace,
+		vec2_add( *short1_segment_point1_clipspace, *short1_segment_clipspace )
+	}, short2_segment = {
+		*short2_segment_point1_clipspace,
+		vec2_add( *short2_segment_point1_clipspace, *short2_segment_clipspace )
+	};
 
+	rasterize_segment(
+		longer_segment,
+		short1_segment,
+		
+		a_viewspace,
+		b_viewspace,
+		c_viewspace,
+
+		a_clipspace,
+		b_clipspace,
+		c_clipspace,
+
+		a_depth, b_depth, c_depth,
+
+		normals,
+		UVs,
+		tex,
+		mdl
+	);
+
+	rasterize_segment(
+		longer_segment,
+		short2_segment,
+		
+		a_viewspace,
+		b_viewspace,
+		c_viewspace,
+
+		a_clipspace,
+		b_clipspace,
+		c_clipspace,
+
+		a_depth, b_depth, c_depth,
+
+		normals,
+		UVs,
+		tex,
+		mdl
+	);	
 
 }
 
@@ -467,7 +579,7 @@ void draw_model(Model model){
 
     //per-primitive
     for (size_t i = 0; i < model.mesh.usage; ++i){
-        Triangle primitive = *(Triangle*)get_data( &model.mesh, i, sizeof(Triangle) );
+        Triangle primitive = *((Triangle*)get_data( &model.mesh, i, sizeof(Triangle) ));
 
         //normals
         Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
@@ -494,7 +606,7 @@ void draw_model(Model model){
         Vec3 b_viewspace = worldspace_coords_to_viewspace_coords(b_worldspace);
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
         
-        rasterize_and_draw_primitive(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
+        rasterize_and_draw_primitive_v2(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
     }
 
 }

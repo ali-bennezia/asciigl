@@ -157,6 +157,7 @@ float vec3_division(Vec3 dividand, Vec3 divider);
 Vec3 vec3_multiplication(Vec3 vec, float scalar);
 Vec3 vec3_mirror(Vec3 vec);
 Vec3 vec3_add(Vec3 a, Vec3 b);
+Vec3 vec3x3_add(Vec3 a, Vec3 b, Vec3 c);
 Vec3 vec3_difference(Vec3 a, Vec3 b);
 Vec3 vec3_scale(Vec3 vec, Vec3 scale);
 
@@ -164,6 +165,7 @@ int is_segment_within_vertical_range( Segment segment, float limit_1, float limi
 int is_segment_within_horizontal_range( Segment segment, float limit_1, float limit_2 );
 int clamp_segment_within_vertical_range( Segment* out, Segment segment, float limit_1, float limit_2 );
 int clamp_segment_within_horizontal_range( Segment* out, Segment segment, float limit_1, float limit_2 );
+int clamp_segment_within_vertical_horizontal_ranges( Segment* out, Segment segment, float range_1_limit_1, float range_1_limit_2, float range_2_limit_1, float range_2_limit_2 );
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);
@@ -179,6 +181,5 @@ Model gen_model();
 void free_model(Model mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
-
 
 #endif

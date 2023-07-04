@@ -262,6 +262,14 @@ Vec3 vec3_add(Vec3 a, Vec3 b){
     return out;
 }
 
+Vec3 vec3x3_add(Vec3 a, Vec3 b, Vec3 c){
+    Vec3 out;
+    out.x = a.x + b.x + c.x;
+    out.y = a.y + b.y + c.y;
+    out.z = a.z + b.z + c.z;
+    return out;
+}
+
 Vec3 vec3_difference(Vec3 a, Vec3 b){
     Vec3 out;
     out.x = a.x - b.x;
@@ -381,7 +389,11 @@ int clamp_segment_within_horizontal_range( Segment* out, Segment segment, float 
    return 0; 
 }
 
-
+int clamp_segment_within_vertical_horizontal_ranges( Segment* out, Segment segment, float range_1_limit_1, float range_1_limit_2, float range_2_limit_1, float range_2_limit_2 )
+{
+    clamp_segment_within_vertical_range( out, segment, range_1_limit_1, range_1_limit_2 );
+    clamp_segment_within_horizontal_range( out, *out, range_2_limit_1, range_2_limit_2 );
+}
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 

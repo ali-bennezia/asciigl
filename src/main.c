@@ -36,8 +36,8 @@ void render_frame(){
     //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
     (&(mptr->rotation))->y += 4.0;
-    //(&(mptr->rotation))->x += 4.0;
-    //(&(mptr->rotation))->z += 4.0;
+    (&(mptr->rotation))->x += 4.0;
+    (&(mptr->rotation))->z += 4.0;
 
     //translate_player(0.05, 0, 0.05);
     //rotate_player(0, 10, 0);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
     Model mdl = gen_model();
 
-    mdl.position.z = 20.0;
+    mdl.position.z = 10.0;
     mdl.position.x = 0.0;
 
     Vec3 unit_scale = { 1, 1, 1 };

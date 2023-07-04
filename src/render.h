@@ -29,7 +29,22 @@ Vec3 scale_normal(Vec3 normal, Vec3 scale);
 
 void rasterize_segment(
 	Segment longer_segment,
-	Segment shorter_segment
+	Segment shorter_segment,
+
+	Vec3 a_viewspace,
+	Vec3 b_viewspace,
+	Vec3 c_viewspace,
+
+	Vec2 a_clipspace,
+	Vec2 b_clipspace,
+	Vec2 c_clipspace,
+
+	float a_depth, float b_depth, float c_depth,
+
+	Vec3* normals,
+	Vec2* UVs,
+	Texture* tex,
+	Model* mdl
 );
 void rasterize_and_draw_primitive_v2(
 	Vec3 a_viewpsace,
