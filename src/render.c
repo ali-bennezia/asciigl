@@ -196,10 +196,18 @@ void rasterize_segment(
 	float clamped_shorter_segment_vertical_quotient = fabs( pixel_size_clipspace.y / clamped_shorter_segment_vec2.y );
 	Vec2 clamped_shorter_segment_vertical_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_vertical_quotient );
 
+	IntVec2 draw_pixel_position_screenspace = clipspace_coords_to_screenspace_coords( clamped_shorter_segment.start );
+	int draw_pixel_vertical_step = clamped_shorter_segment_vertical_iteration_step.y < 0 ? 1 : -1;
+
 	size_t vertical_iterations = ceil( fabs( clamped_shorter_segment_vec2.y / pixel_size_clipspace.y ) );
 	Vec2 pos = clamped_shorter_segment.start;
 
-	//if (clamped_shorter_segment_vertical_iteration_step.y < 0) pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
+	/*if (clamped_shorter_segment_vertical_iteration_step.y < 0) {
+		pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
+		draw_pixel_position_screenspace.y += draw_pixel_vertical_step;
+
+		draw_pixel_position_screenspace.x = clipspace_coords_to_screenspace_coords( pos ).x;
+	}*/
 
 	for (size_t vertical_iteration = 0; vertical_iteration < vertical_iterations; ++vertical_iteration){
 
@@ -213,13 +221,20 @@ void rasterize_segment(
 
 		clamp_segment_within_horizontal_range( &clamped_horizontal_draw_segment, horizontal_draw_segment, -1, 1 );
 		Vec2 clamped_horizontal_draw_segment_vec2 = vec2_difference( clamped_horizontal_draw_segment.end, clamped_horizontal_draw_segment.start );
+
 	
+		draw_pixel_position_screenspace.x = clipspace_coords_to_screenspace_coords( pos ).x;
 		size_t horizontal_iterations = ceil( fabs( clamped_horizontal_draw_segment_vec2.x / pixel_size_clipspace.x ) );
+		int hpos_x_iteration_step_screenspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? 1 : -1;
+		float hpos_x_iteration_step_clipspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? pixel_size_clipspace.x : -pixel_size_clipspace.x;
+
 		Vec2 hpos = pos;
+		IntVec2 hpos_screenspace = draw_pixel_position_screenspace;
 
-		float hpos_x_iteration = clamped_horizontal_draw_segment_vec2.x > 0 ? pixel_size_clipspace.x : -pixel_size_clipspace.x;
-
-		//if ( clamped_horizontal_draw_segment_vec2.x < 0 ) hpos.x += hpos_x_iteration;
+		/*if (hpos_x_iteration_step_screenspace < 0){
+			hpos_screenspace.x += hpos_x_iteration_step_screenspace;
+			hpos.x += hpos_x_iteration_step_clipspace; 
+		}*/
 
 		for (size_t horizontal_iteration = 0; horizontal_iteration < horizontal_iterations; ++horizontal_iteration){
 
@@ -245,10 +260,8 @@ void rasterize_segment(
 			Vec2 UV = UVs != NULL ? vec2_add( vec2_multiplication( *(Vec2*)UVs, coords.a_weight ),
 				vec2_add( vec2_multiplication( *((Vec2*)UVs + 1), coords.b_weight ), vec2_multiplication( *((Vec2*)UVs + 2), coords.c_weight ) )) : UV;
 
-			IntVec2 draw_screenspace = clipspace_coords_to_screenspace_coords(hpos);
-
-	                draw_fragment(	draw_screenspace.x, 
-					draw_screenspace.y, 
+	                draw_fragment(	hpos_screenspace.x,
+					hpos_screenspace.y,
 					depth,
 					viewspace_position, 
 					normals != NULL ? &normal : NULL,
@@ -256,10 +269,18 @@ void rasterize_segment(
 					tex,
 					mdl );
 
-			hpos.x += hpos_x_iteration;
+
+			/*RGB white = {255, 255, 255};
+			set_color_buffer_color( hpos_screenspace.x, hpos_screenspace.y, white );
+			set_depth_buffer_depth( hpos_screenspace.x, hpos_screenspace.y, 1000 );			
+			set_frame_buffer_fragment( hpos_screenspace.x, hpos_screenspace.y, 'X' );*/
+
+			hpos_screenspace.x += hpos_x_iteration_step_screenspace;
+			hpos.x += hpos_x_iteration_step_clipspace; 
 		}
 
 		pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
+		draw_pixel_position_screenspace.y += draw_pixel_vertical_step;
 	}
 }
 
@@ -679,14 +700,13 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 
 	set_draw_color( combined_red, combined_green, combined_blue );	
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
-        set_depth_buffer_depth(x, y, depth);
+        if ( get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED ) set_depth_buffer_depth(x, y, depth);
     }
 }
 
 void clear_console(){
         system(CLEAR_CMD);
 	set_default_draw_color();
-	//strcpy(&cache_ansi_draw_code[0], "     \0");
 }
 
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)

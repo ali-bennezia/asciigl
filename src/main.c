@@ -74,6 +74,8 @@ void init(){
     clear_frame_buffer();
     clear_depth_buffer();
 
+    set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
+
     set_frustum_near_plane( 0.1 );
     set_frustum_far_plane( 1000 );
     set_frustum_FOV( 60.0 );
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]){
     
     mptr = &mdl;
 
-    load_model_obj_strategy("cube.obj", mptr);
+    load_model_obj_strategy("quad.obj", mptr);
 
     init();
 
