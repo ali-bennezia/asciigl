@@ -213,7 +213,8 @@ void rasterize_segment(
 
 	        float nearest_factor = (pos.y-clamped_longer_segment.start.y)/clamped_longer_segment_vec2.y;
         	Vec2 nearest_longer_segment_point_clipspace = vec2_add( clamped_longer_segment.start, vec2_multiplication(clamped_longer_segment_vec2, nearest_factor) );
-	
+		IntVec2 nearest_longer_segment_point_screenspace = clipspace_coords_to_screenspace_coords( nearest_longer_segment_point_clipspace );	
+
 		Segment horizontal_draw_segment	= {
 			pos,
 			nearest_longer_segment_point_clipspace
@@ -224,7 +225,13 @@ void rasterize_segment(
 
 	
 		draw_pixel_position_screenspace.x = clipspace_coords_to_screenspace_coords( pos ).x;
-		size_t horizontal_iterations = ceil( fabs( clamped_horizontal_draw_segment_vec2.x / pixel_size_clipspace.x ) );
+		size_t horizontal_iterations = min( 
+			abs( nearest_longer_segment_point_screenspace.x - draw_pixel_position_screenspace.x ), 
+			FRAME_WIDTH
+		) + 1;
+
+		
+		//size_t horizontal_iterations = ceil( fabs( clamped_horizontal_draw_segment_vec2.x / pixel_size_clipspace.x ) );
 		int hpos_x_iteration_step_screenspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? 1 : -1;
 		float hpos_x_iteration_step_clipspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? pixel_size_clipspace.x : -pixel_size_clipspace.x;
 
