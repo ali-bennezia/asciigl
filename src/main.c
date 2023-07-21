@@ -35,8 +35,8 @@ void render_frame(){
 
     //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
-    (&(mptr->rotation))->y += 4.0;
-    (&(mptr->rotation))->x += 4.0;
+    //(&(mptr->rotation))->y += 4.0;
+    //(&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
 
     //translate_player(0.05, 0, 0.05);
@@ -105,6 +105,8 @@ int main(int argc, char* argv[]){
     Texture* tex = load_texture("test2.bmp");
 
     Model mdl = gen_model();
+
+    mdl.rotation.y = 90;
 
     mdl.position.z = 10.0;
     mdl.position.x = 0.0;
