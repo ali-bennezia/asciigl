@@ -20,7 +20,7 @@
 
 //process
 
-Model* mptr;
+Model* mptr, *bptr;
 
 void cleanup(){
     set_default_draw_color();
@@ -35,9 +35,11 @@ void render_frame(){
 
     //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
 
-    //(&(mptr->rotation))->y += 4.0;
-    //(&(mptr->rotation))->x += 4.0;
+    (&(mptr->rotation))->y += 4.0;
+    (&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
+    translate_player(-0.4, 0, 0.2);
+    rotate_player(0, 0.3, 0);
 
     //translate_player(0.05, 0, 0.05);
     //rotate_player(0, 10, 0);
@@ -45,6 +47,7 @@ void render_frame(){
 
 
     draw_model(*mptr);
+    draw_model(*bptr);
 
     //printf("%s", get_frame_buffer());
     char* frame_string = NULL;
@@ -102,24 +105,41 @@ int main(int argc, char* argv[]){
 
     //debug
 
+
     Texture* tex = load_texture("test2.bmp");
 
     Model mdl = gen_model();
 
     mdl.rotation.y = 90;
-
     mdl.position.z = 10.0;
     mdl.position.x = 0.0;
-
     Vec3 unit_scale = { 1, 1, 1 };
     mdl.scale = unit_scale;
     //mdl.texture = tex;
     
     mptr = &mdl;
 
-    load_model_obj_strategy("quad.obj", mptr);
+    load_model_obj_strategy("cube.obj", mptr);
+
+
+    Model baseplate = gen_model();
+
+    baseplate.position.y = -4;
+    baseplate.position.z = 15.0;
+    Vec3 bp_scale = { 5, 1, 5 };
+    baseplate.scale = bp_scale;
+    //mdl.texture = tex;
+    
+    mptr = &mdl;
+    bptr = &baseplate;
+
+    load_model_obj_strategy("cube.obj", mptr);
+    load_model_obj_strategy("cube.obj", bptr);
 
     init();
+
+    set_player_rotation(-7, 0, 0);
+    set_player_position(0, 0, -5);
 
     //Begin routine.
     routine();

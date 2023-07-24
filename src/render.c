@@ -272,11 +272,11 @@ void rasterize_segment(
 	Vec2 clamped_longer_segment_vec2 = vec2_difference( clamped_longer_segment.end, clamped_longer_segment.start ),
 		clamped_shorter_segment_vec2 = vec2_difference( clamped_shorter_segment.end, clamped_shorter_segment.start );
 
-	const float clamped_shorter_segment_vertical_quotient = fabs( pixel_size_clipspace.y / clamped_shorter_segment_vec2.y );
+	const float clamped_shorter_segment_vertical_quotient = clamped_shorter_segment_vec2.y != 0 ? fabs( pixel_size_clipspace.y / clamped_shorter_segment_vec2.y ) : 0;
 	Vec2 clamped_shorter_segment_vertical_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_vertical_quotient );
 
-	const float clamped_shorter_segment_horizontal_quotient = fabs( pixel_size_clipspace.x / clamped_shorter_segment_vec2.x );
-	Vec2 clamped_shorter_segment_horizontal_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_horizontal_quotient );
+	const float clamped_shorter_segment_horizontal_quotient = clamped_shorter_segment_vec2.x != 0 ? fabs( pixel_size_clipspace.x / clamped_shorter_segment_vec2.x ) : 0;
+	const Vec2 clamped_shorter_segment_horizontal_iteration_step = vec2_multiplication( clamped_shorter_segment_vec2, clamped_shorter_segment_horizontal_quotient );
 
 	IntVec2 draw_pixel_position_screenspace = clipspace_coords_to_screenspace_coords( clamped_shorter_segment.start );
 	int draw_pixel_vertical_step = clamped_shorter_segment_vertical_iteration_step.y < 0 ? 1 : -1;
@@ -284,53 +284,68 @@ void rasterize_segment(
 	size_t vertical_iterations = abs( clipspace_to_screenspace( clamped_shorter_segment_vec2 ).y ) + 1;
 	Vec2 pos = clamped_shorter_segment.start;
 
-	Vec2 sample_position = {
-		0, 0
-	}, sample2_position = {
-		0, 1
-	};
-
 	Vec2 previous_pos = pos;
 
 	for (size_t vertical_iteration = 0; vertical_iteration < vertical_iterations; ++vertical_iteration){
 
-		Vec2 *selected_pos_sample = NULL, *selected_longer_segment_point_clipspace = NULL;
-		float *selected_nearest_factor = NULL;
+		// handle horizontal gaps
 
-		Vec2 pos_sample = get_pixel_at_clipspace_coords_interior_clipspace_point( pos, sample_position );
-		Vec2 pos_sample2 = get_pixel_at_clipspace_coords_interior_clipspace_point( pos, sample2_position );
+		if (vertical_iteration > 0){
 
-	        float nearest_factor = (pos_sample.y-clamped_longer_segment.start.y)/clamped_longer_segment_vec2.y;
-	        float nearest_factor2 = (pos_sample2.y-clamped_longer_segment.start.y)/clamped_longer_segment_vec2.y;
+			size_t gap_fills = max( abs( clipspace_to_screenspace( vec2_difference( pos, previous_pos ) ).x ), 0 );
 
-        	Vec2 nearest_longer_segment_point_clipspace = vec2_add( clamped_longer_segment.start, vec2_multiplication(clamped_longer_segment_vec2, nearest_factor) );
-        	Vec2 nearest_longer_segment_point2_clipspace = vec2_add( clamped_longer_segment.start, vec2_multiplication(clamped_longer_segment_vec2, nearest_factor2) );
+			Vec2 fill_clipspace = vec2_add( previous_pos, clamped_shorter_segment_horizontal_iteration_step );
+			for ( size_t gap_fill = 0; gap_fill < gap_fills; ++gap_fill ){
+			
+				IntVec2 fill_screenspace = clipspace_coords_to_screenspace_coords( fill_clipspace );	
+				rasterize_segment_fragment(
+					fill_screenspace,
+					fill_clipspace,
 
-		if ( fabs( pos.x - nearest_longer_segment_point_clipspace.x ) > fabs( pos.x - nearest_longer_segment_point2_clipspace.x ) ){
-			selected_pos_sample = &pos_sample;
-			selected_nearest_factor = &nearest_factor;
-			selected_longer_segment_point_clipspace = &nearest_longer_segment_point_clipspace;
-		}else{
-			selected_pos_sample = &pos_sample2;
-			selected_nearest_factor = &nearest_factor2;
-			selected_longer_segment_point_clipspace = &nearest_longer_segment_point2_clipspace;
+					a_viewspace,
+					b_viewspace,
+					c_viewspace,
+
+					a_clipspace,
+					b_clipspace,
+					c_clipspace,
+
+					a_depth, 
+					b_depth, 
+					c_depth,
+		
+					normals,
+					UVs,
+					tex,
+					mdl
+				);
+
+				fill_clipspace = vec2_add( fill_clipspace, clamped_shorter_segment_horizontal_iteration_step );
+
+			}	
+
 		}
 
-		IntVec2 nearest_longer_segment_point_screenspace = clipspace_coords_to_screenspace_coords( *selected_longer_segment_point_clipspace );	
+		// handle vertical iteration
+
+	        float nearest_factor = clamped_longer_segment_vec2.y != 0 ? ( (pos.y-clamped_longer_segment.start.y)/clamped_longer_segment_vec2.y ) : 0;
+
+        	Vec2 nearest_longer_segment_point_clipspace = vec2_add( clamped_longer_segment.start, vec2_multiplication(clamped_longer_segment_vec2, nearest_factor) );
+		IntVec2 nearest_longer_segment_point_screenspace = clipspace_coords_to_screenspace_coords( nearest_longer_segment_point_clipspace );	
 
 		Segment horizontal_draw_segment	= {
-			*selected_pos_sample,
-			*selected_longer_segment_point_clipspace
+			pos,
+			nearest_longer_segment_point_clipspace
 		}, clamped_horizontal_draw_segment;
 
 		clamp_segment_within_horizontal_range( &clamped_horizontal_draw_segment, horizontal_draw_segment, -1, 1 );
 		Vec2 clamped_horizontal_draw_segment_vec2 = vec2_difference( clamped_horizontal_draw_segment.end, clamped_horizontal_draw_segment.start );
 
-		draw_pixel_position_screenspace.x = clipspace_coords_to_screenspace_coords( *selected_pos_sample ).x;
+		draw_pixel_position_screenspace.x = clipspace_coords_to_screenspace_coords( pos ).x;
 		size_t horizontal_iterations = min( 
 			abs( nearest_longer_segment_point_screenspace.x - draw_pixel_position_screenspace.x ) + 1, 
 			FRAME_WIDTH
-		) + 1;
+		);
 	
 		int hpos_x_iteration_step_screenspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? 1 : -1;
 		float hpos_x_iteration_step_clipspace = clamped_horizontal_draw_segment_vec2.x >= 0 ? pixel_size_clipspace.x : -pixel_size_clipspace.x;
@@ -365,8 +380,6 @@ void rasterize_segment(
 			hpos_screenspace.x += hpos_x_iteration_step_screenspace;
 			hpos.x += hpos_x_iteration_step_clipspace; 
 		}
-
-		set_frame_buffer_fragment( draw_pixel_position_screenspace.x, draw_pixel_position_screenspace.y, 'Z' );
 
 		previous_pos = pos;
 		pos = vec2_add( pos, clamped_shorter_segment_vertical_iteration_step );
