@@ -319,26 +319,28 @@ int clamp_segment_within_vertical_range( Segment* out, Segment segment, float li
 
    if ( segment.start.y > region_vertical_upper_boundary ){
 	float vertical_difference = region_vertical_upper_boundary - segment.start.y;
-	start_add_vertical_quotient = vertical_difference / segment_dir.y;
+	start_add_vertical_quotient = segment_dir.y != 0 ? (vertical_difference / segment_dir.y) : 0;
    }else if ( segment.start.y < region_vertical_lower_boundary ){
 	float vertical_difference = region_vertical_lower_boundary - segment.start.y;
-	start_add_vertical_quotient = vertical_difference / segment_dir.y;
+	start_add_vertical_quotient = segment_dir.y != 0 ? (vertical_difference / segment_dir.y) : 0;
    }
 
    start_add_vertical_quotient = fmin( segment_length, start_add_vertical_quotient ); 
-   
+   start_add_vertical_quotient = fmax( -segment_length, start_add_vertical_quotient ); 
+ 
    segment.start = vec2_add( segment.start, vec2_multiplication( segment_dir, start_add_vertical_quotient ) ); 
 
    if ( segment.end.y > region_vertical_upper_boundary ){
 	float vertical_difference = region_vertical_upper_boundary - segment.end.y;
-	end_add_vertical_quotient = vertical_difference / segment_inverse_dir.y;
+	end_add_vertical_quotient = segment_inverse_dir.y != 0 ? (vertical_difference / segment_inverse_dir.y) : 0;
    }else if ( segment.end.y < region_vertical_lower_boundary ){
 	float vertical_difference = region_vertical_lower_boundary - segment.end.y;
-	end_add_vertical_quotient = vertical_difference / segment_inverse_dir.y;
+	end_add_vertical_quotient = segment_inverse_dir.y != 0 ? (vertical_difference / segment_inverse_dir.y) : 0;
    }  
 
    end_add_vertical_quotient = fmin( segment_length, end_add_vertical_quotient );
-   
+   end_add_vertical_quotient = fmax( -segment_length, end_add_vertical_quotient );
+ 
    segment.end = vec2_add( segment.end, vec2_multiplication( segment_inverse_dir, end_add_vertical_quotient ) );
 
    *out = segment;
@@ -363,26 +365,28 @@ int clamp_segment_within_horizontal_range( Segment* out, Segment segment, float 
 
    if ( segment.start.x > region_horizontal_upper_boundary ){
 	float horizontal_difference = region_horizontal_upper_boundary - segment.start.x;
-	start_add_horizontal_quotient = horizontal_difference / segment_dir.x;
+	start_add_horizontal_quotient = segment_dir.x != 0 ? (horizontal_difference / segment_dir.x) : 0;
    }else if ( segment.start.x < region_horizontal_lower_boundary ){
 	float horizontal_difference = region_horizontal_lower_boundary - segment.start.x;
-	start_add_horizontal_quotient = horizontal_difference / segment_dir.x;
+	start_add_horizontal_quotient = segment_dir.x != 0 ? (horizontal_difference / segment_dir.x) : 0;
    }
 
    start_add_horizontal_quotient = fmin( segment_length, start_add_horizontal_quotient ); 
-   
+   start_add_horizontal_quotient = fmax( -segment_length, start_add_horizontal_quotient ); 
+
    segment.start = vec2_add( segment.start, vec2_multiplication( segment_dir, start_add_horizontal_quotient ) ); 
 
    if ( segment.end.x > region_horizontal_upper_boundary ){
 	float horizontal_difference = region_horizontal_upper_boundary - segment.end.x;
-	end_add_horizontal_quotient = horizontal_difference / segment_inverse_dir.x;
+	end_add_horizontal_quotient = segment_inverse_dir.x != 0 ? (horizontal_difference / segment_inverse_dir.x) : 0;
    }else if ( segment.end.x < region_horizontal_lower_boundary ){
 	float horizontal_difference = region_horizontal_lower_boundary - segment.end.x;
-	end_add_horizontal_quotient = horizontal_difference / segment_inverse_dir.x;
+	end_add_horizontal_quotient = segment_inverse_dir.x != 0 ? (horizontal_difference / segment_inverse_dir.x) : 0;
    }  
 
    end_add_horizontal_quotient = fmin( segment_length, end_add_horizontal_quotient );
-   
+   end_add_horizontal_quotient = fmax( -segment_length, end_add_horizontal_quotient );
+ 
    segment.end = vec2_add( segment.end, vec2_multiplication( segment_inverse_dir, end_add_horizontal_quotient ) );
 
    *out = segment;
