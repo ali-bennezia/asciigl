@@ -38,8 +38,8 @@ void render_frame(){
     (&(mptr->rotation))->y += 4.0;
     (&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
-    //translate_player(-0.2, 0, 0.2);
-    //rotate_player(0, 0.3, 0);
+    translate_player(-1, 0, 0.8);
+    rotate_player(0, -2, 0);
 
     //translate_player(0.05, 0, 0.05);
     //rotate_player(0, 10, 0);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
 
     baseplate.position.y = -4;
     baseplate.position.z = 15.0;
-    Vec3 bp_scale = { 5, 1, 5 };
+    Vec3 bp_scale = { 1, 1, 1 };
     baseplate.scale = bp_scale;
     //mdl.texture = tex;
     

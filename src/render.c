@@ -523,9 +523,13 @@ void draw_model(Model model){
         Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
-            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
+/*            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
             normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
-            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
+            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );*/
+
+            normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
+            normals_out[1] = rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), model.rotation );
+            normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );
             normals_ptr = &normals_out[0];
         }
 
@@ -578,7 +582,19 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         if (normal != NULL)
             for (size_t i = 0; i < directionalLights->usage; ++i){
                 DirectionalLight* directionalLight = (DirectionalLight*)directionalLights->buffer + i;
-                float l = fabs(fmax(0.0,  vec3_dot_product( worldspace_coords_to_viewspace_coords( directionalLight->normal ), *normal ) ));
+                float l = fabs(
+			fmax(
+				0.0,  
+				vec3_dot_product( 
+					//worldspace_coords_to_viewspace_coords( 
+						directionalLight->normal, 
+					//), 
+					//worldspace_coords_to_viewspace_coords(
+						*normal 
+					//)
+				) 
+			)
+		);
 
 		float intensity = (float)(l * directionalLight->intensity);
                 lightLevel_red += ((float)directionalLight->color.red/255.0) * intensity;
