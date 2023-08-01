@@ -38,7 +38,7 @@ void render_frame(){
     (&(mptr->rotation))->y += 4.0;
     (&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
-    translate_player(0, 0, 0.2);
+    //translate_player(-0.2, 0, 0.2);
     //rotate_player(0, 0.3, 0);
 
     //translate_player(0.05, 0, 0.05);
@@ -118,9 +118,6 @@ int main(int argc, char* argv[]){
     //mdl.texture = tex;
     
     mptr = &mdl;
-
-    load_model_obj_strategy("cube.obj", mptr);
-
 
     Model baseplate = gen_model();
 

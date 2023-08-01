@@ -258,14 +258,14 @@ void rasterize_segment(
 	Texture* tex,
 	Model* mdl
 ){
-	if ( !( is_segment_within_vertical_range( shorter_segment, -1, 1 ) || is_segment_within_vertical_range( longer_segment, -1, 1 ) ||
-		is_segment_within_horizontal_range( shorter_segment, -1, 1 ) || is_segment_within_horizontal_range( longer_segment, -1, 1 ) ) )
+	if ( !( is_segment_within_vertical_range( shorter_segment, -1, 1 ) || is_segment_within_vertical_range( longer_segment, -1, 1 )) ||
+		!( is_segment_within_horizontal_range( shorter_segment, -1, 1 ) || is_segment_within_horizontal_range( longer_segment, -1, 1 ) ) )
 		return;
 
 	// Clamp within screen
 	Segment clamped_longer_segment, clamped_shorter_segment;
-	clamp_segment_within_vertical_horizontal_ranges( &clamped_longer_segment, longer_segment, -1, 1, -1, 1);
-	clamp_segment_within_vertical_horizontal_ranges( &clamped_shorter_segment, shorter_segment, -1, 1, -1, 1);
+	clamp_segment_within_vertical_range( &clamped_longer_segment, longer_segment, -1, 1 );
+	clamp_segment_within_vertical_range( &clamped_shorter_segment, shorter_segment, -1, 1 );
 
 	const Vec2 pixel_size_clipspace = { 2.0/(float)FRAME_WIDTH, 2.0/(float)FRAME_HEIGHT };
 	const Vec2 half_pixel_size_clipspace = vec2_multiplication( pixel_size_clipspace, 0.5 );
