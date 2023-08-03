@@ -10,10 +10,10 @@
 
 */
 
-#include "config.h"
-#include "utils.h"
-#include "render.h"
-#include "state.h"
+#include "./../include/config.h"
+#include "./../include/utils.h"
+#include "./../include/render.h"
+#include "./../include/state.h"
 
 #include <stdio.h>
 

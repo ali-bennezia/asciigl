@@ -11,12 +11,12 @@
 */
 
 
-#include "config.h"
-#include "state.h"
-#include "utils.h"
-#include "render.h"
-#include "images.h"
-#include "models.h"
+#include "./../include/config.h"
+#include "./../include/state.h"
+#include "./../include/utils.h"
+#include "./../include/render.h"
+#include "./../include/images.h"
+#include "./../include/models.h"
 
 //process
 
@@ -38,13 +38,8 @@ void render_frame(){
     (&(mptr->rotation))->y += 4.0;
     (&(mptr->rotation))->x += 4.0;
     (&(mptr->rotation))->z += 4.0;
-    translate_player(-1, 0, 0.8);
-    rotate_player(0, -2, 0);
-
-    //translate_player(0.05, 0, 0.05);
-    //rotate_player(0, 10, 0);
-    //rotate_player(0, -1, 0);
-
+    //translate_player(-1, 0, 0.8);
+    //rotate_player(0, -2, 0);
 
     draw_model(*mptr);
     draw_model(*bptr);
@@ -105,7 +100,6 @@ int main(int argc, char* argv[]){
 
     //debug
 
-
     Texture* tex = load_texture("test2.bmp");
 
     Model mdl = gen_model();
@@ -125,7 +119,7 @@ int main(int argc, char* argv[]){
     baseplate.position.z = 15.0;
     Vec3 bp_scale = { 1, 1, 1 };
     baseplate.scale = bp_scale;
-    //mdl.texture = tex;
+    mdl.texture = tex;
     
     mptr = &mdl;
     bptr = &baseplate;

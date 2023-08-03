@@ -10,8 +10,8 @@
 
 */
 
-#include "models.h"
-#include "utils.h"
+#include "./../include/models.h"
+#include "./../include/utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>

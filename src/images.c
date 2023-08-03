@@ -13,8 +13,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "images.h"
-#include "utils.h"
+#include "./../include/images.h"
+#include "./../include/utils.h"
 
 size_t get_dword_mask_offset( uint32_t* dword )
 {
