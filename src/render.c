@@ -660,3 +660,18 @@ RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 	return out;
 }
 
+static void draw_obj( Object* obj )
+{
+	switch ( obj->type ){
+
+		case ASCIIGL_MODEL:
+			draw_model( *( (Model*) obj->ptr ) );
+			break;
+
+	}
+}
+
+void draw()
+{
+	iterate_workspace( draw_obj );
+}

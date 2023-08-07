@@ -39,15 +39,16 @@ void clear_dynamic_array( DynamicArray* arr, size_t dataSize )
 	arr->usage = 0;
 }
 
-void insert_data(DynamicArray* arr, void* data, size_t dataSize)
+void *insert_data(DynamicArray* arr, void* data, size_t dataSize)
 {
     if (arr->usage == arr->size){
         arr->size *= 2;
         arr->buffer = realloc(arr->buffer, arr->size * dataSize);
     }
 
-    memcpy( ((char*)arr->buffer) + arr->usage*dataSize, data, dataSize);
+    void *target = memcpy( ((char*)arr->buffer) + arr->usage*dataSize, data, dataSize );
     ++arr->usage;
+    return target;
 }
 
 void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize){
@@ -581,34 +582,35 @@ void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCoun
     }
 }
 
-Model gen_model(){
-    Model mdl;
+Model* gen_model(){
+    Model* mdl = malloc( sizeof( Model ) );
     
     Vec3 pos = {0, 0, 0}, 
 	rot = {0, 0, 0}, 
 	scale = {1, 1, 1};
     RGB color = {255, 255, 255};
 
-    mdl.position = pos;
-    mdl.rotation = rot;
-    mdl.scale = scale;
+    mdl->position = pos;
+    mdl->rotation = rot;
+    mdl->scale = scale;
 
-    mdl.mesh = gen_dynamic_array( sizeof(Triangle) );
-    mdl.normals = gen_dynamic_array( sizeof(Vec3) );
-    mdl.UVs = gen_dynamic_array( sizeof(Vec2) );
+    mdl->mesh = gen_dynamic_array( sizeof(Triangle) );
+    mdl->normals = gen_dynamic_array( sizeof(Vec3) );
+    mdl->UVs = gen_dynamic_array( sizeof(Vec2) );
 
-    mdl.color = color;
-    mdl.texture = NULL;
+    mdl->color = color;
+    mdl->texture = NULL;
 
-    return mdl;
+    return ( Model* ) ( ( register_object( mdl, ASCIIGL_MODEL ) )->ptr );
 }
 
-void free_model(Model mdl){
-    free_dynamic_array(&mdl.mesh);
-    free_dynamic_array(&mdl.normals);
-    free_dynamic_array(&mdl.UVs);
-    if (mdl.texture != NULL)
-	free_texture(mdl.texture);
+void free_model(Model *mdl){
+    free_dynamic_array(&mdl->mesh);
+    free_dynamic_array(&mdl->normals);
+    free_dynamic_array(&mdl->UVs);
+    if (mdl->texture != NULL)
+	free_texture(mdl->texture);
+    free(mdl);
 }
 
 RGB ansicolors[16] = {

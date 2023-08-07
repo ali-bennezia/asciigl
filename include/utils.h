@@ -31,7 +31,7 @@ typedef struct DynamicArray{
 
 DynamicArray gen_dynamic_array(size_t dataSize);
 void clear_dynamic_array( DynamicArray* arr, size_t dataSize );
-void insert_data(DynamicArray* arr, void* data, size_t dataSize);
+void *insert_data(DynamicArray* arr, void* data, size_t dataSize);
 void* get_data(DynamicArray* arr, size_t index, size_t dataSize);
 void set_data(DynamicArray* arr, size_t index, void* data, size_t dataSize);
 void remove_data(DynamicArray* arr, size_t index, size_t dataSize);
@@ -177,8 +177,8 @@ void insert_primitives(Model* mdl, float* primitives, size_t primitivesCount);
 void insert_primitive_normals(Model* mdl, Vec3 normals[3]);
 void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCount);
 
-Model gen_model();
-void free_model(Model mdl);
+Model* gen_model();
+void free_model(Model *mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
 

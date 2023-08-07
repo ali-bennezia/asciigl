@@ -85,4 +85,6 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
 void clear_console();
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex);
 
+void draw();
+
 #endif

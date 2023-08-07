@@ -84,4 +84,24 @@ void remove_light(char* identifier, enum LIGHT_TYPE lightType);
 
 void init_light_arrays();
 
+enum ObjectType
+{
+	ASCIIGL_MODEL,
+	ASCIIGL_UI,
+	ASCIIGL_GIZMO
+};
+
+typedef struct Object
+{
+	void *ptr;
+	enum ObjectType type;
+} Object;
+
+void init_workspace();
+
+Object *register_object( void* obj, enum ObjectType type );
+void unregister_object( size_t index );
+void iterate_workspace( void(*iterator_func)( Object* ) );
+void clear_workspace();
+
 #endif

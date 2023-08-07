@@ -20,7 +20,7 @@
 
 //process
 
-Model* mptr, *bptr;
+Model *mptr, *bptr;
 
 void cleanup(){
     set_default_draw_color();
@@ -33,18 +33,14 @@ void render_frame(){
     clear_frame_buffer();
     set_default_draw_color();
 
-    //get_frame_buffer()[TOTAL_FRAGMENTS_PER_FRAME] = '\0';
-
     (&(mptr->rotation))->y += 4.0;
-    (&(mptr->rotation))->x += 4.0;
-    (&(mptr->rotation))->z += 4.0;
+   // (&(mptr->rotation))->x += 4.0;
+   // (&(mptr->rotation))->z += 4.0;
     //translate_player(-1, 0, 0.8);
     //rotate_player(0, -2, 0);
 
-    draw_model(*mptr);
-    draw_model(*bptr);
+    draw();
 
-    //printf("%s", get_frame_buffer());
     char* frame_string = NULL;
     size_t frame_string_size = 0;
     process_draw_string( &frame_string, &frame_string_size );
@@ -67,6 +63,7 @@ void init(){
 
     atexit( cleanup );
 
+    init_workspace();
     init_light_arrays();
 
     clear_frame_buffer();
@@ -98,36 +95,37 @@ void init(){
 
 int main(int argc, char* argv[]){
 
+    init();
+
     //debug
 
     Texture* tex = load_texture("test2.bmp");
 
-    Model mdl = gen_model();
+    mptr = gen_model();
 
-    mdl.rotation.y = 90;
-    mdl.position.z = 10.0;
-    mdl.position.x = 0.0;
+    mptr->rotation.y = 90;
+    mptr->position.z = 10.0;
+    mptr->position.x = 0.0;
     Vec3 unit_scale = { 1, 1, 1 };
-    mdl.scale = unit_scale;
+    mptr->scale = unit_scale;
     //mdl.texture = tex;
     
-    mptr = &mdl;
 
-    Model baseplate = gen_model();
+    bptr = gen_model();
 
-    baseplate.position.y = -4;
-    baseplate.position.z = 15.0;
-    Vec3 bp_scale = { 1, 1, 1 };
-    baseplate.scale = bp_scale;
-    mdl.texture = tex;
-    
-    mptr = &mdl;
-    bptr = &baseplate;
+    bptr->position.y = -4;
+    bptr->position.z = 15.0;
+    Vec3 bp_scale = { 10, 0.2, 10 };
+    bptr->scale = bp_scale;
+
+    mptr->texture = tex;
 
     load_model_obj_strategy("cube.obj", mptr);
     load_model_obj_strategy("cube.obj", bptr);
 
-    init();
+
+
+    //Pre-begin
 
     set_player_rotation(-7, 0, 0);
     set_player_position(0, 0, -5);

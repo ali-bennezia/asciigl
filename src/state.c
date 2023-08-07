@@ -417,3 +417,36 @@ void remove_light(char* identifier, enum LIGHT_TYPE lightType){
     }
 }
 
+DynamicArray g_workspace;
+
+void init_workspace( )
+{
+	g_workspace = gen_dynamic_array( sizeof( Object ) );
+}
+
+Object* register_object( void* obj, enum ObjectType type )
+{
+	Object data = {
+		obj,
+		type
+	};	
+
+	return ( Object* ) insert_data( &g_workspace, &data, sizeof( Object ) );
+}
+
+void unregister_object( size_t index )
+{
+	remove_data( &g_workspace, index, sizeof( Object ) );	
+}
+
+void iterate_workspace( void ( *iterator_func )( Object* ) )
+{
+	for ( size_t i = 0; i < g_workspace.usage; ++i ){
+		iterator_func( ( Object* ) g_workspace.buffer + i );
+	}
+}
+
+void clear_workspace()
+{
+	clear_dynamic_array( &g_workspace, sizeof( Object ) );
+}
