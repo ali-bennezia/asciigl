@@ -82,6 +82,8 @@ void rasterize_and_draw_primitive_v2(
 void draw_model(Model model);
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex, Model* mdl);
 
+void draw_text( size_t x_screenpos, size_t y_screenpos, char* text );
+
 void clear_console();
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex);
 

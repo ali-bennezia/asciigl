@@ -40,6 +40,9 @@ void render_frame(){
     //rotate_player(0, -2, 0);
 
     draw();
+    char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
+    draw_text( 10, 10, &str[0] );
+
 
     char* frame_string = NULL;
     size_t frame_string_size = 0;
@@ -52,9 +55,9 @@ void render_frame(){
 
 void routine(){
     while (1){
+	clear_console();
         render_frame();
         SLEEP(SLEEP_TIME);
-	clear_console();
     }
 }
 

@@ -16,7 +16,7 @@
 #include "./../include/state.h"
 
 #include <stdio.h>
-
+#include <string.h>
 
 //graphics pipline functions
 
@@ -635,6 +635,39 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         set_frame_buffer_fragment(x, y, light_level_to_fragment(lightLevel)  );
         if ( get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED ) set_depth_buffer_depth(x, y, depth);
     }
+}
+
+void draw_text( size_t x_screenpos, size_t y_screenpos, char* text )
+{
+	
+	RGB draw_color = {
+		0, 0, 255
+	};
+
+	size_t len = strlen( text );
+	int x_draw_screenpos = x_screenpos, y_draw_screenpos = y_screenpos;
+
+   	set_depth_testing_state( DEPTH_TESTING_STATE_DISABLED );
+
+	for ( size_t i = 0; i < len; ++i )
+	{
+		char c = *( text + i );
+
+
+
+		if ( c == '\n' ){
+			x_draw_screenpos = x_screenpos;
+			++y_draw_screenpos;
+		}else{
+
+			set_color_buffer_color( x_draw_screenpos, y_draw_screenpos, draw_color );
+			set_frame_buffer_fragment( x_draw_screenpos, y_draw_screenpos, c );
+			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, 0 );
+
+			++x_draw_screenpos;
+		}
+	}
+
 }
 
 void clear_console(){
