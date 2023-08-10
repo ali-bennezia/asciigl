@@ -101,6 +101,7 @@ void init_workspace();
 
 Object *register_object( void* obj, enum ObjectType type );
 void unregister_object( size_t index );
+void unregister_object_with_mdl( Model *mdl );
 void iterate_workspace( void(*iterator_func)( Object* ) );
 void clear_workspace();
 

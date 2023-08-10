@@ -372,8 +372,6 @@ PointLight* get_point_light(char* identifier){
     return NULL;
 }
 
-
-
 void remove_light(char* identifier, enum LIGHT_TYPE lightType){
     DynamicArray* darr = NULL;
     void* buffer = NULL;
@@ -437,6 +435,16 @@ Object* register_object( void* obj, enum ObjectType type )
 void unregister_object( size_t index )
 {
 	remove_data( &g_workspace, index, sizeof( Object ) );	
+}
+
+void unregister_object_with_mdl( Model *mdl )
+{
+	for ( size_t i = 0; i < g_workspace.usage; ++i ){
+		if ( ( Model* ) ( ( ( Object* ) g_workspace.buffer + i )->ptr ) == mdl ){
+			unregister_object( i );
+			return;
+		}
+	}
 }
 
 void iterate_workspace( void ( *iterator_func )( Object* ) )

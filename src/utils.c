@@ -605,6 +605,9 @@ Model* gen_model(){
 }
 
 void free_model(Model *mdl){
+
+    unregister_object_with_mdl( mdl );
+
     free_dynamic_array(&mdl->mesh);
     free_dynamic_array(&mdl->normals);
     free_dynamic_array(&mdl->UVs);
