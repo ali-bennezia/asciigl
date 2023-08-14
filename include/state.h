@@ -86,9 +86,10 @@ void init_light_arrays();
 
 enum ObjectType
 {
-	ASCIIGL_MODEL,
-	ASCIIGL_UI,
-	ASCIIGL_GIZMO
+	ASCIIGL_OBJTYPE_MODEL,
+	ASCIIGL_OBJTYPE_UI_TEXT,
+	ASCIIGL_OBJTYPE_UI_FRAME,
+	ASCIIGL_OBJTYPE_GIZMO
 };
 
 typedef struct Object
@@ -101,7 +102,7 @@ void init_workspace();
 
 Object *register_object( void* obj, enum ObjectType type );
 void unregister_object( size_t index );
-void unregister_object_with_mdl( Model *mdl );
+void unregister_object_with_ptr( void *ptr );
 void iterate_workspace( void(*iterator_func)( Object* ) );
 void clear_workspace();
 

@@ -601,12 +601,12 @@ Model* gen_model(){
     mdl->color = color;
     mdl->texture = NULL;
 
-    return ( Model* ) ( ( register_object( mdl, ASCIIGL_MODEL ) )->ptr );
+    return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL ) )->ptr );
 }
 
 void free_model(Model *mdl){
 
-    unregister_object_with_mdl( mdl );
+    unregister_object_with_ptr( mdl );
 
     free_dynamic_array(&mdl->mesh);
     free_dynamic_array(&mdl->normals);
@@ -688,4 +688,28 @@ const char* get_ansi_console_color_code( unsigned short red, unsigned short gree
 	return &(ansicolorcodes[nearest][0]);	
 }
 
+UIText* gen_text( char *text, IntVec2 position, RGB color )
+{
+	UIText *txt = malloc( sizeof( UIText ) );
+	char *text_cpy = malloc( strlen( text ) + 1 );
+	strcpy( text_cpy, text );
+	txt->text = text_cpy;
+	txt->position = position;
+	txt->color = color;
 
+	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT ) );	
+}
+
+UIText *set_text( UIText *dest, char *text )
+{
+	dest->text = realloc( dest->text, strlen( text ) + 1 );
+	strcpy( dest->text, text );
+	return dest;
+}
+
+void free_text( UIText *txt )
+{
+	unregister_object_with_ptr( txt );
+	free( txt->text );
+	free( txt );
+}

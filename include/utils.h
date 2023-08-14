@@ -100,6 +100,13 @@ typedef struct Model{
     Texture* texture;
 } Model;
 
+typedef struct UIText{
+	char *text;
+	IntVec2 position;
+	RGB color;
+	size_t layer;
+} UIText;
+
 typedef struct AmbientLight{
     char* identifier;
     unsigned short intensity;
@@ -181,5 +188,9 @@ Model* gen_model();
 void free_model(Model *mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
+
+UIText* gen_text( char *text, IntVec2 position, RGB color );
+UIText *set_text( UIText *dest, char *text );
+void free_text( UIText *txt );
 
 #endif

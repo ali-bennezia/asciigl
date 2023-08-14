@@ -637,23 +637,21 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     }
 }
 
-void draw_text( size_t x_screenpos, size_t y_screenpos, char* text )
+void draw_text( UIText *ui_txt )
 {
-	
-	RGB draw_color = {
-		0, 0, 255
-	};
+	size_t x_screenpos = ui_txt->position.x, y_screenpos = ui_txt->position.y;
+	char *text = ui_txt->text;
+
+	RGB draw_color = ui_txt->color;
 
 	size_t len = strlen( text );
 	int x_draw_screenpos = x_screenpos, y_draw_screenpos = y_screenpos;
 
-   	set_depth_testing_state( DEPTH_TESTING_STATE_DISABLED );
+   	set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
 
 	for ( size_t i = 0; i < len; ++i )
 	{
 		char c = *( text + i );
-
-
 
 		if ( c == '\n' ){
 			x_draw_screenpos = x_screenpos;
@@ -662,7 +660,7 @@ void draw_text( size_t x_screenpos, size_t y_screenpos, char* text )
 
 			set_color_buffer_color( x_draw_screenpos, y_draw_screenpos, draw_color );
 			set_frame_buffer_fragment( x_draw_screenpos, y_draw_screenpos, c );
-			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, 0 );
+			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, -ui_txt->layer );
 
 			++x_draw_screenpos;
 		}
@@ -697,8 +695,11 @@ static void draw_obj( Object* obj )
 {
 	switch ( obj->type ){
 
-		case ASCIIGL_MODEL:
+		case ASCIIGL_OBJTYPE_MODEL:
 			draw_model( *( (Model*) obj->ptr ) );
+			break;
+		case ASCIIGL_OBJTYPE_UI_TEXT:
+			draw_text( ( UIText* ) obj->ptr );	
 			break;
 
 	}

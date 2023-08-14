@@ -437,10 +437,10 @@ void unregister_object( size_t index )
 	remove_data( &g_workspace, index, sizeof( Object ) );	
 }
 
-void unregister_object_with_mdl( Model *mdl )
+void unregister_object_with_ptr( void *ptr )
 {
 	for ( size_t i = 0; i < g_workspace.usage; ++i ){
-		if ( ( Model* ) ( ( ( Object* ) g_workspace.buffer + i )->ptr ) == mdl ){
+		if ( ( Model* ) ( ( ( Object* ) g_workspace.buffer + i )->ptr ) == ptr ){
 			unregister_object( i );
 			return;
 		}

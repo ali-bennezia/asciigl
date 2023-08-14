@@ -40,8 +40,8 @@ void render_frame(){
     //rotate_player(0, -2, 0);
 
     draw();
-    char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
-    draw_text( 10, 10, &str[0] );
+    //char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
+    //draw_text( 10, 10, &str[0] );
 
 
     char* frame_string = NULL;
@@ -126,6 +126,18 @@ int main(int argc, char* argv[]){
     load_model_obj_strategy("cube.obj", mptr);
     load_model_obj_strategy("cube.obj", bptr);
 
+    IntVec2 txt_pos = {
+	10,
+	10
+    };
+
+    RGB txt_col = {
+	255,
+	0, 
+	0
+    };
+
+    gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col );
 
 
     //Pre-begin
