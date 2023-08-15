@@ -118,6 +118,13 @@ float clamp(float f, float min, float max)
     return t > max ? max : t;
 }
 
+short sgn( int val )
+{
+	if ( val > 0 ) return 1;
+	else if ( val < 0 ) return -1;
+	else return 0;
+}
+
 float vec2_magnitude(Vec2 vec){
     return sqrt( vec.x * vec.x + vec.y * vec.y );
 }
@@ -688,7 +695,7 @@ const char* get_ansi_console_color_code( unsigned short red, unsigned short gree
 	return &(ansicolorcodes[nearest][0]);	
 }
 
-UIText* gen_text( char *text, IntVec2 position, RGB color )
+UIText* gen_text( char *text, IntVec2 position, RGB color, size_t layer )
 {
 	UIText *txt = malloc( sizeof( UIText ) );
 	char *text_cpy = malloc( strlen( text ) + 1 );
@@ -696,6 +703,7 @@ UIText* gen_text( char *text, IntVec2 position, RGB color )
 	txt->text = text_cpy;
 	txt->position = position;
 	txt->color = color;
+	txt->layer = layer;
 
 	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT ) );	
 }
@@ -712,4 +720,21 @@ void free_text( UIText *txt )
 	unregister_object_with_ptr( txt );
 	free( txt->text );
 	free( txt );
+}
+
+UIFrame* gen_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer )
+{
+	UIFrame *frame = malloc( sizeof( UIFrame ) );
+	frame->position = position;
+	frame->size = size;
+	frame->color = color;
+	frame->layer = layer;
+
+	return ( UIFrame* ) ( register_object( frame, ASCIIGL_OBJTYPE_UI_FRAME ) );	
+}
+
+void free_frame( UIFrame *frame )
+{
+	unregister_object_with_ptr( frame );
+	free( frame );
 }

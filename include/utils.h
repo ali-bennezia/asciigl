@@ -107,6 +107,13 @@ typedef struct UIText{
 	size_t layer;
 } UIText;
 
+typedef struct UIFrame{
+	IntVec2 position;
+	IntVec2 size;
+	RGB color;
+	size_t layer;
+} UIFrame;
+
 typedef struct AmbientLight{
     char* identifier;
     unsigned short intensity;
@@ -143,6 +150,7 @@ float floatmod(float a, float b);
 float to_rads(float degrees);
 float to_degs(float rads);
 float clamp(float f, float min, float max);
+short sgn( int val );
 
 float vec2_magnitude(Vec2 vec);
 float vec2_dot_product(Vec2 a, Vec2 b);
@@ -189,8 +197,11 @@ void free_model(Model *mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
 
-UIText* gen_text( char *text, IntVec2 position, RGB color );
+UIText* gen_text( char *text, IntVec2 position, RGB color, size_t layer );
 UIText *set_text( UIText *dest, char *text );
 void free_text( UIText *txt );
+
+UIFrame* gen_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer );
+void free_frame( UIFrame *frame );
 
 #endif

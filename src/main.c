@@ -137,8 +137,25 @@ int main(int argc, char* argv[]){
 	0
     };
 
-    gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col );
+    //gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col, 3 );
 
+    IntVec2 frame_pos = {
+	9,
+	9
+    };
+
+    IntVec2 frame_size = {
+	20,
+	6
+    };
+
+    RGB frame_col = {
+	0,
+	255,
+	0
+    };
+
+    gen_frame( frame_pos, frame_size, frame_col, 5 );
 
     //Pre-begin
 

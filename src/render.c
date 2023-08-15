@@ -660,11 +660,50 @@ void draw_text( UIText *ui_txt )
 
 			set_color_buffer_color( x_draw_screenpos, y_draw_screenpos, draw_color );
 			set_frame_buffer_fragment( x_draw_screenpos, y_draw_screenpos, c );
-			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, -ui_txt->layer );
+			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, 1.0/( ui_txt->layer + 1 ) );
 
 			++x_draw_screenpos;
 		}
 	}
+
+}
+
+void draw_frame( UIFrame *ui_frame )
+{
+
+	IntVec2 draw = ui_frame->position;
+	short iterate_x = sgn( ui_frame->size.x ), iterate_y = sgn( ui_frame->size.y );
+	char frag = ' ';
+	float frag_depth = 1.0/( ui_frame->layer + 1 );
+
+   	set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
+
+	for ( size_t i = 0; i < abs( ui_frame->size.y ); ++i )
+	{
+
+		for ( size_t j = 0; j < abs( ui_frame->size.x ); ++j )
+		{
+
+			if ( get_depth_buffer_depth( draw.x, draw.y ) > frag_depth )
+			{
+
+				if ( ( i == 0 || i >= abs( ui_frame->size.y ) - 1 ) && ( j == 0 || j >= abs( ui_frame->size.x ) - 1 )  ) frag = '*';
+				else if ( i == 0 || i >= abs( ui_frame->size.y ) - 1 ) frag = '-';
+				else if ( j == 0 || j >= abs( ui_frame->size.x ) - 1 ) frag = '|';
+				else frag = ' ';
+	
+				set_color_buffer_color( draw.x, draw.y, ui_frame->color );
+				set_frame_buffer_fragment( draw.x, draw.y, frag );
+				set_depth_buffer_depth( draw.x, draw.y, 1.0/( ui_frame->layer + 1 ) );
+
+			}
+
+			draw.x += iterate_x;
+		}	
+		draw.y += iterate_y;
+		draw.x = ui_frame->position.x;
+
+	}	
 
 }
 
@@ -700,6 +739,9 @@ static void draw_obj( Object* obj )
 			break;
 		case ASCIIGL_OBJTYPE_UI_TEXT:
 			draw_text( ( UIText* ) obj->ptr );	
+			break;
+		case ASCIIGL_OBJTYPE_UI_FRAME:
+			draw_frame( ( UIFrame* ) obj->ptr );
 			break;
 
 	}
