@@ -22,6 +22,7 @@
 char frame_buffer[TOTAL_FRAGMENTS_PER_FRAME+1];
 float depth_buffer[TOTAL_FRAGMENTS_PER_FRAME];
 RGB color_buffer[TOTAL_FRAGMENTS_PER_FRAME];
+size_t ui_layers_buffer[TOTAL_FRAGMENTS_PER_FRAME];
 
 Vec3 player_position = { 0, 0, 0 };
 Vec3 player_rotation = { 0, 0, 0 };
@@ -154,6 +155,28 @@ RGB get_color_buffer_color(int x, int y){
 	return white;
     }
     return color_buffer[y*(FRAME_WIDTH) + x];
+}
+
+void clear_ui_layers_buffer()
+{
+    for (size_t i = 0; i < TOTAL_FRAGMENTS_PER_FRAME; ++i)
+	ui_layers_buffer[i] = 0;
+}
+
+void set_ui_layers_buffer_layer(int x, int y, size_t layer){
+    //top-left = x 0 y 0
+    if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
+        return;
+    ui_layers_buffer[y*(FRAME_WIDTH) + x] = layer;
+}
+
+size_t get_ui_layers_buffer_layer(int x, int y){
+    //top-left = x 0 y 0
+    if (x < 0 || x >= FRAME_WIDTH || y < 0 || y >= FRAME_HEIGHT)
+    {
+	return 0;
+    }
+    return ui_layers_buffer[y*(FRAME_WIDTH) + x];
 }
 
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state) {

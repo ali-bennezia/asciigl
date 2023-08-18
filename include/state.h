@@ -41,6 +41,10 @@ float get_depth_buffer_depth(int x, int y);
 void set_color_buffer_color(int x, int y, RGB color);
 RGB get_color_buffer_color(int x, int y);
 
+void clear_ui_layers_buffer();
+void set_ui_layers_buffer_layer(int x, int y, size_t layer);
+size_t get_ui_layers_buffer_layer(int x, int y);
+
 void set_depth_testing_state(enum DEPTH_TESTING_STATE state);
 enum DEPTH_TESTING_STATE get_depth_testing_state();
 

@@ -71,6 +71,7 @@ void init(){
 
     clear_frame_buffer();
     clear_depth_buffer();
+    clear_ui_layers_buffer();
 
     set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
 
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]){
 	0
     };
 
-    //gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col, 3 );
+    gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col, 6 );
 
     IntVec2 frame_pos = {
 	9,

@@ -658,9 +658,12 @@ void draw_text( UIText *ui_txt )
 			++y_draw_screenpos;
 		}else{
 
-			set_color_buffer_color( x_draw_screenpos, y_draw_screenpos, draw_color );
-			set_frame_buffer_fragment( x_draw_screenpos, y_draw_screenpos, c );
-			set_depth_buffer_depth( x_draw_screenpos, y_draw_screenpos, 1.0/( ui_txt->layer + 1 ) );
+			if ( get_ui_layers_buffer_layer( x_draw_screenpos, y_draw_screenpos ) <= ui_txt->layer )
+			{
+				set_color_buffer_color( x_draw_screenpos, y_draw_screenpos, draw_color );
+				set_frame_buffer_fragment( x_draw_screenpos, y_draw_screenpos, c );
+				set_ui_layers_buffer_layer( x_draw_screenpos, y_draw_screenpos, ui_txt->layer );
+			}
 
 			++x_draw_screenpos;
 		}
@@ -674,7 +677,7 @@ void draw_frame( UIFrame *ui_frame )
 	IntVec2 draw = ui_frame->position;
 	short iterate_x = sgn( ui_frame->size.x ), iterate_y = sgn( ui_frame->size.y );
 	char frag = ' ';
-	float frag_depth = 1.0/( ui_frame->layer + 1 );
+	float frag_depth = ui_frame->layer;
 
    	set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
 
@@ -684,7 +687,7 @@ void draw_frame( UIFrame *ui_frame )
 		for ( size_t j = 0; j < abs( ui_frame->size.x ); ++j )
 		{
 
-			if ( get_depth_buffer_depth( draw.x, draw.y ) > frag_depth )
+			if ( get_ui_layers_buffer_layer( draw.x, draw.y ) <= frag_depth )
 			{
 
 				if ( ( i == 0 || i >= abs( ui_frame->size.y ) - 1 ) && ( j == 0 || j >= abs( ui_frame->size.x ) - 1 )  ) frag = '*';
@@ -694,7 +697,7 @@ void draw_frame( UIFrame *ui_frame )
 	
 				set_color_buffer_color( draw.x, draw.y, ui_frame->color );
 				set_frame_buffer_fragment( draw.x, draw.y, frag );
-				set_depth_buffer_depth( draw.x, draw.y, 1.0/( ui_frame->layer + 1 ) );
+				set_ui_layers_buffer_layer( draw.x, draw.y, ui_frame->layer );
 
 			}
 
