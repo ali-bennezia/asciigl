@@ -72,10 +72,10 @@ void process_draw_string( char** out, size_t* outSize )
 
 	RGB icol = get_color_buffer_color( x, y );
 	
-	if (memcmp( &icol, &col, sizeof(RGB) ) != 0)
+	if ( memcmp( &col, &icol, sizeof( RGB ) ) != 0 )
 	{
 		col = icol;
-		strcpy( data + data_index, get_ansi_console_color_code( col.red, col.blue, col.green ) );
+		strcpy( data + data_index, get_ansi_console_color_code( col.red, col.green, col.blue ) );
 		data_index += 7;
 	}
 

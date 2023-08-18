@@ -85,7 +85,7 @@ void init(){
 
     add_ambient_light("Light", 30, white);
 
-    Vec3 normal = {-2, 0, 1};
+    Vec3 normal = {-2, 5, 1};
     add_directional_light("Some light", 100, vec3_normalize(normal), white);
     Vec3 pos = {1, 0, 2};
     //add_point_light("Some point light", 150, 10, pos, white);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
 
     bptr->position.y = -4;
     bptr->position.z = 15.0;
-    Vec3 bp_scale = { 10, 0.2, 10 };
+    Vec3 bp_scale = { 10, 2, 10 };
     bptr->scale = bp_scale;
 
     mptr->texture = tex;
@@ -133,8 +133,8 @@ int main(int argc, char* argv[]){
     };
 
     RGB txt_col = {
-	255,
 	0, 
+	255,
 	0
     };
 
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
     //Pre-begin
 
     set_player_rotation(-7, 0, 0);
-    set_player_position(0, 0, -5);
+    set_player_position(0, 0, -25);
 
     //Begin routine.
     routine();

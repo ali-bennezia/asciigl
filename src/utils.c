@@ -86,9 +86,9 @@ RGB RGBA_to_RGB( RGBA in )
 	return out;	
 }
 
-NormalizedRGB normalize_RGB(RGB color)
+UnitRGB scale_to_unit_RGB(RGB color)
 {
-	NormalizedRGB out;
+	UnitRGB out;
 
 	float m = max( color.red, max( color.green, color.blue ) );
 	if (m == 0)
@@ -664,21 +664,21 @@ const char* get_ansi_console_color_code( unsigned short red, unsigned short gree
 	RGB in = {red, green, blue};
 
 	//color quotient
-	NormalizedRGB inMix = normalize_RGB( in );
+	UnitRGB inMix = scale_to_unit_RGB( in );
 
 	//initialize to white
 	size_t nearest = 15;
 	RGB nearestRGB = ansicolors[15];	
-	NormalizedRGB nearestMix = normalize_RGB( nearestRGB );
+	UnitRGB nearestMix = scale_to_unit_RGB( nearestRGB );
 	float mdist = sqrt( 
-		pow( nearestMix.red, 2 ) +
-		pow( nearestMix.green, 2 ) +
-		pow( nearestMix.blue, 2 )
+		pow( nearestMix.red - inMix.red, 2 ) +
+		pow( nearestMix.green - inMix.green, 2 ) +
+		pow( nearestMix.blue - inMix.blue, 2 )
 	);
 
-	for (size_t i = 0; i < 15; ++i){
+	for (size_t i = 0; i < 16; ++i){
 		//color mix quotient
-		NormalizedRGB iMix = normalize_RGB( ansicolors[i] );
+		UnitRGB iMix = scale_to_unit_RGB( ansicolors[i] );
 
 		//color mix distance
 		float idist = sqrt( 
