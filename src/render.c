@@ -620,9 +620,12 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
         lightLevel_green = max( min( lightLevel_green, 255 ), 0);
         lightLevel_blue = max( min( lightLevel_blue, 255 ), 0);
 
-	RGB fragColor = (tex != NULL && UV != NULL) ? 
-		RGBA_to_RGB( sample_texture( UV->x, UV->y, tex ) ) : 
+	RGBA fragColor = (tex != NULL && UV != NULL) ? 
+		sample_texture( UV->x, UV->y, tex ) : 
 		mdl->color;
+
+	if ( fragColor.alpha == 0 ) return;
+
 	unsigned short combined_red = (float)fragColor.red * (float)lightLevel_red / 255.0,
 		combined_green = (float)fragColor.green * (float)lightLevel_green / 255.0,
 		combined_blue = (float)fragColor.blue * (float)lightLevel_blue / 255.0;

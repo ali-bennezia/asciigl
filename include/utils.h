@@ -57,7 +57,7 @@ typedef struct UnitRGB {
 } UnitRGB;
 
 RGB RGBA_to_RGB( RGBA in );
-UnitRGB scale_to_unit_RGB(RGB color);
+UnitRGB scale_to_unit_RGB( RGB color );
 
 typedef struct Vector2{
     float x;
@@ -96,7 +96,7 @@ typedef struct Model{
     //Transform in worldspace
     Vec3 position, rotation, scale;
 
-    RGB color;
+    RGBA color;
     Texture* texture;
 } Model;
 
@@ -115,7 +115,7 @@ typedef struct UIFrame{
 } UIFrame;
 
 typedef struct AmbientLight{
-    char* identifier;
+    char *identifier;
     unsigned short intensity;
     RGB color;
 } AmbientLight;

@@ -595,7 +595,7 @@ Model* gen_model(){
     Vec3 pos = {0, 0, 0}, 
 	rot = {0, 0, 0}, 
 	scale = {1, 1, 1};
-    RGB color = {255, 255, 255};
+    RGBA color = {255, 255, 255, 255};
 
     mdl->position = pos;
     mdl->rotation = rot;

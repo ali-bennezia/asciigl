@@ -84,7 +84,7 @@ DynamicArray* get_ambient_lights();
 DynamicArray* get_directional_lights();
 DynamicArray* get_point_lights();
 
-void remove_light(char* identifier, enum LIGHT_TYPE lightType);
+void remove_light( char* identifier, enum LIGHT_TYPE lightType );
 
 void init_light_arrays();
 
@@ -93,7 +93,6 @@ enum ObjectType
 	ASCIIGL_OBJTYPE_MODEL,
 	ASCIIGL_OBJTYPE_UI_TEXT,
 	ASCIIGL_OBJTYPE_UI_FRAME,
-	ASCIIGL_OBJTYPE_GIZMO
 };
 
 typedef struct Object
