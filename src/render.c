@@ -640,7 +640,7 @@ void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* norm
     }
 }
 
-void draw_text( UIText *ui_txt )
+void draw_ui_text( UIText *ui_txt )
 {
 	size_t x_screenpos = ui_txt->position.x, y_screenpos = ui_txt->position.y;
 	char *text = ui_txt->text;
@@ -674,7 +674,7 @@ void draw_text( UIText *ui_txt )
 
 }
 
-void draw_frame( UIFrame *ui_frame )
+void draw_ui_frame( UIFrame *ui_frame )
 {
 
 	IntVec2 draw = ui_frame->position;
@@ -713,6 +713,53 @@ void draw_frame( UIFrame *ui_frame )
 
 }
 
+void draw_ui_image( UIImage *ui_image )
+{
+
+	IntVec2 draw = ui_image->position;
+	short iterate_x = sgn( ui_image->size.x ), iterate_y = sgn( ui_image->size.y );
+	char frag = ' ';
+	float frag_depth = ui_image->layer;
+
+	Vec2 draw_tex_uv = { 0, 0, };
+	const Vec2 pixel_uv_coords_size = {
+
+		1.0 / ( float ) ui_image->size.x,
+		1.0 / ( float ) ui_image->size.y
+
+	};
+
+   	set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
+
+	for ( size_t i = 0; i < abs( ui_image->size.y ); ++i )
+	{
+
+		for ( size_t j = 0; j < abs( ui_image->size.x ); ++j )
+		{
+			RGBA draw_col = sample_texture( draw_tex_uv.x, draw_tex_uv.y, ui_image->texture );
+
+			if ( get_ui_layers_buffer_layer( draw.x, draw.y ) <= frag_depth && draw_col.alpha > 0 )
+			{
+	
+				set_color_buffer_color( draw.x, draw.y, RGBA_to_RGB( draw_col ) );
+				set_frame_buffer_fragment( draw.x, draw.y, '@' );
+				set_ui_layers_buffer_layer( draw.x, draw.y, ui_image->layer );
+
+			}
+
+			draw.x += iterate_x;
+			draw_tex_uv.x += pixel_uv_coords_size.x;
+		}	
+
+		draw.y += iterate_y;
+		draw.x = ui_image->position.x;
+		draw_tex_uv.y += pixel_uv_coords_size.y;
+		draw_tex_uv.x = 0;
+
+	}	
+
+}
+
 void clear_console(){
         system(CLEAR_CMD);
 	set_default_draw_color();
@@ -729,9 +776,9 @@ RGBA sample_texture(float UV_x, float UV_y, const Texture* tex)
 
 	uint32_t pixelData = *((uint32_t*)tex->data + y*tex->width + x);
 	out.alpha = pixelData >> 24 & 255;
-	out.red = pixelData >> 16 & 255;
+	out.blue = pixelData >> 16 & 255;
 	out.green = pixelData >> 8 & 255;
-	out.blue = pixelData & 255;
+	out.red = pixelData & 255;
 
 	return out;
 }
@@ -744,10 +791,13 @@ static void draw_obj( Object* obj )
 			draw_model( *( (Model*) obj->ptr ) );
 			break;
 		case ASCIIGL_OBJTYPE_UI_TEXT:
-			draw_text( ( UIText* ) obj->ptr );	
+			draw_ui_text( ( UIText* ) obj->ptr );	
 			break;
 		case ASCIIGL_OBJTYPE_UI_FRAME:
-			draw_frame( ( UIFrame* ) obj->ptr );
+			draw_ui_frame( ( UIFrame* ) obj->ptr );
+			break;
+		case ASCIIGL_OBJTYPE_UI_IMAGE:
+			draw_ui_image( ( UIImage* ) obj->ptr );
 			break;
 
 	}

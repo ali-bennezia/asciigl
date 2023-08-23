@@ -114,6 +114,14 @@ typedef struct UIFrame{
 	size_t layer;
 } UIFrame;
 
+typedef struct UIImage{
+	IntVec2 position;
+	IntVec2 size;
+	RGB color;
+	size_t layer;
+	Texture *texture;
+} UIImage;
+
 typedef struct AmbientLight{
     char *identifier;
     unsigned short intensity;
@@ -197,11 +205,14 @@ void free_model(Model *mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
 
-UIText* gen_text( char *text, IntVec2 position, RGB color, size_t layer );
-UIText *set_text( UIText *dest, char *text );
-void free_text( UIText *txt );
+UIText* gen_ui_text( char *text, IntVec2 position, RGB color, size_t layer );
+UIText *set_ui_text( UIText *dest, char *text );
+void free_ui_text( UIText *txt );
 
-UIFrame* gen_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer );
-void free_frame( UIFrame *frame );
+UIFrame* gen_ui_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer );
+void free_ui_frame( UIFrame *frame );
+
+UIImage* gen_ui_image( IntVec2 position, IntVec2 size, RGB color, size_t layer, Texture* tex );
+void free_ui_image( UIImage *image );
 
 #endif

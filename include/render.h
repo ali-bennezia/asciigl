@@ -82,8 +82,8 @@ void rasterize_and_draw_primitive_v2(
 void draw_model(Model model);
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex, Model* mdl);
 
-void draw_text( UIText *ui_txt );
-void draw_frame( UIFrame *ui_frame );
+void draw_ui_text( UIText *ui_txt );
+void draw_ui_frame( UIFrame *ui_frame );
 
 void clear_console();
 RGBA sample_texture(float UV_x, float UV_y, const Texture* tex);

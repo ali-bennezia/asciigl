@@ -138,7 +138,7 @@ int main(int argc, char* argv[]){
 	0
     };
 
-    gen_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col, 6 );
+    gen_ui_text( "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0", txt_pos, txt_col, 6 );
 
     IntVec2 frame_pos = {
 	9,
@@ -156,7 +156,27 @@ int main(int argc, char* argv[]){
 	0
     };
 
-    gen_frame( frame_pos, frame_size, frame_col, 5 );
+    gen_ui_frame( frame_pos, frame_size, frame_col, 5 );
+
+    Texture *img_tex = load_texture( "test.bmp" );
+
+    IntVec2 img_pos = {
+	0,
+	0
+    };
+
+    IntVec2 img_size = {
+	120,
+	40
+    };
+
+    RGB img_col = {
+	255,
+	255,
+	255
+    };
+
+    gen_ui_image( img_pos, img_size, img_col, 10, img_tex );
 
     //Pre-begin
 

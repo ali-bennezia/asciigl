@@ -695,7 +695,7 @@ const char* get_ansi_console_color_code( unsigned short red, unsigned short gree
 	return &(ansicolorcodes[nearest][0]);	
 }
 
-UIText* gen_text( char *text, IntVec2 position, RGB color, size_t layer )
+UIText* gen_ui_text( char *text, IntVec2 position, RGB color, size_t layer )
 {
 	UIText *txt = malloc( sizeof( UIText ) );
 	char *text_cpy = malloc( strlen( text ) + 1 );
@@ -708,21 +708,21 @@ UIText* gen_text( char *text, IntVec2 position, RGB color, size_t layer )
 	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT ) );	
 }
 
-UIText *set_text( UIText *dest, char *text )
+UIText *set_ui_text( UIText *dest, char *text )
 {
 	dest->text = realloc( dest->text, strlen( text ) + 1 );
 	strcpy( dest->text, text );
 	return dest;
 }
 
-void free_text( UIText *txt )
+void free_ui_text( UIText *txt )
 {
 	unregister_object_with_ptr( txt );
 	free( txt->text );
 	free( txt );
 }
 
-UIFrame* gen_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer )
+UIFrame* gen_ui_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer )
 {
 	UIFrame *frame = malloc( sizeof( UIFrame ) );
 	frame->position = position;
@@ -733,8 +733,26 @@ UIFrame* gen_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer )
 	return ( UIFrame* ) ( register_object( frame, ASCIIGL_OBJTYPE_UI_FRAME ) );	
 }
 
-void free_frame( UIFrame *frame )
+void free_ui_frame( UIFrame *frame )
 {
 	unregister_object_with_ptr( frame );
 	free( frame );
+}
+
+UIImage* gen_ui_image( IntVec2 position, IntVec2 size, RGB color, size_t layer, Texture* tex )
+{
+	UIImage *image = malloc( sizeof( UIImage ) );
+	image->position = position;
+	image->size = size;
+	image->color = color;
+	image->layer = layer;
+	image->texture = tex;
+
+	return ( UIImage* ) ( register_object( image, ASCIIGL_OBJTYPE_UI_IMAGE ) );	
+}
+
+void free_ui_image( UIImage *image )
+{
+	unregister_object_with_ptr( image );
+	free( image );
 }
