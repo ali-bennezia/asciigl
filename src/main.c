@@ -36,7 +36,7 @@ void render_frame(){
     (&(mptr->rotation))->y += 4.0;
    // (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->z += 4.0;
-    //translate_player(-1, 0, 0.8);
+    translate_player(0, 0, 0.8);
     //rotate_player(0, -2, 0);
 
     draw();
@@ -75,7 +75,7 @@ void init(){
 
     set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
 
-    set_frustum_near_plane( 0.1 );
+    set_frustum_near_plane( 0.01 );
     set_frustum_far_plane( 1000 );
     set_frustum_FOV( 60.0 );
 

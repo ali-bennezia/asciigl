@@ -608,7 +608,32 @@ Model* gen_model(){
     mdl->color = color;
     mdl->texture = NULL;
 
+    mdl->rotationMode = ASCIIGL_ROTATION_MODE_STANDARD;
+
     return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL ) )->ptr );
+}
+
+Model* gen_model_billboard(){
+    Model* mdl = malloc( sizeof( Model ) );
+    
+    Vec3 pos = {0, 0, 0}, 
+	rot = {0, 0, 0}, 
+	scale = {1, 1, 1};
+    RGBA color = {255, 255, 255, 255};
+
+    mdl->position = pos;
+    mdl->rotation = rot;
+    mdl->scale = scale;
+
+    mdl->mesh = gen_dynamic_array( sizeof(Triangle) );
+    mdl->normals = gen_dynamic_array( sizeof(Vec3) );
+    mdl->UVs = gen_dynamic_array( sizeof(Vec2) );
+
+    mdl->color = color;
+    mdl->texture = NULL;
+
+    mdl->rotationMode = ASCIIGL_ROTATION_MODE_BILLBOARD;
+    return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL_BILLBOARD ) )->ptr );
 }
 
 void free_model(Model *mdl){
@@ -622,6 +647,8 @@ void free_model(Model *mdl){
 	free_texture(mdl->texture);
     free(mdl);
 }
+
+
 
 RGB ansicolors[16] = {
 	{0,0,0}, //black

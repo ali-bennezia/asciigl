@@ -90,6 +90,12 @@ typedef struct Texture{
     uint32_t* data;
 } Texture;
 
+enum RenderRotationMode
+{
+	ASCIIGL_RENDER_ROTATION_MODE_STANDARD,
+	ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD
+};
+
 typedef struct Model{
     DynamicArray mesh, normals, UVs;
 
@@ -98,6 +104,8 @@ typedef struct Model{
 
     RGBA color;
     Texture* texture;
+
+    enum RenderRotationMode rotationMode;
 } Model;
 
 typedef struct UIText{
@@ -201,6 +209,7 @@ void insert_primitive_normals(Model* mdl, Vec3 normals[3]);
 void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCount);
 
 Model* gen_model();
+Model* gen_model_billboard();
 void free_model(Model *mdl);
 
 const char* get_ansi_console_color_code( unsigned short red, unsigned short green, unsigned short blue );
