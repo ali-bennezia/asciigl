@@ -36,7 +36,7 @@ void render_frame(){
     (&(mptr->rotation))->y += 4.0;
    // (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->z += 4.0;
-    translate_player(0, 0, 0.8);
+    //translate_player(0, 0, 0.8);
     //rotate_player(0, -2, 0);
 
     draw();
@@ -127,7 +127,16 @@ int main(int argc, char* argv[]){
     load_model_obj_strategy("cube.obj", mptr);
     load_model_obj_strategy("cube.obj", bptr);
 
-    IntVec2 txt_pos = {
+
+    Model *blb = gen_model_billboard();
+
+    blb->position.z = 5.0;
+    blb->position.x = 5.0;
+    blb->scale = unit_scale;
+
+    load_model_obj_strategy("cube.obj", blb);
+
+    /*IntVec2 txt_pos = {
 	10,
 	10
     };
@@ -156,9 +165,9 @@ int main(int argc, char* argv[]){
 	0
     };
 
-    gen_ui_frame( frame_pos, frame_size, frame_col, 5 );
+    gen_ui_frame( frame_pos, frame_size, frame_col, 5 );*/
 
-    Texture *img_tex = load_texture( "test.bmp" );
+   /* Texture *img_tex = load_texture( "test.bmp" );
 
     IntVec2 img_pos = {
 	0,
@@ -176,7 +185,7 @@ int main(int argc, char* argv[]){
 	255
     };
 
-    gen_ui_image( img_pos, img_size, img_col, 10, img_tex );
+    gen_ui_image( img_pos, img_size, img_col, 10, img_tex );*/
 
     //Pre-begin
 

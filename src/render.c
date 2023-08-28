@@ -536,9 +536,49 @@ void draw_model(Model model){
 	//UVs
 	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
 
-        Vec3 a_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
-        Vec3 b_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
-        Vec3 c_modelspace_rotated = rotate_point_around_origin( vec3_scale( primitive.c, model.scale ), model.rotation);
+        Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
+        Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
+        Vec3 c_modelspace_rotated = vec3_scale( primitive.c, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.c, model.scale ), model.rotation);
+
+	if ( model.rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
+	{
+		Vec3 cam_pos = get_player_position();
+
+		Vec2 x_axis_diff = {
+			model.position.z - cam_pos.z,
+			model.position.y - cam_pos.y
+		};
+		float x_axis_length = vec2_magnitude( x_axis_diff );	
+		float x_axis_angle = ( x_axis_length == 0 || x_axis_diff.x == 0 ) ? 0 : atan2( x_axis_diff.y / x_axis_length, x_axis_diff.x / x_axis_length );
+
+		Vec2 y_axis_diff = {
+			model.position.z - cam_pos.z,
+			cam_pos.x - model.position.x
+		};
+		float y_axis_length = vec2_magnitude( y_axis_diff );	
+		float y_axis_angle = ( y_axis_length == 0 || y_axis_diff.x == 0 ) ? 0 : atan2( y_axis_diff.y / y_axis_length, y_axis_diff.x / y_axis_length );
+
+		Vec2 z_axis_diff = {
+			model.position.x - cam_pos.x,
+			model.position.y - cam_pos.y
+		};
+		float z_axis_length = vec2_magnitude( z_axis_diff );	
+		float z_axis_angle = ( z_axis_length == 0 || z_axis_diff.x == 0 ) ? 0 : atan2( z_axis_diff.y / z_axis_length, z_axis_diff.x / z_axis_length );
+
+		Vec3 billboard_rotation = {
+			x_axis_angle,
+			y_axis_angle,
+			z_axis_angle
+		};
+
+		a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, billboard_rotation ); 
+		b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, billboard_rotation );
+		c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, billboard_rotation ); 
+	}
+
+        a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, model.rotation );
+        b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, model.rotation );
+        c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, model.rotation );
 
         Vec3 a_worldspace = vec3_add(model.position, a_modelspace_rotated);
         Vec3 b_worldspace = vec3_add(model.position, b_modelspace_rotated);
@@ -788,6 +828,7 @@ static void draw_obj( Object* obj )
 	switch ( obj->type ){
 
 		case ASCIIGL_OBJTYPE_MODEL:
+		case ASCIIGL_OBJTYPE_MODEL_BILLBOARD:
 			draw_model( *( (Model*) obj->ptr ) );
 			break;
 		case ASCIIGL_OBJTYPE_UI_TEXT:

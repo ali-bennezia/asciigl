@@ -608,7 +608,7 @@ Model* gen_model(){
     mdl->color = color;
     mdl->texture = NULL;
 
-    mdl->rotationMode = ASCIIGL_ROTATION_MODE_STANDARD;
+    mdl->rotationMode = ASCIIGL_RENDER_ROTATION_MODE_STANDARD;
 
     return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL ) )->ptr );
 }
@@ -632,7 +632,7 @@ Model* gen_model_billboard(){
     mdl->color = color;
     mdl->texture = NULL;
 
-    mdl->rotationMode = ASCIIGL_ROTATION_MODE_BILLBOARD;
+    mdl->rotationMode = ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD;
     return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL_BILLBOARD ) )->ptr );
 }
 
