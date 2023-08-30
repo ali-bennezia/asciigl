@@ -54,36 +54,55 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     return (outsideNearOrFarPlane == 1 || outsideFrustumBoundaries == 1) ? 0 : 1;
 }
 
+/* 
+	returns, on a 2d plane, the measure of the angle defined by the ray going from the origin of coordinates 
+	to ( 1, 0 ) and the ray going from the origin of coordinates to a given 2d position
+	the returned angle is defined in the open interval ( - pi / 2; pi / 2 ) and is expressed in radians
+*/
+static float compute_plane_angle( float pos_x, float pos_y )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+	return ( pos.x == 0 || distance == 0 ) ? 0 : atan2( pos.y / distance, pos.x / distance );
+}
+
+static Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+	float angle = compute_plane_angle( pos_x, pos_y ) + delta_theta_rads;
+	pos.x = cos( angle ) * distance;
+	pos.y = sin( angle ) * distance;
+	return pos;
+}
+
 Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
-    Vec3 out;
 
-    Vec3 player_position = get_player_position(), player_rotation = get_player_rotation();
-    Vec3 difference = {
-    	in.x - player_position.x,
-    	in.y - player_position.y,
-    	in.z - player_position.z
-    };
+	Vec3 player_position = get_player_position(), player_rotation = get_player_rotation();
 
-    double inToCameraDistance = vec3_magnitude( difference );
+	Vec3 pos_delta = {
+    		in.x - player_position.x,
+    		in.y - player_position.y,
+    		in.z - player_position.z
+	};
 
-    double inToCameraXZAngleRadians = difference.z != 0 ? atan2(-difference.x, difference.z) : 0;
-    double targetXZAngle = inToCameraXZAngleRadians;
-    //if (difference.z < 0)
-//	targetXZAngle = M_PI - targetXZAngle;
-    targetXZAngle -= to_rads( get_player_rotation().y );
+	Vec2 z_axis_pos = rotate_plane_position( pos_delta.x, pos_delta.y, to_rads( -player_rotation.z ) );
+	pos_delta.x = z_axis_pos.x; pos_delta.y = z_axis_pos.y;
 
-    double magnitudeXZ = sqrt( difference.x*difference.x + difference.z*difference.z );
-    double inToCameraVerticalAngleRadians = magnitudeXZ != 0 ? atan2(difference.y, magnitudeXZ) : 0;
-    double targetVerticalAngle = inToCameraVerticalAngleRadians - to_rads( player_rotation.x );
+	Vec2 y_axis_pos = rotate_plane_position( pos_delta.x, pos_delta.z, to_rads( -player_rotation.y ) );
+	pos_delta.x = y_axis_pos.x; pos_delta.z = y_axis_pos.y;
 
-    double horizontalWeight = cos(targetVerticalAngle);
-    double verticalWeight = sin(targetVerticalAngle);
+	Vec2 x_axis_pos = rotate_plane_position( pos_delta.z, pos_delta.y, to_rads( -player_rotation.x ) );
+	pos_delta.z = x_axis_pos.x; pos_delta.y = x_axis_pos.y;
 
-    out.z = cos(targetXZAngle) * inToCameraDistance * horizontalWeight;
-    out.y = verticalWeight * inToCameraDistance;
-    out.x = -sin(targetXZAngle) * inToCameraDistance * horizontalWeight;
+	return pos_delta;
 
-    return out;
 }
 
 Vec2 viewspace_coords_to_clipspace_coords(Vec3 in){

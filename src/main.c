@@ -33,11 +33,12 @@ void render_frame(){
     clear_frame_buffer();
     set_default_draw_color();
 
-    (&(mptr->rotation))->y += 4.0;
+  //  (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->z += 4.0;
-    //translate_player(0, 0, 0.8);
-    //rotate_player(0, -2, 0);
+    translate_player(0, 1, 0);
+    //set_player_rotation(-60, 0, 0);
+	rotate_player(-1, 0, 0);
 
     draw();
     //char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
@@ -105,13 +106,13 @@ int main(int argc, char* argv[]){
 
     Texture* tex = load_texture("test2.bmp");
 
-    mptr = gen_model();
+    //mptr = gen_model();
 
-    mptr->rotation.y = 90;
-    mptr->position.z = 10.0;
-    mptr->position.x = 0.0;
+    //mptr->rotation.y = 90;
+    //mptr->position.z = 10.0;
+    //mptr->position.x = 0.0;
     Vec3 unit_scale = { 1, 1, 1 };
-    mptr->scale = unit_scale;
+    //mptr->scale = unit_scale;
     //mdl.texture = tex;
     
 
@@ -122,11 +123,10 @@ int main(int argc, char* argv[]){
     Vec3 bp_scale = { 10, 2, 10 };
     bptr->scale = bp_scale;
 
-    mptr->texture = tex;
+  //  mptr->texture = tex;
 
-    load_model_obj_strategy("cube.obj", mptr);
+//    load_model_obj_strategy("cube.obj", mptr);
     load_model_obj_strategy("cube.obj", bptr);
-
 
     Model *blb = gen_model_billboard();
 
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]){
 
     gen_ui_frame( frame_pos, frame_size, frame_col, 5 );*/
 
-   /* Texture *img_tex = load_texture( "test.bmp" );
+    /*Texture *img_tex = load_texture( "test.bmp" );
 
     IntVec2 img_pos = {
 	0,
