@@ -54,34 +54,6 @@ int is_viewspace_position_in_frustum(Vec3 pos, Vec2* clipSpace){
     return (outsideNearOrFarPlane == 1 || outsideFrustumBoundaries == 1) ? 0 : 1;
 }
 
-/* 
-	returns, on a 2d plane, the measure of the angle defined by the ray going from the origin of coordinates 
-	to ( 1, 0 ) and the ray going from the origin of coordinates to a given 2d position
-	the returned angle is defined in the open interval ( - pi / 2; pi / 2 ) and is expressed in radians
-*/
-static float compute_plane_angle( float pos_x, float pos_y )
-{
-	Vec2 pos = {
-		pos_x,
-		pos_y
-	};
-	float distance = vec2_magnitude( pos );
-	return ( pos.x == 0 || distance == 0 ) ? 0 : atan2( pos.y / distance, pos.x / distance );
-}
-
-static Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads )
-{
-	Vec2 pos = {
-		pos_x,
-		pos_y
-	};
-	float distance = vec2_magnitude( pos );
-	float angle = compute_plane_angle( pos_x, pos_y ) + delta_theta_rads;
-	pos.x = cos( angle ) * distance;
-	pos.y = sin( angle ) * distance;
-	return pos;
-}
-
 Vec3 worldspace_coords_to_viewspace_coords(Vec3 in){
 
 	Vec3 player_position = get_player_position(), player_rotation = get_player_rotation();
@@ -137,8 +109,8 @@ Vec2 screenspace_coords_to_clipspace_coords(IntVec2 in)
 IntVec2 clipspace_to_screenspace(Vec2 in){
 
     IntVec2 out;
-    float half_width = (float)(FRAME_WIDTH) / 2.0; // (float)(FRAME_WIDTH-1) / 2.0;
-    float half_height = (float)(FRAME_HEIGHT) / 2.0; // (float)(FRAME_HEIGHT-1) / 2.0;
+    float half_width = (float)(FRAME_WIDTH) / 2.0;
+    float half_height = (float)(FRAME_HEIGHT) / 2.0;
 
     out.x = in.x * half_width;
     out.y = in.y * -half_height;
@@ -252,10 +224,6 @@ void rasterize_segment_fragment(
 			tex,
 			mdl );
 
-	/*RGB white = {255, 255, 255};
-	set_color_buffer_color( hpos_screenspace.x, hpos_screenspace.y, white );
-	set_depth_buffer_depth( hpos_screenspace.x, hpos_screenspace.y, 1000 );			
-	set_frame_buffer_fragment( hpos_screenspace.x, hpos_screenspace.y, 'X' );*/
 }
 
 void rasterize_segment(
@@ -435,10 +403,6 @@ void rasterize_and_draw_primitive_v2(
 		b_depth = vec3_magnitude( b_viewspace ),
 		c_depth = vec3_magnitude( c_viewspace );
 
-	/*Vec2 a_screenspace = vec2_int_to_float( clipspace_to_screenspace( a_clipspace ) ),
-		b_screenspace = vec2_int_to_float( clipspace_to_screenspace( b_clipspace ) ),
-		c_screenspace = vec2_int_to_float( clipspace_to_screenspace( c_clipspace ) );*/
-
 	float ab_clipspace_vertical_span = fabs( ab_clipspace.y ),
 		bc_clipspace_vertical_span = fabs( bc_clipspace.y ),
 		ca_clipspace_vertical_span = fabs( ca_clipspace.y );
@@ -539,13 +503,9 @@ void draw_model(Model model){
         Triangle primitive = *((Triangle*)get_data( &model.mesh, i, sizeof(Triangle) ));
 
         //normals
-        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3)) : NULL;
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3) ) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
-/*            normals_out[0] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
-            normals_out[1] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );
-            normals_out[2] = rotate_point_around_origin( rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), vec3_mirror( get_player_rotation() )), model.rotation );*/
-
             normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
             normals_out[1] = rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), model.rotation );
             normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );
@@ -562,33 +522,11 @@ void draw_model(Model model){
 	if ( model.rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
 	{
 		Vec3 cam_pos = get_player_position();
-
-		Vec2 x_axis_diff = {
-			model.position.z - cam_pos.z,
-			model.position.y - cam_pos.y
-		};
-		float x_axis_length = vec2_magnitude( x_axis_diff );	
-		float x_axis_angle = ( x_axis_length == 0 || x_axis_diff.x == 0 ) ? 0 : atan2( x_axis_diff.y / x_axis_length, x_axis_diff.x / x_axis_length );
-
-		Vec2 y_axis_diff = {
-			model.position.z - cam_pos.z,
-			cam_pos.x - model.position.x
-		};
-		float y_axis_length = vec2_magnitude( y_axis_diff );	
-		float y_axis_angle = ( y_axis_length == 0 || y_axis_diff.x == 0 ) ? 0 : atan2( y_axis_diff.y / y_axis_length, y_axis_diff.x / y_axis_length );
-
-		Vec2 z_axis_diff = {
-			model.position.x - cam_pos.x,
-			model.position.y - cam_pos.y
-		};
-		float z_axis_length = vec2_magnitude( z_axis_diff );	
-		float z_axis_angle = ( z_axis_length == 0 || z_axis_diff.x == 0 ) ? 0 : atan2( z_axis_diff.y / z_axis_length, z_axis_diff.x / z_axis_length );
-
-		Vec3 billboard_rotation = {
-			x_axis_angle,
-			y_axis_angle,
-			z_axis_angle
-		};
+		Vec3 diff_pos = vec3_difference( cam_pos, model.position );
+		if ( vec3_magnitude( diff_pos ) <= 0 )
+			diff_pos.z = 1;
+		Vec3 billboard_rotation = get_lookat_euler_angles_rotation( vec3_normalize( diff_pos ) );
+		billboard_rotation.z = get_player_rotation().z;
 
 		a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, billboard_rotation ); 
 		b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, billboard_rotation );

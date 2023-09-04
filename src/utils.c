@@ -531,6 +531,50 @@ IntVec2 vec2_float_to_int(IntVec2 vec)
     return out;
 }
 
+/* 
+	returns, on a 2d plane, the measure of the angle defined by the ray going from the origin of coordinates 
+	to ( 1, 0 ) and the ray going from the origin of coordinates to a given 2d position
+	the returned angle is defined in the half-closed interval [ - pi; pi ) and is expressed in radians
+*/
+float compute_plane_angle( float pos_x, float pos_y )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+	return ( pos.x == 0 || distance == 0 ) ? 0 : atan2( pos.y / distance, pos.x / distance );
+}
+
+Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+	float angle = compute_plane_angle( pos_x, pos_y ) + delta_theta_rads;
+	pos.x = cos( angle ) * distance;
+	pos.y = sin( angle ) * distance;
+	return pos;
+}
+
+Vec3 get_lookat_euler_angles_rotation( Vec3 lookat )
+{
+	Vec2 xz_plane_diff = {
+		lookat.x,
+		lookat.z
+	};
+	float xz_plane_distance = vec2_magnitude( xz_plane_diff );
+	float x_axis_angle_rads = compute_plane_angle( xz_plane_distance, lookat.y );
+	float y_axis_angle_rads = compute_plane_angle( xz_plane_diff.y, xz_plane_diff.x );
+	Vec3 result = {
+		to_degs( x_axis_angle_rads ),
+		to_degs( y_axis_angle_rads ),
+		0
+	};
+	return result;
+}
 
 void insert_primitive(Model* mdl, Triangle primitive){
     insert_data( &mdl->mesh, &primitive, sizeof(Triangle) );

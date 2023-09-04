@@ -202,6 +202,9 @@ Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation);
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p);
 Vec2 vec2_int_to_float(IntVec2 vec);
 IntVec2 vec2_float_to_int(IntVec2 vec);
+float compute_plane_angle( float pos_x, float pos_y );
+Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads );
+Vec3 get_lookat_euler_angles_rotation(Vec3 lookat);
 
 void insert_primitive(Model* mdl, Triangle primitive);
 void insert_primitives(Model* mdl, float* primitives, size_t primitivesCount);

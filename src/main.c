@@ -36,9 +36,9 @@ void render_frame(){
   //  (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->x += 4.0;
    // (&(mptr->rotation))->z += 4.0;
-    translate_player(0, 1, 0);
+	translate_player(0.5, 0.4, 0);
     //set_player_rotation(-60, 0, 0);
-	rotate_player(-1, 0, 0);
+	rotate_player(0, 1, 0);
 
     draw();
     //char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
@@ -86,7 +86,7 @@ void init(){
 
     add_ambient_light("Light", 30, white);
 
-    Vec3 normal = {-2, 5, 1};
+    Vec3 normal = {5, 5, 1};
     add_directional_light("Some light", 100, vec3_normalize(normal), white);
     Vec3 pos = {1, 0, 2};
     //add_point_light("Some point light", 150, 10, pos, white);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]){
 
     Model *blb = gen_model_billboard();
 
-    blb->position.z = 5.0;
+    blb->position.z = -10.0;
     blb->position.x = 5.0;
     blb->scale = unit_scale;
 
