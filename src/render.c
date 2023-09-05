@@ -515,9 +515,9 @@ void draw_model(Model model){
 	//UVs
 	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
 
-        Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.a, model.scale ), model.rotation);
-        Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.b, model.scale ), model.rotation);
-        Vec3 c_modelspace_rotated = vec3_scale( primitive.c, model.scale ); //rotate_point_around_origin( vec3_scale( primitive.c, model.scale ), model.rotation);
+        Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model.scale ); 
+        Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model.scale ); 
+        Vec3 c_modelspace_rotated = vec3_scale( primitive.c, model.scale ); 
 
 	if ( model.rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
 	{

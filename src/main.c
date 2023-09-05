@@ -38,7 +38,7 @@ void render_frame(){
    // (&(mptr->rotation))->z += 4.0;
 	translate_player(0.5, 0.4, 0);
     //set_player_rotation(-60, 0, 0);
-	rotate_player(0, 1, 0);
+	rotate_player(-1.2, 1, 0);
 
     draw();
     //char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]){
     blb->position.z = -10.0;
     blb->position.x = 5.0;
     blb->scale = unit_scale;
-
+    blb->texture = tex;
     load_model_obj_strategy("cube.obj", blb);
 
     /*IntVec2 txt_pos = {

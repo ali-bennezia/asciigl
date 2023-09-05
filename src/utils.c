@@ -408,75 +408,22 @@ int clamp_segment_within_vertical_horizontal_ranges( Segment* out, Segment segme
 }
 
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
+	Vec3 rotation_rads = {
+		to_rads( rotation.x ),
+		to_rads( rotation.y ),
+		to_rads( rotation.z )
+	};
 
-    float x_rads = to_rads(rotation.x), y_rads = to_rads(rotation.y), z_rads = to_rads(rotation.z);
+	Vec2 zy_plane_rotated_position = rotate_plane_position( position.z, position.y, rotation_rads.x ); // x-axis
+	position.z = zy_plane_rotated_position.x; position.y = zy_plane_rotated_position.y;
 
-    float rotation_x_sin = sin( x_rads );
-    float rotation_x_cos = cos( x_rads );
+	Vec2 zx_plane_rotated_position = rotate_plane_position( position.z, -position.x, rotation_rads.y ); // y-axis
+	position.z = zx_plane_rotated_position.x; position.x = -zx_plane_rotated_position.y;
 
-    float rotation_y_sin = sin( y_rads );
-    float rotation_y_cos = cos( y_rads );
+	Vec2 xy_plane_rotated_position = rotate_plane_position( position.x, position.y, rotation_rads.z ); // z-axis
+	position.x = xy_plane_rotated_position.x; position.y = xy_plane_rotated_position.y;
 
-    float rotation_z_sin = sin( z_rads );
-    float rotation_z_cos = cos( z_rads );
-
-    Vec3 out;
-
-    float zy_plane_distance = sqrt(position.z * position.z + position.y * position.y);
-
-    if (zy_plane_distance != 0){
-
-        float zy_plane_initial_sin = position.y / zy_plane_distance;
-        float zy_plane_initial_cos = position.z / zy_plane_distance;
-
-        float zy_plane_new_sin = zy_plane_initial_sin * rotation_x_cos + rotation_x_sin * zy_plane_initial_cos;
-        float zy_plane_new_cos = zy_plane_initial_cos * rotation_x_cos - rotation_x_sin * zy_plane_initial_sin;
-
-        out.z = zy_plane_new_cos * zy_plane_distance;
-        out.y = zy_plane_new_sin * zy_plane_distance;
-
-    }else{
-        out.z = 0;
-        out.y = 0;
-    }
-
-    float xz_plane_distance = sqrt(position.x * position.x + out.z * out.z);
-
-    if (xz_plane_distance != 0){
-        float xz_plane_initial_sin = out.z / xz_plane_distance;
-        float xz_plane_initial_cos = position.x / xz_plane_distance;
-
-        float xz_plane_new_sin = xz_plane_initial_sin * rotation_y_cos + xz_plane_initial_cos * rotation_y_sin;
-        float xz_plane_new_cos = xz_plane_initial_cos * rotation_y_cos - xz_plane_initial_sin * rotation_y_sin;
-
-        out.x = xz_plane_new_cos * xz_plane_distance;
-        out.z = xz_plane_new_sin * xz_plane_distance;
-    }else{
-        out.x = 0;
-        out.z = 0;
-    }
-
-    float xy_plane_distance = sqrt(out.x * out.x + out.y * out.y);
-
-    if (xy_plane_distance != 0){
-
-        float xy_plane_initial_sin = out.y / xy_plane_distance;
-        float xy_plane_initial_cos = out.x / xy_plane_distance;
-
-        float xy_plane_new_sin = xy_plane_initial_sin * rotation_z_cos + xy_plane_initial_cos * rotation_z_sin;
-        float xy_plane_new_cos = xy_plane_initial_cos * rotation_z_cos - xy_plane_initial_sin * rotation_z_sin;
-
-        out.y = xy_plane_new_sin * xy_plane_distance;
-        out.x = xy_plane_new_cos * xy_plane_distance;
-    }else{
-        out.y = 0;
-        out.x = 0;
-    }
-
-
-
-    return out;
-
+	return position;
 }
 
 TriangularCoordinates calculate_triangular_coordinates(Vec2 a, Vec2 b, Vec2 c, Vec2 p){
@@ -567,7 +514,7 @@ Vec3 get_lookat_euler_angles_rotation( Vec3 lookat )
 	};
 	float xz_plane_distance = vec2_magnitude( xz_plane_diff );
 	float x_axis_angle_rads = compute_plane_angle( xz_plane_distance, lookat.y );
-	float y_axis_angle_rads = compute_plane_angle( xz_plane_diff.y, xz_plane_diff.x );
+	float y_axis_angle_rads = compute_plane_angle( xz_plane_diff.y, -xz_plane_diff.x );
 	Vec3 result = {
 		to_degs( x_axis_angle_rads ),
 		to_degs( y_axis_angle_rads ),
