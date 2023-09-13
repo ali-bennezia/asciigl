@@ -10,14 +10,7 @@
 
 */
 
-#include "asciigl.h"
-
-#include "./../include/config.h"
-#include "./../include/state.h"
-#include "./../include/utils.h"
-#include "./../include/render.h"
-#include "./../include/images.h"
-#include "./../include/models.h"
+#include "./../include/asciigl.h"
 
 //process
 

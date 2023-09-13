@@ -227,4 +227,6 @@ void free_ui_frame( UIFrame *frame );
 UIImage* gen_ui_image( IntVec2 position, IntVec2 size, RGB color, size_t layer, Texture* tex );
 void free_ui_image( UIImage *image );
 
+char *get_path_extension_alloc( char *path );
+
 #endif

@@ -21,5 +21,6 @@ enum PRIMITIVE_TYPE{
 };
 
 int load_model_obj_strategy(const char* path, Model* destination);
+int load_model(const char* path, Model *destination);
 
 #endif

@@ -253,3 +253,18 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	return 0;
 }
+
+int load_model(const char* path, Model *destination)
+{
+	char *extension = get_path_extension_alloc( ( char* ) path );
+	int result;
+	if ( strcmp( extension, "obj" ) == 0 )
+	{
+		result = load_model_obj_strategy( path, destination );
+	}else{
+		fprintf(stderr, "Unsupported model file type. Extension: %s\n", extension);
+		result = 1;
+	}
+	free( extension );
+	return result;
+}

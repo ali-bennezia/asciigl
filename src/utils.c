@@ -774,3 +774,23 @@ void free_ui_image( UIImage *image )
 	unregister_object_with_ptr( image );
 	free( image );
 }
+
+char *get_path_extension_alloc( char *path )
+{
+	size_t path_len = strlen( path ) + 1;
+	char *str = malloc( path_len );
+	strcpy( str, path );
+
+	char *prv_token = NULL, *token = NULL;
+
+	int first = 1;
+	while ( ( token = strtok( first ? str : NULL, "." ) ) )
+	{
+		prv_token = token;
+		first = 0;
+	}
+
+	if ( prv_token == NULL )
+		free( str );
+	return prv_token;
+}
