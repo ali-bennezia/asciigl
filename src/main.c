@@ -11,95 +11,9 @@
 */
 
 
-#include "./../include/config.h"
-#include "./../include/state.h"
-#include "./../include/utils.h"
-#include "./../include/render.h"
-#include "./../include/images.h"
-#include "./../include/models.h"
-
-//process
-
-Model *mptr, *bptr;
-
-void cleanup(){
-    set_default_draw_color();
-}
-
-void render_frame(){
-    if (get_depth_testing_state() == DEPTH_TESTING_STATE_ENABLED)
-        clear_depth_buffer();
-
-    clear_frame_buffer();
-    set_default_draw_color();
-
-  //  (&(mptr->rotation))->x += 4.0;
-   // (&(mptr->rotation))->x += 4.0;
-   // (&(mptr->rotation))->z += 4.0;
-	translate_player(0.5, 0.4, 0);
-    //set_player_rotation(-60, 0, 0);
-	rotate_player(-1.2, 1, 0);
-
-    draw();
-    //char str[43] = "Properties\nX: 0, Y: 0, Z: 0\n> Hello World!\0";
-    //draw_text( 10, 10, &str[0] );
-
-
-    char* frame_string = NULL;
-    size_t frame_string_size = 0;
-    process_draw_string( &frame_string, &frame_string_size );
-    printf( "%s", frame_string );
-    free(frame_string);
-
-    set_default_print_color();
-}
-
-void routine(){
-    while (1){
-	clear_console();
-        render_frame();
-        SLEEP(SLEEP_TIME);
-    }
-}
-
-void init(){
-    //init
-
-    atexit( cleanup );
-
-    init_workspace();
-    init_light_arrays();
-
-    clear_frame_buffer();
-    clear_depth_buffer();
-    clear_ui_layers_buffer();
-
-    set_depth_testing_state( DEPTH_TESTING_STATE_ENABLED );
-
-    set_frustum_near_plane( 0.01 );
-    set_frustum_far_plane( 1000 );
-    set_frustum_FOV( 60.0 );
-
-
-    RGB white = {255, 255, 255};
-    RGB red = {255, 0, 0};
-
-    add_ambient_light("Light", 30, white);
-
-    Vec3 normal = {5, 5, 1};
-    add_directional_light("Some light", 100, vec3_normalize(normal), white);
-    Vec3 pos = {1, 0, 2};
-    //add_point_light("Some point light", 150, 10, pos, white);
-
-    set_player_position(0,0,0);
-    set_player_rotation(0,0,0);
-    
-    clear_console();
-
-}
 
 int main(int argc, char* argv[]){
-
+	/*
     init();
 
     //debug
@@ -186,7 +100,7 @@ int main(int argc, char* argv[]){
     };
 
     gen_ui_image( img_pos, img_size, img_col, 10, img_tex );*/
-
+	/*
     //Pre-begin
 
     set_player_rotation(-7, 0, 0);
@@ -194,6 +108,8 @@ int main(int argc, char* argv[]){
 
     //Begin routine.
     routine();
+
+	*/
 
     return 0;
 }

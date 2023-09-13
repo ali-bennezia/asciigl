@@ -14,18 +14,18 @@ fi
 
 cd static
 
-gcc -c ./../../src/utils.c \
+gcc -c ./../../src/asciigl.c ./../../src/utils.c \
 	./../../src/render.c ./../../src/state.c \
 	./../../src/images.c ./../../src/models.c -I"./../../include" 
 
-ar rcs libasciigl-static.a utils.o render.o state.o images.o models.o
+ar rcs libasciigl-static.a asciigl.o utils.o render.o state.o images.o models.o
 
 rm *.o
 
 cd ../shared
 
-gcc -fPIC -c ./../../src/utils.c ./../../src/render.c ./../../src/state.c ./../../src/images.c ./../../src/models.c -I"./../../include"
-gcc -shared utils.o render.o state.o images.o models.o -o libasciigl-shared.so
+gcc -fPIC -c ./../../src/asciigl.c ./../../src/utils.c ./../../src/render.c ./../../src/state.c ./../../src/images.c ./../../src/models.c -I"./../../include"
+gcc -shared asciigl.o utils.o render.o state.o images.o models.o -o libasciigl-shared.so
 
 rm *.o
 
