@@ -10,18 +10,17 @@
 
 */
 
-#include "./../include/models.h"
+#include "./../include/meshes.h"
 #include "./../include/utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-int load_model_obj_strategy(const char* path, Model* destination)
+Mesh *load_mesh_obj_strategy(const char* path)
 {
-	if (destination == NULL) return 1;
 	FILE* file = fopen( path, "r" );
-	if (file == NULL) return 1;
+	if (file == NULL) return NULL;
 
 	int detectedPrimitive = 0;
 	enum PRIMITIVE_TYPE primitiveType = TRIANGLE_PRIMITIVE;
@@ -98,10 +97,11 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 	fclose(file);
 
-	if ( destination->mesh.buffer != NULL ) free_dynamic_array( &destination->mesh );
-	if ( destination->normals.buffer != NULL ) free_dynamic_array( &destination->normals );
-	if ( destination->UVs.buffer != NULL ) free_dynamic_array( &destination->UVs );
-	//return 0;
+	Mesh *destination = gen_mesh();
+	free_dynamic_array( &destination->vertices );
+	free_dynamic_array( &destination->UVs );
+	free_dynamic_array( &destination->normals );
+
 	if (indices.usage > 0){
 
 		DynamicArray unwrapped_vertices = gen_dynamic_array( sizeof( float ) * 3 ),
@@ -129,12 +129,12 @@ int load_model_obj_strategy(const char* path, Model* destination)
 		free_dynamic_array( &uvs );	
 		free_dynamic_array( &vertices );
 
-		destination->mesh = unwrapped_vertices;
+		destination->vertices = unwrapped_vertices;
 		destination->UVs = unwrapped_uvs;
 		destination->normals = unwrapped_normals;
 
 	}else{
-		destination->mesh = vertices;
+		destination->vertices = vertices;
 		destination->UVs = uvs;
 		destination->normals = normals;
 	}
@@ -144,26 +144,26 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			tri_UVs = gen_dynamic_array( sizeof(float)*2 ),
 			tri_normals = gen_dynamic_array( sizeof(float)*3 );
 
-		for( size_t i = 0; i < destination->mesh.usage / 4; ++i ){
+		for( size_t i = 0; i < destination->vertices.usage / 4; ++i ){
 			float vert_a[3] = {
-				*((float*)destination->mesh.buffer + i * 12),
-				*((float*)destination->mesh.buffer + i * 12 + 1),
-				*((float*)destination->mesh.buffer + i * 12 + 2)
+				*((float*)destination->vertices.buffer + i * 12),
+				*((float*)destination->vertices.buffer + i * 12 + 1),
+				*((float*)destination->vertices.buffer + i * 12 + 2)
 			};
 			float vert_b[3] = {
-				*((float*)destination->mesh.buffer + i * 12 + 3),
-				*((float*)destination->mesh.buffer + i * 12 + 4),
-				*((float*)destination->mesh.buffer + i * 12 + 5)
+				*((float*)destination->vertices.buffer + i * 12 + 3),
+				*((float*)destination->vertices.buffer + i * 12 + 4),
+				*((float*)destination->vertices.buffer + i * 12 + 5)
 			};
 			float vert_c[3] = {
-				*((float*)destination->mesh.buffer + i * 12 + 6),
-				*((float*)destination->mesh.buffer + i * 12 + 7),
-				*((float*)destination->mesh.buffer + i * 12 + 8)
+				*((float*)destination->vertices.buffer + i * 12 + 6),
+				*((float*)destination->vertices.buffer + i * 12 + 7),
+				*((float*)destination->vertices.buffer + i * 12 + 8)
 			};		
 			float vert_d[3] = {
-				*((float*)destination->mesh.buffer + i * 12 + 9),
-				*((float*)destination->mesh.buffer + i * 12 + 10),
-				*((float*)destination->mesh.buffer + i * 12 + 11)
+				*((float*)destination->vertices.buffer + i * 12 + 9),
+				*((float*)destination->vertices.buffer + i * 12 + 10),
+				*((float*)destination->vertices.buffer + i * 12 + 11)
 			};
 			
 			insert_data( &tri_vertices, &vert_a[0], sizeof(float)*3 );	
@@ -174,7 +174,7 @@ int load_model_obj_strategy(const char* path, Model* destination)
 			insert_data( &tri_vertices, &vert_d[0], sizeof(float)*3 );	
 			insert_data( &tri_vertices, &vert_a[0], sizeof(float)*3 );
 
-			if ( destination->UVs.usage == destination->mesh.usage ){
+			if ( destination->UVs.usage == destination->vertices.usage ){
 
 				float UVs_a[3] = {
 					*((float*)destination->UVs.buffer + i * 8),
@@ -203,7 +203,7 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 			}
 			
-			if ( destination->normals.usage == destination->mesh.usage ){
+			if ( destination->normals.usage == destination->vertices.usage ){
 
 				float normals_a[3] = {
 					*((float*)destination->normals.buffer + i * 12),
@@ -238,32 +238,52 @@ int load_model_obj_strategy(const char* path, Model* destination)
 
 		}
 
-		free_dynamic_array( &destination->mesh );
+		free_dynamic_array( &destination->vertices );
 		free_dynamic_array( &destination->UVs );
 		free_dynamic_array( &destination->normals );
 
-		destination->mesh = tri_vertices;
+		destination->vertices = tri_vertices;
 		destination->UVs = tri_UVs;
 		destination->normals = tri_normals;
 	}
 
-	destination->mesh.usage /= 3;
+	destination->vertices.usage /= 3;
 
 	free_dynamic_array( &indices );
 
 	return 0;
 }
 
-int load_model(const char* path, Model *destination)
+Mesh *gen_mesh()
+{
+	Mesh *mesh = malloc( sizeof( Mesh ) );
+
+	mesh->vertices = gen_dynamic_array( sizeof(Triangle) );
+	mesh->normals = gen_dynamic_array( sizeof(Vec3) );
+	mesh->UVs = gen_dynamic_array( sizeof(Vec2) );
+
+	return mesh;
+}
+
+void free_mesh( Mesh *mesh )
+{
+	if ( !mesh ) return;
+	free_dynamic_array( &mesh->vertices );
+	free_dynamic_array( &mesh->UVs );
+	free_dynamic_array( &mesh->normals );
+	free( mesh );
+}
+
+Mesh *load_mesh(const char* path)
 {
 	char *extension = get_path_extension_alloc( ( char* ) path );
-	int result;
+	Mesh *result;
 	if ( strcmp( extension, "obj" ) == 0 )
 	{
-		result = load_model_obj_strategy( path, destination );
+		result = load_mesh_obj_strategy( path );
 	}else{
 		fprintf(stderr, "Unsupported model file type. Extension: %s\n", extension);
-		result = 1;
+		result = NULL;
 	}
 	free( extension );
 	return result;

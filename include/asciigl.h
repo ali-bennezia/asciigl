@@ -18,7 +18,7 @@
 #include "./../include/utils.h"
 #include "./../include/render.h"
 #include "./../include/images.h"
-#include "./../include/models.h"
+#include "./../include/meshes.h"
 
 void asciigl_process_frame();
 void asciigl_init();

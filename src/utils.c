@@ -14,6 +14,7 @@
 #include "./../include/state.h"
 #include "./../include/images.h"
 #include "./../include/config.h"
+#include "./../include/meshes.h"
 
 #include <string.h>
 
@@ -524,7 +525,7 @@ Vec3 get_lookat_euler_angles_rotation( Vec3 lookat )
 }
 
 void insert_primitive(Model* mdl, Triangle primitive){
-    insert_data( &mdl->mesh, &primitive, sizeof(Triangle) );
+    insert_data( &mdl->mesh->vertices, &primitive, sizeof(Triangle) );
 }
 
 //primitivesCount is the number of Triangles ie the amount of elements in the array 'primitives' divided by 9
@@ -550,9 +551,9 @@ void insert_primitives(Model* mdl, float* primitives, size_t primitivesCount)
 }
 
 void insert_primitive_normals(Model* mdl, Vec3 normals[3]){
-    insert_data( &mdl->normals, &normals[0], sizeof(Vec3) );
-    insert_data( &mdl->normals, &normals[1], sizeof(Vec3) );
-    insert_data( &mdl->normals, &normals[2], sizeof(Vec3) );
+    insert_data( &mdl->mesh->normals, &normals[0], sizeof(Vec3) );
+    insert_data( &mdl->mesh->normals, &normals[1], sizeof(Vec3) );
+    insert_data( &mdl->mesh->normals, &normals[2], sizeof(Vec3) );
 }
 
 void insert_primitives_normals(Model* mdl, float* normals, size_t primitivesCount)
@@ -592,12 +593,9 @@ Model* gen_model(){
     mdl->rotation = rot;
     mdl->scale = scale;
 
-    mdl->mesh = gen_dynamic_array( sizeof(Triangle) );
-    mdl->normals = gen_dynamic_array( sizeof(Vec3) );
-    mdl->UVs = gen_dynamic_array( sizeof(Vec2) );
-
     mdl->color = color;
     mdl->texture = NULL;
+    mdl->mesh = NULL;
 
     mdl->rotationMode = ASCIIGL_RENDER_ROTATION_MODE_STANDARD;
 
@@ -616,12 +614,9 @@ Model* gen_model_billboard(){
     mdl->rotation = rot;
     mdl->scale = scale;
 
-    mdl->mesh = gen_dynamic_array( sizeof(Triangle) );
-    mdl->normals = gen_dynamic_array( sizeof(Vec3) );
-    mdl->UVs = gen_dynamic_array( sizeof(Vec2) );
-
     mdl->color = color;
     mdl->texture = NULL;
+    mdl->mesh = NULL;
 
     mdl->rotationMode = ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD;
     return ( Model* ) ( ( register_object( mdl, ASCIIGL_OBJTYPE_MODEL_BILLBOARD ) )->ptr );
@@ -631,11 +626,8 @@ void free_model(Model *mdl){
 
     unregister_object_with_ptr( mdl );
 
-    free_dynamic_array(&mdl->mesh);
-    free_dynamic_array(&mdl->normals);
-    free_dynamic_array(&mdl->UVs);
-    if (mdl->texture != NULL)
-	free_texture(mdl->texture);
+    if (mdl->texture != NULL) free_texture(mdl->texture);
+    if ( mdl->mesh ) free_mesh( mdl->mesh );
     free(mdl);
 }
 

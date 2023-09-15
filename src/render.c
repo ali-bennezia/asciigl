@@ -489,9 +489,11 @@ void rasterize_and_draw_primitive_v2(
 
 void draw_model(Model model){
 
+    if ( !model.mesh ) return;
+
     //condition to take normals & UVs into account during rendering
-    char normals = model.mesh.usage == model.normals.usage/3 ? 1 : 0;
-    char UVs = model.mesh.usage == model.UVs.usage/3 && model.UVs.usage != 0 ? 1 : 0;
+    char normals = model.mesh->vertices.usage == model.mesh->normals.usage/3 ? 1 : 0;
+    char UVs = model.mesh->vertices.usage == model.mesh->UVs.usage/3 && model.mesh->UVs.usage != 0 ? 1 : 0;
     Vec2 placeholder_UVs[3] = { 
 	{1, 1},
 	{1, 0},
@@ -499,11 +501,11 @@ void draw_model(Model model){
     };
 
     //per-primitive
-    for (size_t i = 0; i < model.mesh.usage; ++i){
-        Triangle primitive = *((Triangle*)get_data( &model.mesh, i, sizeof(Triangle) ));
+    for (size_t i = 0; i < model.mesh->vertices.usage; ++i){
+        Triangle primitive = *((Triangle*)get_data( &model.mesh->vertices, i, sizeof(Triangle) ));
 
         //normals
-        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.normals, i*3, sizeof(Vec3) ) : NULL;
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.mesh->normals, i*3, sizeof(Vec3) ) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
             normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
@@ -513,7 +515,7 @@ void draw_model(Model model){
         }
 
 	//UVs
-	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
+	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.mesh->UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
 
         Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model.scale ); 
         Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model.scale ); 

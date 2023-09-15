@@ -96,14 +96,19 @@ enum RenderRotationMode
 	ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD
 };
 
+typedef struct Mesh {
+	DynamicArray vertices, normals, UVs;
+} Mesh;
+
 typedef struct Model{
-    DynamicArray mesh, normals, UVs;
 
     //Transform in worldspace
     Vec3 position, rotation, scale;
 
     RGBA color;
-    Texture* texture;
+
+    Mesh *mesh;
+    Texture *texture;
 
     enum RenderRotationMode rotationMode;
 } Model;

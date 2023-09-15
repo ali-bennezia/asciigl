@@ -13,14 +13,15 @@
 #ifndef MODELS_HEADERGUARD
 #define MODELS_HEADERGUARD
 
-typedef struct Model Model;
+typedef struct Mesh Mesh;
 
 enum PRIMITIVE_TYPE{
 	TRIANGLE_PRIMITIVE,
 	QUAD_PRIMITIVE
 };
 
-int load_model_obj_strategy(const char* path, Model* destination);
-int load_model(const char* path, Model *destination);
+Mesh *gen_mesh();
+void free_mesh( Mesh *mesh );
+Mesh *load_mesh(const char* path);
 
 #endif
