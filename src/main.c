@@ -13,6 +13,22 @@
 #include "./../include/asciigl.h"
 
 int main(int argc, char* argv[]){
-    return 0;
+	asciigl_init();
+
+	Mesh *msh = load_mesh( "cube.obj" );
+	Model *mdl = gen_model();
+	mdl->mesh = msh;
+
+	Vec3 position = {
+		0,
+		0,
+		10
+	};
+
+	while (1){
+		asciigl_process_frame();
+	}
+
+	return 0;
 }
 

@@ -251,7 +251,7 @@ Mesh *load_mesh_obj_strategy(const char* path)
 
 	free_dynamic_array( &indices );
 
-	return 0;
+	return destination;
 }
 
 Mesh *gen_mesh()

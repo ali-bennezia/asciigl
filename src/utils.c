@@ -769,6 +769,7 @@ void free_ui_image( UIImage *image )
 
 char *get_path_extension_alloc( char *path )
 {
+	if ( !path ) return NULL;
 	size_t path_len = strlen( path ) + 1;
 	char *str = malloc( path_len );
 	strcpy( str, path );
@@ -782,7 +783,13 @@ char *get_path_extension_alloc( char *path )
 		first = 0;
 	}
 
-	if ( prv_token == NULL )
-		free( str );
-	return prv_token;
+	char *result = NULL;
+
+	if ( prv_token )
+	{
+		result = malloc( strlen( prv_token ) + 1 );
+		strcpy( result, prv_token );
+	}
+	free( str );
+	return result;
 }
