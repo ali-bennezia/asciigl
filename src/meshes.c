@@ -17,248 +17,107 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <assert.h>
+
+static int get_ln_tokens( char *ln, char **tokens, size_t *amnt )
+{
+	size_t index = 0;
+	char *tk = NULL;
+	while ( ( tk = strtok( index == 0 ? ln : NULL, " " ) ) && index < 256 )
+	{
+		*( tokens + index ) = tk;	
+		++index;	
+	}
+	*amnt = index;
+	return index < 0 || index > 256;	
+}
+
+typedef struct Indices {
+	int a, b, c;
+} Indices;
+
+static Indices unpack_indices( char *str )
+{
+	Indices out = {0};
+
+	size_t i = 0;
+	char *tok = NULL;
+	while ( ( tok = strtok( i == 0 ? str : NULL, "/" ) ) && i < 3 )
+	{
+		*( ( int* ) &out + i ) = atoi( tok );
+		++i;
+	}	
+
+	return out;
+}
+
 Mesh *load_mesh_obj_strategy(const char* path)
 {
 	FILE* file = fopen( path, "r" );
 	if (file == NULL) return NULL;
 
-	int detectedPrimitive = 0;
-	enum PRIMITIVE_TYPE primitiveType = TRIANGLE_PRIMITIVE;
+	Mesh *mesh = gen_mesh();
 
-	DynamicArray vertices = gen_dynamic_array( sizeof( float ) * 3 ),
-		uvs = gen_dynamic_array( sizeof( float ) * 2 ),
-		normals = gen_dynamic_array( sizeof( float ) * 3 ),
-		indices = gen_dynamic_array( sizeof( int ) );
+	DynamicArray raw_vertices = gen_dynamic_array( sizeof( float ) * 3 ), 
+		raw_UVs = gen_dynamic_array( sizeof( float ) * 2 ), 
+		raw_normals = gen_dynamic_array( sizeof( float ) * 3 ),
+		tri_indices = gen_dynamic_array( sizeof( int ) * 3 ),
+		quad_indices = gen_dynamic_array( sizeof( int ) * 3 );
 
-	char line[1024];
-	while (fgets(line, sizeof(line), file))
+	char line[256];
+	while ( fgets( &line[0], 256, file ) )
 	{
-		const char* token = strtok( line, " " );
 
-		if ( strcmp( token, "v" ) == 0 ){
+		char *line_tokens[ 256 ];
+		size_t line_tokens_amnt = 0;
+		get_ln_tokens( &line[0], &line_tokens[0], &line_tokens_amnt );
 
-			float vertex_x = atof( strtok( NULL, " " ) );
-			float vertex_y = atof( strtok( NULL, " " ) );
-			float vertex_z = atof( strtok( NULL, " " ) );
-			float vdata[3] = { vertex_x, vertex_y, vertex_z };
+		if ( line_tokens_amnt == 0 ) continue;
 
-			insert_data( &vertices, &vdata[0], sizeof(float)*3 );
-
-		}else if( strcmp( token, "vt" ) == 0 ){
-
-			float uv_x = atof( strtok( NULL, " " ) );
-			float uv_y = atof( strtok( NULL, " " ) );
-			float uvdata[2] = { uv_x, uv_y };
-
-			insert_data( &uvs, &uvdata[0], sizeof(float)*2 );
-
-		}else if( strcmp( token, "vn" ) == 0 ){
-
-			float normal_x = atof( strtok( NULL, " " ) );
-			float normal_y = atof( strtok( NULL, " " ) );
-			float normal_z = atof( strtok( NULL, " " ) );
-			float ndata[3] = { normal_x, normal_y, normal_z };
-
-			insert_data( &normals, &ndata[0], sizeof(float)*3 );
-
-		}else if( strcmp( token, "f" ) == 0 ){
-			DynamicArray tokens = gen_dynamic_array( sizeof(char*) );
-
-			char* cur_token = strtok( NULL, " " );
-			while ( cur_token != NULL ){
-				insert_data( &tokens, &cur_token, sizeof(char*) );
-				cur_token = strtok( NULL, " " );
-			}
-
-			for (size_t i = 0; i < tokens.usage; ++i){
-				char* ind = *((char**)tokens.buffer + i);
-
-				// printf("Processing reference token: %s\n", ind);
-				int index_a = atoi( strtok ( ind, "/" ) );
-				int index_b = atoi( strtok ( NULL, "/" ) );
-				int index_c = atoi( strtok ( NULL, "/" ) );
-
-				insert_data( &indices, &index_a, sizeof(int) );
-				insert_data( &indices, &index_b, sizeof(int) );
-				insert_data( &indices, &index_c, sizeof(int) );
-			}
-
-			if (!detectedPrimitive){
-				detectedPrimitive = 1;
-				if ( floatmod( tokens.usage, 3 ) == 0 )
-					primitiveType = TRIANGLE_PRIMITIVE;
-				else if ( floatmod( tokens.usage, 4 ) == 0 )
-					primitiveType = QUAD_PRIMITIVE;
-			}
-
-			free_dynamic_array( &tokens );
-		}else continue;
-	}
-
-	fclose(file);
-
-	Mesh *destination = gen_mesh();
-	free_dynamic_array( &destination->vertices );
-	free_dynamic_array( &destination->UVs );
-	free_dynamic_array( &destination->normals );
-
-	if (indices.usage > 0){
-
-		DynamicArray unwrapped_vertices = gen_dynamic_array( sizeof( float ) * 3 ),
-			unwrapped_uvs = gen_dynamic_array( sizeof( float ) * 2 ),
-			unwrapped_normals = gen_dynamic_array( sizeof( float ) * 3 );
-
-		for (size_t i = 0; i < indices.usage/3; ++i){
+		if ( strcmp( line_tokens[0], "#" ) == 0 ){
+			continue;
+		}else if ( strcmp( line_tokens[0], "v" ) == 0 ){
+			float x = atof( convert_float_string_to_current_locale( line_tokens[1] ) ),
+				y = atof( convert_float_string_to_current_locale( line_tokens[2] ) ),
+				z = atof( convert_float_string_to_current_locale( line_tokens[3] ) );
 			
-			int index_a = *((int*)indices.buffer + i*3) - 1;
-			int index_b = *((int*)indices.buffer + i*3 + 1) - 1;
-			int index_c = *((int*)indices.buffer + i*3 + 2) - 1;
-
-			//vertices unwrapping
-			insert_data( &unwrapped_vertices, (float*)vertices.buffer + index_a*3, sizeof(float) * 3 );
-
-			//UVs unwrapping
-			insert_data( &unwrapped_uvs, (float*)uvs.buffer + index_b*2, sizeof(float) * 2 );
-
-			//normals unwrapping
-			insert_data( &unwrapped_normals, (float*)normals.buffer + index_c*3, sizeof(float) * 3 );
-				
-		}
-
-		free_dynamic_array( &normals );
-		free_dynamic_array( &uvs );	
-		free_dynamic_array( &vertices );
-
-		destination->vertices = unwrapped_vertices;
-		destination->UVs = unwrapped_uvs;
-		destination->normals = unwrapped_normals;
-
-	}else{
-		destination->vertices = vertices;
-		destination->UVs = uvs;
-		destination->normals = normals;
-	}
-
-	if ( primitiveType == QUAD_PRIMITIVE ){
-		DynamicArray tri_vertices = gen_dynamic_array( sizeof(float)*3 ),
-			tri_UVs = gen_dynamic_array( sizeof(float)*2 ),
-			tri_normals = gen_dynamic_array( sizeof(float)*3 );
-
-		for( size_t i = 0; i < destination->vertices.usage / 4; ++i ){
-			float vert_a[3] = {
-				*((float*)destination->vertices.buffer + i * 12),
-				*((float*)destination->vertices.buffer + i * 12 + 1),
-				*((float*)destination->vertices.buffer + i * 12 + 2)
-			};
-			float vert_b[3] = {
-				*((float*)destination->vertices.buffer + i * 12 + 3),
-				*((float*)destination->vertices.buffer + i * 12 + 4),
-				*((float*)destination->vertices.buffer + i * 12 + 5)
-			};
-			float vert_c[3] = {
-				*((float*)destination->vertices.buffer + i * 12 + 6),
-				*((float*)destination->vertices.buffer + i * 12 + 7),
-				*((float*)destination->vertices.buffer + i * 12 + 8)
-			};		
-			float vert_d[3] = {
-				*((float*)destination->vertices.buffer + i * 12 + 9),
-				*((float*)destination->vertices.buffer + i * 12 + 10),
-				*((float*)destination->vertices.buffer + i * 12 + 11)
-			};
+			Vec3 vertex = { x, y, z };
+			insert_data( &raw_vertices, &vertex, sizeof( float ) * 3 );
+		}else if ( strcmp( line_tokens[0], "vt" ) == 0 ){
+			float x = atof( convert_float_string_to_current_locale( line_tokens[1] ) ),
+				y = atof( convert_float_string_to_current_locale( line_tokens[2] ) );
 			
-			insert_data( &tri_vertices, &vert_a[0], sizeof(float)*3 );	
-			insert_data( &tri_vertices, &vert_b[0], sizeof(float)*3 );
-			insert_data( &tri_vertices, &vert_c[0], sizeof(float)*3 );	
-	
-			insert_data( &tri_vertices, &vert_c[0], sizeof(float)*3 );	
-			insert_data( &tri_vertices, &vert_d[0], sizeof(float)*3 );	
-			insert_data( &tri_vertices, &vert_a[0], sizeof(float)*3 );
-
-			if ( destination->UVs.usage == destination->vertices.usage ){
-
-				float UVs_a[3] = {
-					*((float*)destination->UVs.buffer + i * 8),
-					*((float*)destination->UVs.buffer + i * 8 + 1)
-				};
-				float UVs_b[3] = {
-					*((float*)destination->UVs.buffer + i * 8 + 2),
-					*((float*)destination->UVs.buffer + i * 8 + 3)
-				};
-				float UVs_c[3] = {
-					*((float*)destination->UVs.buffer + i * 8 + 4),
-					*((float*)destination->UVs.buffer + i * 8 + 5)
-				};		
-				float UVs_d[3] = {
-					*((float*)destination->UVs.buffer + i * 8 + 6),
-					*((float*)destination->UVs.buffer + i * 8 + 7)
-				};
-
-				insert_data( &tri_UVs, &UVs_a[0], sizeof(float)*2 );	
-				insert_data( &tri_UVs, &UVs_b[0], sizeof(float)*2 );
-				insert_data( &tri_UVs, &UVs_c[0], sizeof(float)*2 );	
+			Vec2 UV = { x, y };
+			insert_data( &raw_UVs, &UV, sizeof( float ) * 2 );
+		}else if ( strcmp( line_tokens[0], "vn" ) == 0 ){
+			float x = atof( convert_float_string_to_current_locale( line_tokens[1] ) ),
+				y = atof( convert_float_string_to_current_locale( line_tokens[2] ) ),
+				z = atof( convert_float_string_to_current_locale( line_tokens[3] ) );
+			
+			Vec3 normal = { x, y, z };
+			insert_data( &raw_normals, &normal, sizeof( float ) * 3 );
+		}else if ( strcmp( line_tokens[0], "f" ) == 0 ){
 		
-				insert_data( &tri_UVs, &UVs_c[0], sizeof(float)*2 );	
-				insert_data( &tri_UVs, &UVs_d[0], sizeof(float)*2 );	
-				insert_data( &tri_UVs, &UVs_a[0], sizeof(float)*2 );
+			DynamicArray *indice_dest = ( ( line_tokens_amnt - 1 ) % 4 == 0 ) ? &quad_indices : &tri_indices;
 
-			}
-			
-			if ( destination->normals.usage == destination->vertices.usage ){
-
-				float normals_a[3] = {
-					*((float*)destination->normals.buffer + i * 12),
-					*((float*)destination->normals.buffer + i * 12 + 1),
-					*((float*)destination->normals.buffer + i * 12 + 2)
-				};
-				float normals_b[3] = {
-					*((float*)destination->normals.buffer + i * 12 + 3),
-					*((float*)destination->normals.buffer + i * 12 + 4),
-					*((float*)destination->normals.buffer + i * 12 + 5)
-				};
-				float normals_c[3] = {
-					*((float*)destination->normals.buffer + i * 12 + 6),
-					*((float*)destination->normals.buffer + i * 12 + 7),
-					*((float*)destination->normals.buffer + i * 12 + 8)
-				};		
-				float normals_d[3] = {
-					*((float*)destination->normals.buffer + i * 12 + 9),
-					*((float*)destination->normals.buffer + i * 12 + 10),
-					*((float*)destination->normals.buffer + i * 12 + 11)
-				};
-				
-				insert_data( &tri_normals, &normals_a[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &normals_b[0], sizeof(float)*3 );
-				insert_data( &tri_normals, &normals_c[0], sizeof(float)*3 );	
-		
-				insert_data( &tri_normals, &normals_c[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &normals_d[0], sizeof(float)*3 );	
-				insert_data( &tri_normals, &normals_a[0], sizeof(float)*3 );
-
+			for ( size_t i = 0; i < line_tokens_amnt - 1; ++i )
+			{
+				Indices indices = unpack_indices( line_tokens[ 1 + i ] );
+				insert_data( indice_dest, &indices, sizeof( int ) * 3 );
 			}
 
 		}
 
-		free_dynamic_array( &destination->vertices );
-		free_dynamic_array( &destination->UVs );
-		free_dynamic_array( &destination->normals );
-
-		destination->vertices = tri_vertices;
-		destination->UVs = tri_UVs;
-		destination->normals = tri_normals;
-	}
-
-	destination->vertices.usage /= 3;
-
-	free_dynamic_array( &indices );
-
-	return destination;
+	} 
+	system( "PAUSE" );
+	return mesh;
 }
 
 Mesh *gen_mesh()
 {
 	Mesh *mesh = malloc( sizeof( Mesh ) );
 
-	mesh->vertices = gen_dynamic_array( sizeof(Triangle) );
+	mesh->vertices = gen_dynamic_array( sizeof(Vec3) );
 	mesh->normals = gen_dynamic_array( sizeof(Vec3) );
 	mesh->UVs = gen_dynamic_array( sizeof(Vec2) );
 
@@ -280,7 +139,7 @@ Mesh *load_mesh(const char* path)
 	Mesh *result;
 	if ( strcmp( extension, "obj" ) == 0 )
 	{
-		result = load_mesh_obj_strategy( path );
+		result = load_mesh_obj_strategy( ( char* ) path );
 	}else{
 		fprintf(stderr, "Unsupported model file type. Extension: %s\n", extension);
 		result = NULL;

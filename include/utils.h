@@ -233,5 +233,7 @@ UIImage* gen_ui_image( IntVec2 position, IntVec2 size, RGB color, size_t layer, 
 void free_ui_image( UIImage *image );
 
 char *get_path_extension_alloc( char *path );
+char *strrpl( char *str, char to_replace, char replace_with );
+char *convert_float_string_to_current_locale( char *str );
 
 #endif

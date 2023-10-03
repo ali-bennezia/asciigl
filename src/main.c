@@ -19,14 +19,31 @@ int main(int argc, char* argv[]){
 	Model *mdl = gen_model();
 	mdl->mesh = msh;
 
+	system( "PAUSE" );
+
 	Vec3 position = {
 		0,
 		0,
 		10
+	}, rotation = {
+		0,
+		0,
+		0
 	};
+
+	mdl->position = position;
+	mdl->rotation = rotation;
+
+	RGB white = { 255, 255, 255 };
+	Vec3 normal = { 1, 0, 0 };
+	normal = vec3_normalize( normal );
+
+	add_ambient_light( "a_light", 100, white );
+	add_directional_light( "light", 155, normal, white );
 
 	while (1){
 		asciigl_process_frame();
+		mdl->rotation.y += 5;
 	}
 
 	return 0;

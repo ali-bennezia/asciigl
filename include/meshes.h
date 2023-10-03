@@ -15,11 +15,6 @@
 
 typedef struct Mesh Mesh;
 
-enum PRIMITIVE_TYPE{
-	TRIANGLE_PRIMITIVE,
-	QUAD_PRIMITIVE
-};
-
 Mesh *gen_mesh();
 void free_mesh( Mesh *mesh );
 Mesh *load_mesh(const char* path);

@@ -73,6 +73,7 @@ void remove_data(DynamicArray* arr, size_t index, size_t dataSize)
 
 void free_dynamic_array(DynamicArray* arr){
     free( arr->buffer );
+    arr->buffer = NULL;
     arr->usage = 0;
     arr->size = 0;
 }
@@ -80,7 +81,6 @@ void free_dynamic_array(DynamicArray* arr){
 RGB RGBA_to_RGB( RGBA in )
 {
 	RGB out;
-	//memcpy( &out, &in, sizeof(RGB) );
 	out.red = in.red;	
 	out.green = in.green;
 	out.blue = in.blue;
@@ -418,8 +418,8 @@ Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 	Vec2 zy_plane_rotated_position = rotate_plane_position( position.z, position.y, rotation_rads.x ); // x-axis
 	position.z = zy_plane_rotated_position.x; position.y = zy_plane_rotated_position.y;
 
-	Vec2 zx_plane_rotated_position = rotate_plane_position( position.z, -position.x, rotation_rads.y ); // y-axis
-	position.z = zx_plane_rotated_position.x; position.x = -zx_plane_rotated_position.y;
+	Vec2 xz_plane_rotated_position = rotate_plane_position( position.x, position.z, rotation_rads.y ); // y-axis
+	position.x = xz_plane_rotated_position.x; position.z = xz_plane_rotated_position.y;
 
 	Vec2 xy_plane_rotated_position = rotate_plane_position( position.x, position.y, rotation_rads.z ); // z-axis
 	position.x = xy_plane_rotated_position.x; position.y = xy_plane_rotated_position.y;
@@ -792,4 +792,27 @@ char *get_path_extension_alloc( char *path )
 	}
 	free( str );
 	return result;
+}
+
+char *strrpl( char *str, char to_replace, char replace_with )
+{
+	size_t len = strlen( str );
+	
+	for ( size_t i = 0; i < len; ++i )
+	{
+		char *c = str + i;
+		if ( *c == to_replace )
+			*c = replace_with;
+	}
+	return str;
+}
+
+#include <locale.h>
+
+char *convert_float_string_to_current_locale( char *str )
+{
+	struct lconv *current_locale = localeconv();
+
+	strrpl( str, '.', *current_locale->decimal_point );
+	return strrpl( str, ',', *current_locale->decimal_point );
 }

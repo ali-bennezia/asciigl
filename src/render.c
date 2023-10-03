@@ -492,8 +492,8 @@ void draw_model(Model model){
     if ( !model.mesh ) return;
 
     //condition to take normals & UVs into account during rendering
-    char normals = model.mesh->vertices.usage == model.mesh->normals.usage/3 ? 1 : 0;
-    char UVs = model.mesh->vertices.usage == model.mesh->UVs.usage/3 && model.mesh->UVs.usage != 0 ? 1 : 0;
+    char normals = model.mesh->vertices.usage == model.mesh->normals.usage ? 1 : 0;
+    char UVs = model.mesh->vertices.usage == model.mesh->UVs.usage && model.mesh->UVs.usage != 0 ? 1 : 0;
     Vec2 placeholder_UVs[3] = { 
 	{1, 1},
 	{1, 0},
@@ -501,18 +501,35 @@ void draw_model(Model model){
     };
 
     //per-primitive
-    for (size_t i = 0; i < model.mesh->vertices.usage; ++i){
+    for (size_t i = 0; i < model.mesh->vertices.usage/3; ++i){
         Triangle primitive = *((Triangle*)get_data( &model.mesh->vertices, i, sizeof(Triangle) ));
-
-        //normals
+        
+	 //normals
         Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.mesh->normals, i*3, sizeof(Vec3) ) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
-            normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
+/*            normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
             normals_out[1] = rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), model.rotation );
-            normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );
+            normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );*/
+            normals_out[0] = rotate_point_around_origin( *(normals_ptr), model.rotation );
+            normals_out[1] = rotate_point_around_origin( *(normals_ptr + 1), model.rotation );
+            normals_out[2] = rotate_point_around_origin( *(normals_ptr + 2), model.rotation );
             normals_ptr = &normals_out[0];
         }
+
+	printf( "model rotation: %f %f %f\n", model.rotation.x, model.rotation.y, model.rotation.z );
+
+	printf( "vertices: %f %f %f, %f %f %f, %f %f %f\n",
+		primitive.a.x, primitive.a.y, primitive.a.z,
+		primitive.b.x, primitive.b.y, primitive.b.z,
+		primitive.c.x, primitive.c.y, primitive.c.z
+	);
+
+	printf( "normals: %f %f %f, %f %f %f, %f %f %f\n",
+		normals_out[0].x, normals_out[0].y, normals_out[0].z,
+		normals_out[1].x, normals_out[1].y, normals_out[1].z,
+		normals_out[2].x, normals_out[2].y, normals_out[2].z
+	);
 
 	//UVs
 	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.mesh->UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
@@ -549,6 +566,8 @@ void draw_model(Model model){
         
         rasterize_and_draw_primitive_v2(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
     }
+
+	system("PAUSE");
 
 }
 
