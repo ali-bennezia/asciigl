@@ -36,7 +36,7 @@ typedef struct Indices {
 	int a, b, c;
 } Indices;
 
-static Indices unpack_indices( char *str )
+static Indices get_str_indices( char *str )
 {
 	Indices out = {0};
 
@@ -49,6 +49,52 @@ static Indices unpack_indices( char *str )
 	}	
 
 	return out;
+}
+
+static void convert_indices_quads_to_tris( DynamicArray *quad_indices, DynamicArray *tri_indices )
+{
+
+	for ( size_t i = 0; i < quad_indices->usage / 4; ++i )
+	{
+		Indices vert_1 = *(( Indices* ) quad_indices->buffer + i * 4 + 0 ),
+			vert_2 = *(( Indices* ) quad_indices->buffer + i * 4 + 1 ),
+			vert_3 = *(( Indices* ) quad_indices->buffer + i * 4 + 2 ),
+			vert_4 = *(( Indices* ) quad_indices->buffer + i * 4 + 3 );
+
+		insert_data( tri_indices, &vert_1, sizeof( int ) * 3 );
+		insert_data( tri_indices, &vert_3, sizeof( int ) * 3 );
+		insert_data( tri_indices, &vert_2, sizeof( int ) * 3 );
+
+		insert_data( tri_indices, &vert_1, sizeof( int ) * 3 );
+		insert_data( tri_indices, &vert_4, sizeof( int ) * 3 );
+		insert_data( tri_indices, &vert_3, sizeof( int ) * 3 );
+	}
+
+}
+
+static void unpack_indices_data( 
+	DynamicArray *vertices, 
+	DynamicArray *UVs, 
+	DynamicArray *normals, 
+	DynamicArray *indices, 
+	DynamicArray *out_vertices, 
+	DynamicArray *out_UVs, 
+	DynamicArray *out_normals 
+)
+{
+	for ( size_t i = 0; i < indices->usage; ++i )
+	{
+		Indices ind = *( ( Indices* ) indices->buffer + i );
+		--ind.a; --ind.b; --ind.c;
+
+		Vec3 vertex = *( ( Vec3* ) vertices->buffer + ind.a );
+		Vec2 UVcoords = *( ( Vec2* ) UVs->buffer + ind.b );	
+		Vec3 normal = *( ( Vec3* ) normals->buffer + ind.c );
+
+		insert_data( out_vertices, &vertex, sizeof( float ) * 3 );	
+		insert_data( out_UVs, &UVcoords, sizeof( float ) * 2 );	
+		insert_data( out_normals, &normal, sizeof( float ) * 3 );
+	}
 }
 
 Mesh *load_mesh_obj_strategy(const char* path)
@@ -97,19 +143,26 @@ Mesh *load_mesh_obj_strategy(const char* path)
 			Vec3 normal = { x, y, z };
 			insert_data( &raw_normals, &normal, sizeof( float ) * 3 );
 		}else if ( strcmp( line_tokens[0], "f" ) == 0 ){
-		
 			DynamicArray *indice_dest = ( ( line_tokens_amnt - 1 ) % 4 == 0 ) ? &quad_indices : &tri_indices;
 
 			for ( size_t i = 0; i < line_tokens_amnt - 1; ++i )
 			{
-				Indices indices = unpack_indices( line_tokens[ 1 + i ] );
+				Indices indices = get_str_indices( line_tokens[ 1 + i ] );
 				insert_data( indice_dest, &indices, sizeof( int ) * 3 );
 			}
-
 		}
 
 	} 
-	system( "PAUSE" );
+
+	convert_indices_quads_to_tris( &quad_indices, &tri_indices );
+	unpack_indices_data( &raw_vertices, &raw_UVs, &raw_normals, &tri_indices, &mesh->vertices, &mesh->UVs, &mesh->normals );
+
+	free_dynamic_array( &raw_vertices );
+	free_dynamic_array( &raw_UVs );
+	free_dynamic_array( &raw_normals );
+	free_dynamic_array( &tri_indices );
+	free_dynamic_array( &quad_indices );
+
 	return mesh;
 }
 

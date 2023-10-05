@@ -19,8 +19,6 @@ int main(int argc, char* argv[]){
 	Model *mdl = gen_model();
 	mdl->mesh = msh;
 
-	system( "PAUSE" );
-
 	Vec3 position = {
 		0,
 		0,
