@@ -408,6 +408,40 @@ int clamp_segment_within_vertical_horizontal_ranges( Segment* out, Segment segme
     clamp_segment_within_horizontal_range( out, *out, range_2_limit_1, range_2_limit_2 );
 }
 
+/* 
+	returns, on a 2d plane, the measure of the angle defined by the ray going from the origin of coordinates 
+	to ( 1, 0 ) and the ray going from the origin of coordinates to a given 2d position
+	the returned angle is defined in the half-closed interval [ - pi; pi ) and is expressed in radians
+*/
+float compute_plane_angle( float pos_x, float pos_y )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+
+	if ( pos.x == 0 || distance == 0 )
+	{
+		if ( pos.y > 0 ) return M_PI / 2.0;
+		else if ( pos.y < 0 ) return ( 3.0 / 2.0 ) * M_PI;
+		else return 0;
+	}else return atan2f( pos.y, pos.x ); 
+}
+
+Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads )
+{
+	Vec2 pos = {
+		pos_x,
+		pos_y
+	};
+	float distance = vec2_magnitude( pos );
+	float angle = compute_plane_angle( pos_x, pos_y ) + delta_theta_rads;
+	pos.x = cos( angle ) * distance;
+	pos.y = sin( angle ) * distance;
+	return pos;
+}
+
 Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 	Vec3 rotation_rads = {
 		to_rads( rotation.x ),
@@ -415,14 +449,17 @@ Vec3 rotate_point_around_origin(Vec3 position, Vec3 rotation){
 		to_rads( rotation.z )
 	};
 
-	Vec2 zy_plane_rotated_position = rotate_plane_position( position.z, position.y, rotation_rads.x ); // x-axis
-	position.z = zy_plane_rotated_position.x; position.y = zy_plane_rotated_position.y;
+	// x-axis
+	Vec2 zy_coords = rotate_plane_position( position.z, position.y, rotation_rads.x );
+	position.z = zy_coords.x; position.y = zy_coords.y;
 
-	Vec2 xz_plane_rotated_position = rotate_plane_position( position.x, position.z, rotation_rads.y ); // y-axis
-	position.x = xz_plane_rotated_position.x; position.z = xz_plane_rotated_position.y;
+	// y-axis
+	Vec2 xz_coords = rotate_plane_position( position.x, position.z, rotation_rads.y );
+	position.x = xz_coords.x; position.z = xz_coords.y;
 
-	Vec2 xy_plane_rotated_position = rotate_plane_position( position.x, position.y, rotation_rads.z ); // z-axis
-	position.x = xy_plane_rotated_position.x; position.y = xy_plane_rotated_position.y;
+	// z-axis
+	Vec2 xy_coords = rotate_plane_position( position.x, position.y, rotation_rads.z );
+	position.x = xy_coords.x; position.y = xy_coords.y;
 
 	return position;
 }
@@ -477,34 +514,6 @@ IntVec2 vec2_float_to_int(IntVec2 vec)
     out.x = (int)vec.x;
     out.y = (int)vec.y;
     return out;
-}
-
-/* 
-	returns, on a 2d plane, the measure of the angle defined by the ray going from the origin of coordinates 
-	to ( 1, 0 ) and the ray going from the origin of coordinates to a given 2d position
-	the returned angle is defined in the half-closed interval [ - pi; pi ) and is expressed in radians
-*/
-float compute_plane_angle( float pos_x, float pos_y )
-{
-	Vec2 pos = {
-		pos_x,
-		pos_y
-	};
-	float distance = vec2_magnitude( pos );
-	return ( pos.x == 0 || distance == 0 ) ? 0 : atan2( pos.y / distance, pos.x / distance );
-}
-
-Vec2 rotate_plane_position( float pos_x, float pos_y, float delta_theta_rads )
-{
-	Vec2 pos = {
-		pos_x,
-		pos_y
-	};
-	float distance = vec2_magnitude( pos );
-	float angle = compute_plane_angle( pos_x, pos_y ) + delta_theta_rads;
-	pos.x = cos( angle ) * distance;
-	pos.y = sin( angle ) * distance;
-	return pos;
 }
 
 Vec3 get_lookat_euler_angles_rotation( Vec3 lookat )

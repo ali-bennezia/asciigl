@@ -53,7 +53,6 @@ static Indices get_str_indices( char *str )
 
 static void convert_indices_quads_to_tris( DynamicArray *quad_indices, DynamicArray *tri_indices )
 {
-
 	for ( size_t i = 0; i < quad_indices->usage / 4; ++i )
 	{
 		Indices vert_1 = *(( Indices* ) quad_indices->buffer + i * 4 + 0 ),
@@ -69,7 +68,6 @@ static void convert_indices_quads_to_tris( DynamicArray *quad_indices, DynamicAr
 		insert_data( tri_indices, &vert_4, sizeof( int ) * 3 );
 		insert_data( tri_indices, &vert_3, sizeof( int ) * 3 );
 	}
-
 }
 
 static void unpack_indices_data( 
@@ -160,8 +158,8 @@ Mesh *load_mesh_obj_strategy(const char* path)
 	free_dynamic_array( &raw_vertices );
 	free_dynamic_array( &raw_UVs );
 	free_dynamic_array( &raw_normals );
-	free_dynamic_array( &tri_indices );
 	free_dynamic_array( &quad_indices );
+	free_dynamic_array( &tri_indices );
 
 	return mesh;
 }
@@ -170,9 +168,9 @@ Mesh *gen_mesh()
 {
 	Mesh *mesh = malloc( sizeof( Mesh ) );
 
-	mesh->vertices = gen_dynamic_array( sizeof(Vec3) );
-	mesh->normals = gen_dynamic_array( sizeof(Vec3) );
-	mesh->UVs = gen_dynamic_array( sizeof(Vec2) );
+	mesh->vertices = gen_dynamic_array( sizeof(float) * 3 );
+	mesh->normals = gen_dynamic_array( sizeof( float ) * 3 );
+	mesh->UVs = gen_dynamic_array( sizeof( float ) * 2 );
 
 	return mesh;
 }

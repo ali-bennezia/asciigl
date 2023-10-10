@@ -487,37 +487,97 @@ void rasterize_and_draw_primitive_v2(
 
 }
 
-void draw_model(Model model){
+void draw_model( Model *model )
+{
+	if ( model->mesh == NULL ) return;
 
-    if ( !model.mesh ) return;
+	int use_normals = model->mesh->vertices.usage == model->mesh->normals.usage;
+	int use_UVs = model->mesh->vertices.usage == model->mesh->UVs.usage;
+
+	// per triangle
+	for ( size_t i = 0; i < model->mesh->vertices.usage / 3; ++i )
+	{
+		Triangle tri = *( ( Triangle* ) model->mesh->vertices.buffer + i );
+		Vec3 *normals = use_normals ? ( Vec3* ) model->mesh->normals.buffer + i * 3 : NULL;
+		Vec2 *UVs = use_UVs ? ( Vec2* ) model->mesh->UVs.buffer + i * 3 : NULL;
+
+		Vec3 normals_out[3];
+		if ( normals )
+		{
+			normals_out[0] = rotate_point_around_origin( scale_normal( *( normals ), model->scale ), model->rotation );
+			normals_out[1] = rotate_point_around_origin( scale_normal( *( normals + 1 ), model->scale ), model->rotation );
+			normals_out[2] = rotate_point_around_origin( scale_normal( *( normals + 2 ), model->scale ), model->rotation );
+		}
+
+		Vec3 a_modelspace_rotated = vec3_scale( tri.a, model->scale ); 
+		Vec3 b_modelspace_rotated = vec3_scale( tri.b, model->scale ); 
+		Vec3 c_modelspace_rotated = vec3_scale( tri.c, model->scale ); 
+
+		if ( model->rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
+		{
+			Vec3 cam_pos = get_player_position();
+			Vec3 diff_pos = vec3_difference( cam_pos, model->position );
+			if ( vec3_magnitude( diff_pos ) <= 0 )
+				diff_pos.z = 1;
+			Vec3 billboard_rotation = get_lookat_euler_angles_rotation( vec3_normalize( diff_pos ) );
+			billboard_rotation.z = get_player_rotation().z;
+
+			a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, billboard_rotation ); 
+			b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, billboard_rotation );
+			c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, billboard_rotation ); 
+		}
+
+		a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, model->rotation );
+		b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, model->rotation );
+		c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, model->rotation );
+
+		Vec3 a_worldspace = vec3_add(model->position, a_modelspace_rotated);
+		Vec3 b_worldspace = vec3_add(model->position, b_modelspace_rotated);
+		Vec3 c_worldspace = vec3_add(model->position, c_modelspace_rotated);
+
+		Vec3 a_viewspace = worldspace_coords_to_viewspace_coords(a_worldspace);
+		Vec3 b_viewspace = worldspace_coords_to_viewspace_coords(b_worldspace);
+		Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
+
+		rasterize_and_draw_primitive_v2( a_viewspace, b_viewspace, c_viewspace, use_normals ? &normals_out[0] : NULL, UVs, model->texture, model );
+	}
+
+}
+
+/*
+void draw_model(Model *model){
+
+    if ( !model->mesh ) return;
 
     //condition to take normals & UVs into account during rendering
-    char normals = model.mesh->vertices.usage == model.mesh->normals.usage ? 1 : 0;
-    char UVs = model.mesh->vertices.usage == model.mesh->UVs.usage && model.mesh->UVs.usage != 0 ? 1 : 0;
+    char normals = model->mesh->vertices.usage == model->mesh->normals.usage ? 1 : 0;
+    char UVs = model->mesh->vertices.usage == model->mesh->UVs.usage && model->mesh->UVs.usage != 0 ? 1 : 0;
     Vec2 placeholder_UVs[3] = { 
 	{1, 1},
 	{1, 0},
 	{0, 0} 
     };
 
+
+
     //per-primitive
-    for (size_t i = 0; i < model.mesh->vertices.usage/3; ++i){
-        Triangle primitive = *((Triangle*)get_data( &model.mesh->vertices, i, sizeof(Triangle) ));
+    for (size_t i = 0; i < model->mesh->vertices.usage/3; ++i){
+        Triangle primitive = *((Triangle*)get_data( &model->mesh->vertices, i, sizeof( float ) * 9 ));
         
 	 //normals
-        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model.mesh->normals, i*3, sizeof(Vec3) ) : NULL;
+        Vec3* normals_ptr = normals == 1 ? (Vec3*)get_data( &model->mesh->normals, i * 3, sizeof( float ) * 3 ) : NULL;
         Vec3 normals_out[3];
         if (normals_ptr != NULL){
-/*            normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
-            normals_out[1] = rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), model.rotation );
-            normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );*/
-            normals_out[0] = rotate_point_around_origin( *(normals_ptr), model.rotation );
-            normals_out[1] = rotate_point_around_origin( *(normals_ptr + 1), model.rotation );
-            normals_out[2] = rotate_point_around_origin( *(normals_ptr + 2), model.rotation );
+            //normals_out[0] = rotate_point_around_origin( scale_normal( *(normals_ptr), model.scale ), model.rotation );
+            //normals_out[1] = rotate_point_around_origin( scale_normal( *(normals_ptr + 1), model.scale ), model.rotation );
+            //normals_out[2] = rotate_point_around_origin( scale_normal( *(normals_ptr + 2), model.scale ), model.rotation );
+            normals_out[0] = rotate_point_around_origin( *(normals_ptr), model->rotation );
+            normals_out[1] = rotate_point_around_origin( *(normals_ptr + 1), model->rotation );
+            normals_out[2] = rotate_point_around_origin( *(normals_ptr + 2), model->rotation );
             normals_ptr = &normals_out[0];
         }
 
-	printf( "model rotation: %f %f %f\n", model.rotation.x, model.rotation.y, model.rotation.z );
+	printf( "model rotation: %f %f %f\n", model->rotation.x, model->rotation.y, model->rotation.z );
 
 	printf( "vertices: %f %f %f, %f %f %f, %f %f %f\n",
 		primitive.a.x, primitive.a.y, primitive.a.z,
@@ -532,16 +592,16 @@ void draw_model(Model model){
 	);
 
 	//UVs
-	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model.mesh->UVs, i*3, sizeof(Vec2) ) : &placeholder_UVs[0];
+	Vec2* UVs_ptr = UVs == 1 ? (Vec2*)get_data( &model->mesh->UVs, i*3, sizeof( float ) * 2 ) : &placeholder_UVs[0];
 
-        Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model.scale ); 
-        Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model.scale ); 
-        Vec3 c_modelspace_rotated = vec3_scale( primitive.c, model.scale ); 
+        Vec3 a_modelspace_rotated = vec3_scale( primitive.a, model->scale ); 
+        Vec3 b_modelspace_rotated = vec3_scale( primitive.b, model->scale ); 
+        Vec3 c_modelspace_rotated = vec3_scale( primitive.c, model->scale ); 
 
-	if ( model.rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
+	if ( model->rotationMode == ASCIIGL_RENDER_ROTATION_MODE_BILLBOARD )
 	{
 		Vec3 cam_pos = get_player_position();
-		Vec3 diff_pos = vec3_difference( cam_pos, model.position );
+		Vec3 diff_pos = vec3_difference( cam_pos, model->position );
 		if ( vec3_magnitude( diff_pos ) <= 0 )
 			diff_pos.z = 1;
 		Vec3 billboard_rotation = get_lookat_euler_angles_rotation( vec3_normalize( diff_pos ) );
@@ -552,24 +612,24 @@ void draw_model(Model model){
 		c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, billboard_rotation ); 
 	}
 
-        a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, model.rotation );
-        b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, model.rotation );
-        c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, model.rotation );
+        a_modelspace_rotated = rotate_point_around_origin( a_modelspace_rotated, model->rotation );
+        b_modelspace_rotated = rotate_point_around_origin( b_modelspace_rotated, model->rotation );
+        c_modelspace_rotated = rotate_point_around_origin( c_modelspace_rotated, model->rotation );
 
-        Vec3 a_worldspace = vec3_add(model.position, a_modelspace_rotated);
-        Vec3 b_worldspace = vec3_add(model.position, b_modelspace_rotated);
-        Vec3 c_worldspace = vec3_add(model.position, c_modelspace_rotated);
+        Vec3 a_worldspace = vec3_add(model->position, a_modelspace_rotated);
+        Vec3 b_worldspace = vec3_add(model->position, b_modelspace_rotated);
+        Vec3 c_worldspace = vec3_add(model->position, c_modelspace_rotated);
 
         Vec3 a_viewspace = worldspace_coords_to_viewspace_coords(a_worldspace);
         Vec3 b_viewspace = worldspace_coords_to_viewspace_coords(b_worldspace);
         Vec3 c_viewspace = worldspace_coords_to_viewspace_coords(c_worldspace);
         
-        rasterize_and_draw_primitive_v2(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model.texture, &model);
+        rasterize_and_draw_primitive_v2(a_viewspace, b_viewspace, c_viewspace, normals_ptr, UVs_ptr, model->texture, model);
     }
 
 	system("PAUSE");
 
-}
+}*/
 
 void draw_fragment(int x, int y, float depth, Vec3 viewspacePosition, Vec3* normal, Vec2* UV, Texture* tex, Model* mdl){
     float current_depth = get_depth_buffer_depth(x, y);
@@ -807,7 +867,7 @@ static void draw_obj( Object* obj )
 
 		case ASCIIGL_OBJTYPE_MODEL:
 		case ASCIIGL_OBJTYPE_MODEL_BILLBOARD:
-			draw_model( *( (Model*) obj->ptr ) );
+			draw_model( ( Model* ) obj->ptr );
 			break;
 		case ASCIIGL_OBJTYPE_UI_TEXT:
 			draw_ui_text( ( UIText* ) obj->ptr );	
