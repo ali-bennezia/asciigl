@@ -724,7 +724,7 @@ UIText* gen_ui_text( char *text, IntVec2 position, RGB color, size_t layer )
 	txt->color = color;
 	txt->layer = layer;
 
-	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT ) );	
+	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT )->ptr );	
 }
 
 UIText *set_ui_text( UIText *dest, char *text )
@@ -749,7 +749,7 @@ UIFrame* gen_ui_frame( IntVec2 position, IntVec2 size, RGB color, size_t layer )
 	frame->color = color;
 	frame->layer = layer;
 
-	return ( UIFrame* ) ( register_object( frame, ASCIIGL_OBJTYPE_UI_FRAME ) );	
+	return ( UIFrame* ) ( register_object( frame, ASCIIGL_OBJTYPE_UI_FRAME )->ptr );	
 }
 
 void free_ui_frame( UIFrame *frame )
@@ -767,7 +767,7 @@ UIImage* gen_ui_image( IntVec2 position, IntVec2 size, RGB color, size_t layer, 
 	image->layer = layer;
 	image->texture = tex;
 
-	return ( UIImage* ) ( register_object( image, ASCIIGL_OBJTYPE_UI_IMAGE ) );	
+	return ( UIImage* ) ( register_object( image, ASCIIGL_OBJTYPE_UI_IMAGE )->ptr );	
 }
 
 void free_ui_image( UIImage *image )

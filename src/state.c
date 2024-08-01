@@ -42,7 +42,7 @@ DynamicArray* get_ambient_lights() { return &ambientLights; }
 DynamicArray* get_directional_lights() { return &directionalLights; }
 DynamicArray* get_point_lights() { return &pointLights; }
 
-const char fragments[] = ".`-:;*=enDMLXE$@";
+const char fragments[] = ".`-:;*=enDMLXE$@■";
 char light_level_to_fragment(unsigned short lightLevel){
     size_t correspondingIndex = (size_t)( (float)lightLevel/255.0*(strlen(&fragments[0]) - 1) ); 
     return fragments[ correspondingIndex ];
