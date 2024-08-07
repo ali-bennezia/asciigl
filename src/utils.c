@@ -723,6 +723,9 @@ UIText* gen_ui_text( char *text, IntVec2 position, RGB color, size_t layer )
 	txt->position = position;
 	txt->color = color;
 	txt->layer = layer;
+	txt->size_x = 0;
+	txt->size_y = 0;
+	get_text_dimensions( text, &txt->size_x, &txt->size_y );
 
 	return ( UIText* ) ( register_object( txt, ASCIIGL_OBJTYPE_UI_TEXT )->ptr );	
 }
@@ -824,4 +827,33 @@ char *convert_float_string_to_current_locale( char *str )
 
 	strrpl( str, '.', *current_locale->decimal_point );
 	return strrpl( str, ',', *current_locale->decimal_point );
+}
+
+void get_text_dimensions( char *txt, size_t *size_x, size_t *size_y )
+{
+	if ( txt == NULL ){
+		*size_x = 0;
+		*size_y = 0;
+		return;
+	}
+	size_t len = strlen( txt );
+	char *cpy = ( char* ) malloc( len + 1 );
+	strcpy( cpy, txt );
+	size_t y = 0;
+	for ( size_t i = 0; i < len; ++i )
+	{
+		char c = *(txt + i);
+		if ( c == '\n' ) ++y;	
+	}
+	char *buff = NULL;
+	size_t x = 0;
+	int first = 1;
+	while ( ( buff = strtok( first ? cpy : NULL, "\n" ) ) != NULL ){
+		first = 0;
+		size_t found_x = strlen( buff );
+		if ( x < found_x ) x = found_x;
+	}
+	free( cpy );
+	*size_x = x;
+	*size_y = y;
 }

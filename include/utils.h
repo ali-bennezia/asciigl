@@ -117,7 +117,7 @@ typedef struct UIText{
 	char *text;
 	IntVec2 position;
 	RGB color;
-	size_t layer;
+	size_t layer, size_x, size_y;
 } UIText;
 
 typedef struct UIFrame{
@@ -235,5 +235,6 @@ void free_ui_image( UIImage *image );
 char *get_path_extension_alloc( char *path );
 char *strrpl( char *str, char to_replace, char replace_with );
 char *convert_float_string_to_current_locale( char *str );
+void get_text_dimensions( char *txt, size_t *size_x, size_t *size_y );
 
 #endif
